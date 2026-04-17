@@ -1,0 +1,139 @@
+rules_version = '2';
+
+// Säkerhetsregler för Tipspromenaden.
+//
+// Modell:
+//   walks/{walkId}                            – publik läsning, ägaren skriver
+//   sessions/{sessionId}                      – publik läsning, vem som helst
+//                                               inloggad kan skapa, statusen
+//                                               kan flyttas (waiting -> active
+//                                               -> completed) av vem som helst
+//                                               inloggad. Ingen radering.
+//   sessions/{sessionId}/participants/{uid}   – varje deltagare får bara skriva
+//                                               sin egen post (dok-id måste
+//                                               matcha auth.uid). Publik
+//                                               läsning för topplistan.
+//
+// Allmänna principer:
+//   - Skapare: Google-inloggade (firebase-auth provider != 'anonymous').
+//   - Deltagare: anonyma (`signInAnonymously`).
+//   - Walks och sessions är publika data — vem som helst med QR-länken kan
+//     se dem. Det är meningen.
+//   - Poäng beräknas fortfarande klientside; reglerna förhindrar bara att
+//     en deltagare manipulerar någon annans deltagardokument.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Hämtar walks/{walkId} och kontrollerar att inloggad user är ägare.
+    // Måste deklareras inuti service-scopet eftersom den använder $(database).
+    function isWalkOwner(walkId) {
+      return walkId is string
+             && exists(/databases/$(database)/documents/walks/$(walkId))
+             && get(/databases/$(database)/documents/walks/$(walkId)).data.createdBy
+                == request.auth.uid;
+    }
+
+    // -------------------- walks --------------------
+    match /walks/{walkId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+                    && !isAnonymous()
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.id == walkId
+                    && hasValidWalkShape(request.resource.data);
+
+      allow update: if isSignedIn()
+                    && resource.data.createdBy == request.auth.uid
+                    && request.resource.data.createdBy == resource.data.createdBy
+                    && request.resource.data.id == walkId
+                    && hasValidWalkShape(request.resource.data);
+
+      allow delete: if isSignedIn()
+                    && resource.data.createdBy == request.auth.uid;
+    }
+
+    // -------------------- sessions --------------------
+    match /sessions/{sessionId} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+                    && request.resource.data.id == sessionId
+                    && request.resource.data.walkId is string
+                    && request.resource.data.status in ['waiting', 'active'];
+
+      // Tillåt bara att uppdatera `status`, inget annat fält. Förhindrar att
+      // walkId, createdAt eller andra fält ändras.
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['status'])
+                    && request.resource.data.status in ['waiting', 'active', 'completed'];
+
+      // Endast ägaren av promenaden får radera sessionen (för konto-radering /
+      // GDPR-rensning).
+      allow delete: if isSignedIn()
+                    && isWalkOwner(resource.data.walkId);
+
+      // -------- participants subcollection --------
+      match /participants/{participantId} {
+        allow read: if true;
+
+        // Doc-id MÅSTE matcha auth.uid. Det är den centrala spärren mot att
+        // manipulera andras poäng. Score får inte vara större än antalet svar
+        // — detta stoppar trivial inflation; full validering mot facit kräver
+        // Cloud Functions (se roadmap).
+        allow create: if isSignedIn()
+                      && request.auth.uid == participantId
+                      && request.resource.data.id == participantId
+                      && request.resource.data.name is string
+                      && request.resource.data.name.size() > 0
+                      && request.resource.data.name.size() <= 60
+                      && request.resource.data.score is number
+                      && request.resource.data.score >= 0
+                      && request.resource.data.answers is list
+                      && request.resource.data.score <= request.resource.data.answers.size();
+
+        allow update: if isSignedIn()
+                      && request.auth.uid == participantId
+                      && request.resource.data.id == participantId
+                      && request.resource.data.score is number
+                      && request.resource.data.score >= 0
+                      && request.resource.data.answers is list
+                      && request.resource.data.score <= request.resource.data.answers.size();
+
+        // Deltagaren får radera sin egen post (GDPR), och promenadens ägare
+        // får radera när de raderar konto/promenad.
+        allow delete: if isSignedIn()
+                      && (request.auth.uid == participantId
+                          || isWalkOwner(get(/databases/$(database)/documents/sessions/$(sessionId)).data.walkId));
+      }
+    }
+  }
+}
+
+// -------------------- helpers --------------------
+
+function isSignedIn() {
+  return request.auth != null;
+}
+
+function isAnonymous() {
+  return request.auth != null
+         && request.auth.token.firebase.sign_in_provider == 'anonymous';
+}
+
+function hasValidWalkShape(data) {
+  return data.id is string
+         && data.title is string
+         && data.title.size() > 0
+         && data.title.size() <= 200
+         && data.createdBy is string
+         && data.createdAt is number
+         && data.questions is list
+         && data.questions.size() <= 200;
+}
+
+// (isWalkOwner är deklarerad inuti service-scopet ovan eftersom den behöver
+// $(database). Att lägga den här ute ger CompilerWarning W eftersom $(database)
+// inte är i scope.)
