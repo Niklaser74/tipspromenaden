@@ -1,0 +1,483 @@
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+  useCallback,
+} from "react";
+import { View, Text, StyleSheet, Platform } from "react-native";
+
+// react-native-maps stöds inte på web.
+// På web använder vi Leaflet via en iframe med inline HTML.
+
+let NativeMapView: any;
+let NativeMarker: any;
+let NativeCircle: any;
+
+if (Platform.OS !== "web") {
+  const Maps = require("react-native-maps");
+  NativeMapView = Maps.default;
+  NativeMarker = Maps.Marker;
+  NativeCircle = Maps.Circle;
+}
+
+// ==================== WEB IMPLEMENTATION ====================
+
+interface WebMapProps {
+  style?: any;
+  initialRegion?: {
+    latitude: number;
+    longitude: number;
+    latitudeDelta: number;
+    longitudeDelta: number;
+  };
+  onPress?: (e: any) => void;
+  showsUserLocation?: boolean;
+  showsMyLocationButton?: boolean;
+  followsUserLocation?: boolean;
+  children?: React.ReactNode;
+}
+
+interface WebMarkerProps {
+  coordinate: { latitude: number; longitude: number };
+  title?: string;
+  description?: string;
+  draggable?: boolean;
+  opacity?: number;
+  onDragEnd?: (e: any) => void;
+  onCalloutPress?: () => void;
+  onPress?: () => void;
+  children?: React.ReactNode;
+}
+
+interface WebCircleProps {
+  center: { latitude: number; longitude: number };
+  radius: number;
+  strokeColor?: string;
+  fillColor?: string;
+}
+
+// Extract marker and circle data from React children
+function extractChildData(children: React.ReactNode): {
+  markers: WebMarkerProps[];
+  circles: WebCircleProps[];
+} {
+  const markers: WebMarkerProps[] = [];
+  const circles: WebCircleProps[] = [];
+
+  React.Children.forEach(children, (child) => {
+    if (!React.isValidElement(child)) return;
+
+    // Handle React.Fragment
+    if (child.type === React.Fragment) {
+      const nested = extractChildData(child.props.children);
+      markers.push(...nested.markers);
+      circles.push(...nested.circles);
+      return;
+    }
+
+    const props = child.props as any;
+
+    if (props.coordinate) {
+      markers.push(props);
+    } else if (props.center && props.radius !== undefined) {
+      circles.push(props);
+    }
+
+    // Recurse into children to find nested markers/circles
+    if (props.children) {
+      const nested = extractChildData(props.children);
+      markers.push(...nested.markers);
+      circles.push(...nested.circles);
+    }
+  });
+
+  return { markers, circles };
+}
+
+const WebMapView = forwardRef(
+  (
+    {
+      style,
+      initialRegion,
+      onPress,
+      showsUserLocation,
+      children,
+    }: WebMapProps,
+    ref: any
+  ) => {
+    const iframeRef = useRef<HTMLIFrameElement | null>(null);
+    const [iframeReady, setIframeReady] = useState(false);
+    const onPressRef = useRef(onPress);
+    onPressRef.current = onPress;
+
+    // Store marker callbacks by index
+    const markerCallbacksRef = useRef<{
+      onDragEnd: ((e: any) => void)[];
+      onCalloutPress: (() => void)[];
+      onPress: (() => void)[];
+      ids: string[];
+    }>({ onDragEnd: [], onCalloutPress: [], onPress: [], ids: [] });
+
+    useImperativeHandle(ref, () => ({}));
+
+    // Listen for messages from the iframe
+    useEffect(() => {
+      const handler = (event: MessageEvent) => {
+        if (!event.data || typeof event.data !== "object") return;
+        if (event.data.source !== "leaflet-map") return;
+        // Acceptera bara meddelanden från vår egen iframe — förhindrar att
+        // andra fönster/iframes på sidan skickar falska mapClick-events.
+        if (
+          iframeRef.current &&
+          event.source !== iframeRef.current.contentWindow
+        )
+          return;
+
+        const { type, payload } = event.data;
+
+        if (type === "ready") {
+          setIframeReady(true);
+        } else if (type === "mapClick") {
+          onPressRef.current?.({
+            nativeEvent: {
+              coordinate: {
+                latitude: payload.lat,
+                longitude: payload.lng,
+              },
+            },
+          });
+        } else if (type === "markerDragEnd") {
+          const cb = markerCallbacksRef.current.onDragEnd[payload.index];
+          cb?.({
+            nativeEvent: {
+              coordinate: {
+                latitude: payload.lat,
+                longitude: payload.lng,
+              },
+            },
+          });
+        } else if (type === "markerClick") {
+          const pressCb = markerCallbacksRef.current.onPress[payload.index];
+          const calloutCb = markerCallbacksRef.current.onCalloutPress[payload.index];
+          if (pressCb) pressCb();
+          else if (calloutCb) calloutCb();
+        }
+      };
+
+      window.addEventListener("message", handler);
+      return () => window.removeEventListener("message", handler);
+    }, []);
+
+    // Build and send marker/circle data when children or iframe readiness changes
+    const { markers, circles } = extractChildData(children);
+
+    // Store callbacks
+    markerCallbacksRef.current = {
+      onDragEnd: markers.map((m) => m.onDragEnd || (() => {})),
+      onCalloutPress: markers.map((m) => m.onCalloutPress || (() => {})),
+      onPress: markers.map((m) => m.onPress || (() => {})),
+      ids: markers.map((_, i) => String(i)),
+    };
+
+    // Send data to iframe
+    useEffect(() => {
+      if (!iframeReady || !iframeRef.current?.contentWindow) return;
+
+      const markerData = markers.map((m, i) => ({
+        lat: m.coordinate.latitude,
+        lng: m.coordinate.longitude,
+        title: m.title || `Kontroll ${i + 1}`,
+        description: m.description || "",
+        draggable: m.draggable || false,
+        opacity: m.opacity ?? 1,
+        index: i,
+        // Extract label from children if present
+        label: extractMarkerLabel(m),
+      }));
+
+      const circleData = circles.map((c) => ({
+        lat: c.center.latitude,
+        lng: c.center.longitude,
+        radius: c.radius,
+        strokeColor: c.strokeColor || "rgba(232,168,56,0.5)",
+        fillColor: c.fillColor || "rgba(232,168,56,0.1)",
+      }));
+
+      iframeRef.current.contentWindow.postMessage(
+        {
+          source: "react-app",
+          type: "updateMarkers",
+          markers: markerData,
+          circles: circleData,
+          showUserLocation: showsUserLocation || false,
+        },
+        "*"
+      );
+    }, [iframeReady, markers.length, JSON.stringify(markers.map(m => ({
+      lat: m.coordinate.latitude,
+      lng: m.coordinate.longitude,
+      opacity: m.opacity,
+      title: m.title,
+      draggable: m.draggable,
+    })))]);
+
+    // Extract label text from marker children (the number in the circle)
+    function extractMarkerLabel(markerProps: WebMarkerProps): string {
+      if (!markerProps.children) return "";
+      let label = "";
+      React.Children.forEach(markerProps.children as any, (child: any) => {
+        if (!React.isValidElement(child)) return;
+        const cProps = child.props as any;
+        if (cProps.children) {
+          React.Children.forEach(cProps.children, (inner: any) => {
+            if (!React.isValidElement(inner)) return;
+            const iProps = inner.props as any;
+            if (iProps.children) {
+              React.Children.forEach(iProps.children, (text: any) => {
+                if (!React.isValidElement(text)) return;
+                const tProps = text.props as any;
+                if (typeof tProps.children === "string" || typeof tProps.children === "number") {
+                  label = String(tProps.children);
+                }
+              });
+            }
+          });
+        }
+      });
+      return label;
+    }
+
+    const lat = initialRegion?.latitude || 59.33;
+    const lng = initialRegion?.longitude || 18.07;
+    const zoom = initialRegion
+      ? Math.round(Math.log2(360 / (initialRegion.latitudeDelta || 0.01))) + 1
+      : 15;
+
+    const leafletHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  * { margin: 0; padding: 0; }
+  html, body, #map { width: 100%; height: 100%; }
+  .custom-marker {
+    background: #e8a838;
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .custom-marker.done {
+    background: #888;
+  }
+  .user-marker {
+    background: #4285F4;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 8px rgba(66,133,244,0.5);
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  var map = L.map('map').setView([${lat}, ${lng}], ${zoom});
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19,
+  }).addTo(map);
+
+  var markers = [];
+  var circles = [];
+  var userMarker = null;
+  var showUserLoc = false;
+
+  // HTML-escape användarkontrollerade fält (title/description/label) innan de
+  // injiceras i Leaflet-popup och divIcon. Förhindrar XSS via frågetext.
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // Handle map clicks
+  map.on('click', function(e) {
+    window.parent.postMessage({
+      source: 'leaflet-map',
+      type: 'mapClick',
+      payload: { lat: e.latlng.lat, lng: e.latlng.lng }
+    }, '*');
+  });
+
+  // Listen for messages from parent
+  window.addEventListener('message', function(event) {
+    if (!event.data || event.data.source !== 'react-app') return;
+
+    if (event.data.type === 'updateMarkers') {
+      // Clear existing
+      markers.forEach(function(m) { map.removeLayer(m); });
+      circles.forEach(function(c) { map.removeLayer(c); });
+      markers = [];
+      circles = [];
+
+      showUserLoc = event.data.showUserLocation;
+
+      // Add markers
+      (event.data.markers || []).forEach(function(m) {
+        var isDone = m.opacity < 1;
+        var labelText = m.label ? escapeHtml(m.label) : String(m.index + 1);
+        var icon = L.divIcon({
+          className: '',
+          html: '<div class="custom-marker' + (isDone ? ' done' : '') + '">' + labelText + '</div>',
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        var marker = L.marker([m.lat, m.lng], {
+          icon: icon,
+          draggable: m.draggable,
+          opacity: 1,
+        }).addTo(map);
+
+        if (m.title) {
+          var safeTitle = escapeHtml(m.title);
+          var safeDesc = m.description ? escapeHtml(m.description) : '';
+          marker.bindPopup('<b>' + safeTitle + '</b>' + (safeDesc ? '<br>' + safeDesc : ''));
+        }
+
+        marker.on('click', function() {
+          window.parent.postMessage({
+            source: 'leaflet-map',
+            type: 'markerClick',
+            payload: { index: m.index }
+          }, '*');
+        });
+
+        if (m.draggable) {
+          marker.on('dragend', function(e) {
+            var pos = e.target.getLatLng();
+            window.parent.postMessage({
+              source: 'leaflet-map',
+              type: 'markerDragEnd',
+              payload: { index: m.index, lat: pos.lat, lng: pos.lng }
+            }, '*');
+          });
+        }
+
+        markers.push(marker);
+      });
+
+      // Add circles
+      (event.data.circles || []).forEach(function(c) {
+        var circle = L.circle([c.lat, c.lng], {
+          radius: c.radius,
+          color: c.strokeColor,
+          fillColor: c.fillColor,
+          fillOpacity: 0.3,
+          weight: 1,
+        }).addTo(map);
+        circles.push(circle);
+      });
+
+      // User location
+      if (showUserLoc && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(pos) {
+          var ulat = pos.coords.latitude;
+          var ulng = pos.coords.longitude;
+          if (userMarker) map.removeLayer(userMarker);
+          var userIcon = L.divIcon({
+            className: '',
+            html: '<div class="user-marker"></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
+          });
+          userMarker = L.marker([ulat, ulng], { icon: userIcon, interactive: false }).addTo(map);
+        });
+      }
+    }
+  });
+
+  // Notify parent that we're ready
+  window.parent.postMessage({
+    source: 'leaflet-map',
+    type: 'ready',
+    payload: {}
+  }, '*');
+</script>
+</body>
+</html>`;
+
+    return (
+      <View style={[styles.webMapContainer, style]}>
+        <iframe
+          ref={iframeRef as any}
+          srcDoc={leafletHTML}
+          style={{
+            width: "100%",
+            height: "100%",
+            border: "none",
+          }}
+          title="Map"
+        />
+      </View>
+    );
+  }
+);
+
+// ==================== WEB MARKER/CIRCLE (data-only) ====================
+
+function WebMarker(props: WebMarkerProps) {
+  // This component is data-only; actual rendering happens in the iframe.
+  // We render children so React can extract label data.
+  return null;
+}
+
+function WebCircle(props: WebCircleProps) {
+  return null;
+}
+
+// ==================== EXPORTS ====================
+
+let MapView: any;
+let Marker: any;
+let Circle: any;
+
+if (Platform.OS === "web") {
+  MapView = WebMapView;
+  Marker = WebMarker;
+  Circle = WebCircle;
+} else {
+  MapView = NativeMapView;
+  Marker = NativeMarker;
+  Circle = NativeCircle;
+}
+
+export { Marker, Circle };
+export default MapView;
+
+const styles = StyleSheet.create({
+  webMapContainer: {
+    flex: 1,
+    overflow: "hidden",
+  },
+});

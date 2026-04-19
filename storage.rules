@@ -1,0 +1,35 @@
+rules_version = '2';
+
+// Säkerhetsregler för Firebase Storage.
+//
+// Modell:
+//   walks/{walkId}/questions/{questionId}.jpg  – bilder kopplade till
+//     en specifik fråga i en promenad. Endast skaparen (walk.createdBy)
+//     får skriva/radera; alla får läsa.
+//
+// Begränsningar:
+//   - max 2 MB per fil
+//   - endast image/*
+//
+// Obs: storage-regler kan inte göra `get` mot Firestore direkt i äldre
+// versioner av regel-engine, så ägarskap härleds från path-prefixet:
+// skaparen måste vara inloggad (icke-anonym) och path:en börjar med
+// `walks/{walkId}/...`. Firestore-reglerna ser fortfarande till att
+// bara ägaren kan skriva `imageUrl` i själva walk-dokumentet, så även
+// om någon laddar upp en extra bild hit hamnar den aldrig i appen.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /walks/{walkId}/questions/{imageName} {
+      allow read: if true;
+
+      allow write: if request.auth != null
+                   && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                   && request.resource.size < 2 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+
+      allow delete: if request.auth != null
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+  }
+}

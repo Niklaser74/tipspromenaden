@@ -1,0 +1,84 @@
+{
+  "format": "tipspack",
+  "version": "1.0",
+  "name": "Stockholms gamla stan",
+  "description": "10 frågor om Stadsholmens historia, byggnader och kuriosa. Perfekt för en eftermiddagspromenad i Gamla stan.",
+  "author": "Tipspromenaden AB",
+  "questions": [
+    {
+      "text": "Vilket år grundades Stockholm enligt Erikskrönikan?",
+      "options": ["1187", "1252", "1350", "1397"],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Vad heter Stockholms äldsta bevarade hus, byggt redan på 1300-talet?",
+      "options": ["Riddarholmskyrkan", "Storkyrkan", "Tyska kyrkan", "Stora Hoparegränd 7"],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Vilken färg har Stockholms slott?",
+      "options": ["Vit", "Gul", "Brungul", "Röd"],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "Hur många trappsteg leder upp till Mosebacke torg från Slussen?",
+      "options": ["33", "57", "104", "Ungefär 200"],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "Vad användes Riddarhuset ursprungligen till?",
+      "options": [
+        "Kungligt residens",
+        "Adelns mötesplats",
+        "Domstol",
+        "Bank"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Vilken är Gamla stans smalaste gränd?",
+      "options": [
+        "Mårten Trotzigs gränd",
+        "Skomakaregatan",
+        "Köpmangatan",
+        "Prästgatan"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Vid vilket årtal flyttade riksdagen in i Riksdagshuset på Helgeandsholmen?",
+      "options": ["1809", "1866", "1905", "1971"],
+      "correctOptionIndex": 2
+    },
+    {
+      "text": "Vem är staty på Järntorget?",
+      "options": [
+        "Karl XII",
+        "Evert Taube",
+        "Carl Michael Bellman",
+        "Det finns ingen staty där"
+      ],
+      "correctOptionIndex": 1
+    },
+    {
+      "text": "Vad betyder ordet 'Stockholm' enligt en av de vanligaste teorierna?",
+      "options": [
+        "Stock-Holmen, en holme med träbarriär",
+        "Den stora hamnen",
+        "Kungens ö",
+        "Fiskarbyn"
+      ],
+      "correctOptionIndex": 0
+    },
+    {
+      "text": "Vilken berömd händelse ägde rum på Stortorget år 1520?",
+      "options": [
+        "Nyköpings gästabud",
+        "Stockholms blodbad",
+        "Engelbrektsupproret",
+        "Kalmarunionens upplösning"
+      ],
+      "correctOptionIndex": 1
+    }
+  ]
+}

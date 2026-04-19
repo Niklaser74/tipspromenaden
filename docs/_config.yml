@@ -1,0 +1,7 @@
+title: Tipspromenaden
+description: Digital tipspromenad med GPS, frågor och topplista
+theme: jekyll-theme-cayman
+
+# Intern dokumentation som inte ska publiceras offentligt
+exclude:
+  - play-store-listing.md

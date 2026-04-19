@@ -30,8 +30,13 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
+# local env files — `.env` håller GOOGLE_MAPS_API_KEY m.fl. och får
+# aldrig committas; sätts som `eas secret:create` i CI och som .env lokalt.
+.env
 .env*.local
+
+# EAS build temp-artefakter (skapas av eas build:list-debug-skript)
+lastbuild.json
 
 # typescript
 *.tsbuildinfo
