@@ -1,10 +1,12 @@
 {
   "cli": {
-    "version": ">= 18.0.0"
+    "version": ">= 18.0.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "android": {
         "buildType": "apk"
       }

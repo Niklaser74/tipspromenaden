@@ -11,6 +11,16 @@ module.exports = () => ({
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
     version: "1.0.0",
+    // EAS Update (OTA) — fingerprint-policy: EAS hashar native-lagret och
+    // serverar bara updates till binaries med samma fingerprint. Fel-säkrare
+    // än "appVersion" eftersom JS-only-patchar automatiskt undviker gamla
+    // byggen om vi lägger till/ändrar en native-modul.
+    runtimeVersion: {
+      policy: "fingerprint",
+    },
+    updates: {
+      url: "https://u.expo.dev/c2f369b6-e07e-401c-a53b-1dc69443e4b7",
+    },
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
@@ -55,6 +65,12 @@ module.exports = () => ({
       "expo-localization",
       "@react-native-google-signin/google-signin",
       "@react-native-community/datetimepicker",
+      // TEMP: för Play Console-paketnamnsregistrering. Tas bort efter att
+      // verifieringen gått igenom — filen behövs bara i verifierings-APK:n.
+      [
+        "./plugins/withAdiRegistration",
+        { token: "DSV2RH2REXKS6AAAAAAAAAAAA" },
+      ],
     ],
     extra: {
       eas: {
