@@ -61,14 +61,20 @@ service cloud.firestore {
       allow create: if isSignedIn()
                     && request.resource.data.id == sessionId
                     && request.resource.data.walkId is string
-                    && request.resource.data.status in ['waiting', 'active'];
+                    && request.resource.data.status in ['waiting', 'active']
+                    // Sessionen måste peka på en faktisk walk — blockerar att
+                    // någon spammar sessioner mot påhittade walkId:n.
+                    && exists(/databases/$(database)/documents/walks/$(request.resource.data.walkId));
 
-      // Tillåt bara att uppdatera `status`, inget annat fält. Förhindrar att
-      // walkId, createdAt eller andra fält ändras.
+      // Tillåt bara att uppdatera `status`. Dessutom: bara framåtriktade
+      // övergångar (waiting -> active -> completed). Detta hindrar att någon
+      // återuppväcker ett avslutat spel eller rullar tillbaka statusen.
+      // Fältet får inte sättas till oväntade värden.
       allow update: if isSignedIn()
                     && request.resource.data.diff(resource.data).affectedKeys()
                        .hasOnly(['status'])
-                    && request.resource.data.status in ['waiting', 'active', 'completed'];
+                    && isForwardStatusTransition(resource.data.status,
+                                                 request.resource.data.status);
 
       // Endast ägaren av promenaden får radera sessionen (för konto-radering /
       // GDPR-rensning).
@@ -121,6 +127,15 @@ function isSignedIn() {
 function isAnonymous() {
   return request.auth != null
          && request.auth.token.firebase.sign_in_provider == 'anonymous';
+}
+
+// Sessionsstatus får bara röra sig framåt: waiting -> active -> completed.
+// Oförändrad status är också tillåten (t.ex. när andra fält... fast update-
+// reglen tillåter bara diff på 'status', så samma-till-samma är en no-op).
+function isForwardStatusTransition(from, to) {
+  return (from == 'waiting'   && to in ['waiting', 'active', 'completed'])
+      || (from == 'active'    && to in ['active', 'completed'])
+      || (from == 'completed' && to == 'completed');
 }
 
 function hasValidWalkShape(data) {

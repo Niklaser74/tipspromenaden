@@ -110,6 +110,7 @@ function ModalContent({
           onChangeText={setTempText}
           multiline
           blurOnSubmit={false}
+          maxLength={500}
         />
 
         <Text style={styles.label}>{t("create.imageLabel")}</Text>
@@ -167,6 +168,7 @@ function ModalContent({
               value={opt}
               returnKeyType="done"
               blurOnSubmit
+              maxLength={200}
               onChangeText={(text) => {
                 const copy = [...tempOptions];
                 copy[idx] = text;
@@ -577,6 +579,7 @@ export default function CreateWalkScreen() {
           placeholderTextColor="#B0BAB2"
           value={title}
           onChangeText={setTitle}
+          maxLength={200}
         />
       </View>
 
