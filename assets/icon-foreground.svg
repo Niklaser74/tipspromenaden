@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Adaptive foreground: T + siffror + skylt, utan granar/bg, skalat 0.66. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <g transform="translate(174,174) scale(0.66)">
+    <g fill="none" stroke="#ece0b8"
+       stroke-linecap="round" stroke-linejoin="round">
+      <line x1="290" y1="350" x2="900" y2="350" stroke-width="120"/>
+      <path d="M 460 940
+               C 415 840, 520 760, 460 660
+               C 400 560, 515 470, 460 350"
+            stroke-width="92"/>
+    </g>
+    <g>
+      <rect x="213" y="740" width="14" height="130" fill="#6b4423" rx="3"/>
+      <path d="M 110 720 L 215 720 L 215 790 L 110 790 L 135 755 Z"
+            fill="#8a5a2b" stroke="#4a2f17" stroke-width="4"/>
+      <line x1="135" y1="748" x2="200" y2="748" stroke="#f5ecd3"
+            stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+      <line x1="140" y1="765" x2="195" y2="765" stroke="#f5ecd3"
+            stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    </g>
+    <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+       font-weight="800" text-anchor="middle" font-size="86">
+      <circle cx="460" cy="640" r="78" fill="#ffffff"/>
+      <circle cx="460" cy="640" r="64" fill="#c8322a"/>
+      <text x="460" y="670" fill="#ffffff">1</text>
+      <circle cx="460" cy="350" r="78" fill="#ffffff"/>
+      <circle cx="460" cy="350" r="64" fill="#c8322a"/>
+      <text x="460" y="380" fill="#ffffff">2</text>
+      <circle cx="810" cy="350" r="80" fill="#ffffff"/>
+      <circle cx="810" cy="350" r="66" fill="#c8322a"/>
+      <text x="810" y="380" fill="#ffffff">3</text>
+    </g>
+  </g>
+</svg>

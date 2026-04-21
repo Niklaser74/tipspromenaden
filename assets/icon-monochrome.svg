@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <g transform="translate(174,174) scale(0.66)" fill="#ffffff">
+    <g fill="none" stroke="#ffffff" stroke-width="130"
+       stroke-linecap="round" stroke-linejoin="round">
+      <line x1="320" y1="400" x2="920" y2="400"/>
+      <line x1="470" y1="930" x2="470" y2="400"/>
+    </g>
+    <circle cx="470" cy="700" r="90"/>
+    <circle cx="470" cy="400" r="90"/>
+    <circle cx="810" cy="400" r="92"/>
+  </g>
+</svg>
