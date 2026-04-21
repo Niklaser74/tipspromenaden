@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Play Store feature graphic: 1024x500.
+     Vänster: kompakt version av ikon-motivet (T-junction + kontroller).
+     Höger: apptitel + tagline i samma beige som ikonen. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500">
+  <defs>
+    <radialGradient id="bg" cx="35%" cy="45%" r="85%">
+      <stop offset="0%" stop-color="#2a7a42"/>
+      <stop offset="100%" stop-color="#144524"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="500" fill="url(#bg)"/>
+
+  <!-- Bakre skog, längst bort -->
+  <g opacity="0.5">
+    <polygon points="40,310 10,380 70,380" fill="#0e3a1e"/>
+    <polygon points="120,290 90,360 150,360" fill="#0e3a1e"/>
+    <polygon points="980,300 950,380 1010,380" fill="#0e3a1e"/>
+    <polygon points="870,280 845,350 895,350" fill="#0e3a1e"/>
+  </g>
+
+  <!-- Främre granar vänster -->
+  <polygon points="60,430 10,510 110,510" fill="#0a2e18"/>
+  <polygon points="60,370 20,450 100,450" fill="#0a2e18"/>
+  <polygon points="60,320 25,390 95,390" fill="#0a2e18"/>
+
+  <!-- Främre granar höger -->
+  <polygon points="960,440 900,520 1020,520" fill="#0a2e18"/>
+  <polygon points="960,380 910,460 1010,460" fill="#0a2e18"/>
+  <polygon points="960,330 915,400 1005,400" fill="#0a2e18"/>
+
+  <!-- T-motivet (vänster tredjedel, skalat).
+       Motiv-bounding ca x=40..360, y=100..420 -->
+  <g fill="none" stroke="#ece0b8"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- Horisontell arm -->
+    <line x1="80" y1="170" x2="360" y2="170" stroke-width="56"/>
+    <!-- Slingrande stam -->
+    <path d="M 205 440
+             C 185 390, 235 350, 205 305
+             C 175 260, 230 220, 205 170"
+          stroke-width="44"/>
+  </g>
+
+  <!-- Kontrollpunkter 1, 2, 3 -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+     font-weight="800" text-anchor="middle" font-size="40">
+    <circle cx="205" cy="305" r="36" fill="#ffffff"/>
+    <circle cx="205" cy="305" r="30" fill="#c8322a"/>
+    <text x="205" y="319" fill="#ffffff">1</text>
+
+    <circle cx="205" cy="170" r="36" fill="#ffffff"/>
+    <circle cx="205" cy="170" r="30" fill="#c8322a"/>
+    <text x="205" y="184" fill="#ffffff">2</text>
+
+    <circle cx="335" cy="170" r="36" fill="#ffffff"/>
+    <circle cx="335" cy="170" r="30" fill="#c8322a"/>
+    <text x="335" y="184" fill="#ffffff">3</text>
+  </g>
+
+  <!-- Text till höger -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif"
+     fill="#ece0b8">
+    <text x="440" y="230" font-size="74" font-weight="800"
+          letter-spacing="-1">Tipspromenaden</text>
+    <text x="440" y="290" font-size="30" font-weight="500"
+          fill="#d9cfa6" opacity="0.95">
+      Digitala tipspromenader med QR-koder
+    </text>
+    <text x="440" y="335" font-size="26" font-weight="400"
+          fill="#b8c8b0" opacity="0.85">
+      Skapa dina egna. Dela. Gå.
+    </text>
+  </g>
+</svg>
