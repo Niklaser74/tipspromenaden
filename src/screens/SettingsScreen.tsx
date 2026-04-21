@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import Constants from "expo-constants";
 import {
@@ -14,13 +16,39 @@ import {
   useLanguageChoice,
   useTranslation,
 } from "../i18n";
+import { useAuth } from "../context/AuthContext";
+import { syncMyWalksFromCloud } from "../services/walkSync";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const choice = useLanguageChoice();
+  const { user } = useAuth();
+  const [syncing, setSyncing] = useState(false);
 
   const version =
     (Constants.expoConfig?.version as string | undefined) ?? "1.0.0";
+
+  // Visa synk-raden bara för inloggade (icke-anonyma) användare.
+  // Anonyma har inga Firestore-ägda promenader att synka.
+  const canSync = !!user && !user.isAnonymous;
+
+  async function handleSync() {
+    if (!user || syncing) return;
+    setSyncing(true);
+    try {
+      const added = await syncMyWalksFromCloud(user.uid);
+      const msg =
+        added === 0
+          ? t("settings.syncWalksResultNone")
+          : t("settings.syncWalksResultAdded", { count: added });
+      Alert.alert(t("settings.syncWalks"), msg);
+    } catch (e) {
+      console.warn("Manual walk sync failed:", e);
+      Alert.alert(t("settings.syncWalks"), t("settings.syncWalksError"));
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   return (
     <ScrollView
@@ -49,6 +77,33 @@ export default function SettingsScreen() {
           );
         })}
       </View>
+
+      {/* Kontosynk — återställ promenader från molnet */}
+      {canSync && (
+        <>
+          <Text style={styles.sectionTitle}>{t("settings.account")}</Text>
+          <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={handleSync}
+              disabled={syncing}
+              activeOpacity={0.6}
+            >
+              <View style={styles.syncLabelWrap}>
+                <Text style={styles.rowLabel}>
+                  {syncing
+                    ? t("settings.syncWalksRunning")
+                    : t("settings.syncWalks")}
+                </Text>
+                <Text style={styles.rowHint}>
+                  {t("settings.syncWalksHint")}
+                </Text>
+              </View>
+              {syncing && <ActivityIndicator size="small" color="#1B6B35" />}
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* Om appen */}
       <Text style={styles.sectionTitle}>{t("settings.about")}</Text>
@@ -119,5 +174,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#1B6B35",
     fontWeight: "700",
+  },
+  syncLabelWrap: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  rowHint: {
+    fontSize: 13,
+    color: "#8A9A8D",
+    marginTop: 2,
   },
 });

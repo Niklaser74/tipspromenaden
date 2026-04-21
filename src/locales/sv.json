@@ -98,6 +98,12 @@
     "languageSwedish": "Svenska",
     "languageEnglish": "English",
     "account": "Konto",
+    "syncWalks": "Återställ mina promenader",
+    "syncWalksHint": "Hämtar dina egna promenader från molnet om de saknas lokalt",
+    "syncWalksRunning": "Hämtar…",
+    "syncWalksResultNone": "Allt är redan synkat",
+    "syncWalksResultAdded": "{{count}} promenad(er) återställda",
+    "syncWalksError": "Kunde inte synka, försök igen",
     "about": "Om appen",
     "version": "Version {{version}}"
   },

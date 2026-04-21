@@ -13,9 +13,10 @@
  * - `HomeScreen` och andra skärmar – för att visa användarspecifikt innehåll.
  */
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { AppUser, onAuthChange } from "../services/auth";
+import { syncMyWalksFromCloud } from "../services/walkSync";
 
 /**
  * Formen på värdet som tillhandahålls av `AuthContext`.
@@ -63,6 +64,9 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  // Spåra vilka uid:n vi redan synkat i denna process så vi inte rör
+  // Firestore varje gång onAuthChange fyr:ar (t.ex. vid token-refresh).
+  const syncedUidsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let unsub: (() => void) | undefined;
@@ -70,6 +74,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsub = onAuthChange((u) => {
         setUser(u ?? null);
         setLoading(false);
+
+        // Vid inloggning: hämta ev. promenader som bara finns i molnet
+        // (t.ex. efter ny-installation från Play Store där lokala
+        // AsyncStorage startade tomt) in i den lokala listan. Fire-and-
+        // forget — fel loggas men blockerar inte UI. Kör endast en gång
+        // per uid under denna app-körning.
+        if (u?.uid && !u.isAnonymous && !syncedUidsRef.current.has(u.uid)) {
+          syncedUidsRef.current.add(u.uid);
+          syncMyWalksFromCloud(u.uid).catch((err) => {
+            console.warn("[AuthProvider] walk sync failed:", err);
+          });
+        }
       });
     } catch (e) {
       console.error("[AuthProvider] Failed to subscribe to auth state:", e);
