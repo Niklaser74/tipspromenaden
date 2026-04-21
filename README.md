@@ -26,17 +26,21 @@ Appen ar byggd med React Native/Expo och fungerar bade som nativapp (iOS/Android
 | **TypeScript** | 5.9 | Typsaker JavaScript |
 | **Firebase Firestore** | ^12 | Realtidsdatabas for promenader och sessioner |
 | **Firebase Auth** | ^12 | Inloggning (Google OAuth + anonym) |
+| **Firebase Storage** | ^12 | Lagring av fragebilder |
+| **@react-native-google-signin/google-signin** | — | Native Google-inloggning (Android) |
 | **react-native-maps** | 1.27.2 | Kartvisning pa nativa plattformar |
 | **Leaflet** (via WebView) | — | Kartvisning pa webben |
 | **expo-location** | ~55.1 | GPS-positionering |
 | **expo-camera** | ~55.0 | QR-kodsskanning |
-| **expo-document-picker** | ~55.0 | Importera frgebatterier (.tipspack) |
+| **expo-document-picker** | ~55.0 | Importera fragebatterier (.tipspack) |
 | **expo-file-system** | ~55.0 | Lasa/skriva filer (legacy-API i SDK 55) |
 | **expo-sharing** | ~55.0 | Dela genererade QR-koder |
+| **expo-localization** | ~55.0 | Sprakdetektering for i18n |
 | **react-native-qrcode-svg** | ^6.3 | QR-kodsgenerering |
 | **AsyncStorage** | 2.2 | Lokal lagring (offline-stod) |
 | **React Navigation** | ^7 | Navigering mellan skarmar |
-| **Firebase App Distribution** | — | Distribuera APK till testare |
+| **EAS Build + Update** | — | Byggd distribution (AAB/APK) + OTA-patchar |
+| **Google Play Console** | — | Distribution till testare (internt/stangt test) och produktion |
 
 ---
 
@@ -47,37 +51,67 @@ tipspromenaden-app/
 |
 +-- App.tsx                  # Rotkomponent: navigation och AuthProvider
 +-- index.ts                 # Entrypoint for Expo
-+-- app.json                 # Expo-konfiguration (permissions, app-ID, ikoner)
-+-- eas.json                 # EAS Build-konfiguration (Android APK/AAB)
++-- app.config.js            # Dynamisk Expo-config (laser GOOGLE_MAPS_API_KEY fran .env)
++-- eas.json                 # EAS Build-konfiguration (Android AAB/APK, autoIncrement)
++-- firestore.rules          # Firestore-sakerhetsregler (se sakerhetsavsnittet)
++-- storage.rules            # Firebase Storage-regler (fragebilder)
++-- firebase.json            # Firebase CLI-konfig (pekar ut regelfilerna)
 +-- package.json
 +-- tsconfig.json
++-- CLAUDE.md                # AI-assistentkontext (projektstruktur, konventioner)
 |
-+-- assets/                  # Ikoner och splash-skarm (PNG-filer)
++-- assets/                  # Ikoner, splash, feature graphic, skarmdumpar
+|   +-- icon-source.svg          # Kalla for app-ikonen (T-junction)
+|   +-- feature-graphic.svg      # Kalla for Play Store feature graphic (1024x500)
+|   +-- render-icons.py          # Genererar alla PNG-varianter fran SVG-kallorna
+|
++-- docs/                    # Publicerad dokumentation (GitHub Pages)
+|   +-- privacy-policy.md        # Integritetspolicy
+|   +-- account-deletion.md      # Kontoradering enligt Play-krav
+|   +-- play-store-listing.md    # Butiksinformation
 |
 +-- src/
     |
     +-- config/
-    |   +-- firebase.ts      # Firebase-initialisering och export av db/auth
+    |   +-- firebase.ts      # Firebase-initialisering och export av db/auth/storage
     |
     +-- context/
-    |   +-- AuthContext.tsx  # React Context for inloggningsstatus (useAuth-hook)
+    |   +-- AuthContext.tsx  # React Context for inloggningsstatus; triggar walkSync vid login
     |
     +-- types/
-    |   +-- index.ts         # Alla TypeScript-typer: Walk, Session, Participant, etc.
+    |   +-- index.ts         # Alla TypeScript-typer: Walk, Session, Participant, SavedWalk, etc.
     |
-    +-- services/            # All extern kommunikation
-    |   +-- auth.ts              # Firebase Auth: Google-login, anonym login, utloggning
+    +-- i18n/
+    |   +-- index.ts         # useTranslation(), setLanguage(), useLanguageChoice()
+    |
+    +-- locales/             # Oversattningar
+    |   +-- sv.json              # Primart sprak
+    |   +-- en.json
+    |
+    +-- constants/
+    |   +-- languages.ts     # Stodda sprak + flaggor
+    |   +-- deepLinks.ts     # Deep-link-prefix och hjalpfunktioner
+    |
+    +-- services/            # All extern I/O — inga React-beroenden har
+    |   +-- auth.ts              # Google-login (native + web), anonym login, onAuthChange
     |   +-- firestore.ts         # Firestore CRUD + realtidsprenumerationer
-    |   +-- questionBattery.ts   # Importera och validera .tipspack-frgebatterier
-    |   +-- offlineSync.ts       # Bakgrundssynkning av offline-svar till Firebase
     |   +-- storage.ts           # AsyncStorage: lokala promenader + offline-ko
+    |   +-- walkSync.ts          # Merge-synk av egna walks fran Firestore vid login
+    |   +-- walkRefresh.ts       # Refresh av en enskild walk fran molnet
+    |   +-- offlineSync.ts       # Bakgrundssynkning av offline-svar till Firebase
+    |   +-- questionBattery.ts   # Importera och validera .tipspack-fragebatterier
+    |   +-- questionImage.ts     # Ladda upp fragebilder till Firebase Storage
+    |   +-- stats.ts             # Lokal anvandarstatistik
     |
     +-- utils/
     |   +-- location.ts      # Haversine-avstand, GPS-tillstand, positionsbevakning
     |   +-- qr.ts            # QR-data kodning/avkodning, ID-generering
+    |   +-- date.ts          # Datumparsning/-formatering
     |
     +-- components/
     |   +-- MapViewWeb.tsx   # Leaflet-kartkomponent for webbplatformen
+    |   +-- DateField.tsx    # Datum-input for eventlage
+    |   +-- ErrorBoundary.tsx
     |
     +-- screens/
         +-- HomeScreen.tsx         # Startsida: mina promenader, QR-skanning
@@ -85,10 +119,13 @@ tipspromenaden-app/
         +-- CreateWalkScreen.tsx   # Skapa/redigera promenad med karta och fragor
         +-- ActiveWalkScreen.tsx   # GPS-baserad promenad for deltagare
         +-- JoinWalkScreen.tsx     # Ange namn och anslut till session
+        +-- OpenWalkScreen.tsx     # Oppna promenad via deep-link eller QR
         +-- ScanQRScreen.tsx       # Kameraskanning av QR-kod
         +-- ShowQRScreen.tsx       # Visa QR-kod for skaparen att dela
         +-- LeaderboardScreen.tsx  # Realtidstopplista under promenad
         +-- ResultsScreen.tsx      # Slutresultat nar promenad ar klar
+        +-- StatsScreen.tsx        # Anvandarens egen statistik
+        +-- SettingsScreen.tsx     # Sprakval, molnsynk, version
 ```
 
 ### Dataflode
@@ -149,7 +186,9 @@ walks/{walkId}
 
 ### Samling: `sessions`
 
-Varje dokument representerar en aktiv omgang av en promenad.
+Varje dokument representerar en aktiv omgang av en promenad. Deltagare ligger
+i en undersamling `participants/` — inte som inbaddad array — for att komma
+runt 1 MB-gransen och for granulara realtidsprenumerationer.
 
 ```
 sessions/{sessionId}
@@ -157,26 +196,64 @@ sessions/{sessionId}
   walkId:      string              -- Referens till walks/{walkId}
   status:      "waiting" | "active" | "completed"
   createdAt:   number              -- Unix-tidsstampel (ms)
-  participants: [                  -- Inbaddad array (uppdateras live)
+
+sessions/{sessionId}/participants/{participantId}
+  id:          string              -- Maste matcha auth.uid (Firestore-regel)
+  name:        string              -- Deltagarens valda namn
+  score:       number              -- Antal ratta svar (cap: <= answers.length)
+  completedAt: number?             -- Unix-tidsstampel nar klar
+  answers: [
     {
-      id:          string          -- Firebase UID (anonym eller Google)
-      name:        string          -- Deltagarens valda namn
-      score:       number          -- Antal ratta svar
-      completedAt: number?         -- Unix-tidsstampel nar klar
-      answers: [
-        {
-          questionId:          string
-          selectedOptionIndex: number
-          correct:             boolean
-          answeredAt:          number
-        }
-      ]
+      questionId:          string
+      selectedOptionIndex: number
+      correct:             boolean
+      answeredAt:          number
     }
   ]
 ```
 
-> **Obs:** Firestore-dokumentstorleksgranser ar 1 MB. For promenader med manga deltagare
-> kan det vara aktuellt att flytta `participants` till en undresamling i framtiden.
+Realtidssubscribe sker via `subscribeToSession()` i `src/services/firestore.ts`,
+som lyssnar pa bade sessionsdokumentet och dess `participants`-subkollektion
+och sammanfogar resultaten till ett `Session`-objekt med inbaddad
+`participants`-array for klienten.
+
+---
+
+## Sakerhetsmodell
+
+Reglerna committas i [`firestore.rules`](./firestore.rules) och
+[`storage.rules`](./storage.rules). Principerna:
+
+- **Walks**: skapas endast av Google-inloggade (icke-anonyma). Bara agaren
+  kan uppdatera/radera. `hasValidWalkShape` begransar titel till 200 tecken
+  och max 200 fragor.
+- **Sessions**: vem som helst inloggad (inkl. anonyma deltagare) kan skapa
+  en session, men `walkId` maste peka pa en faktisk walk
+  (`exists()`-check). Statusuppdateringar ar **framatriktade bara**
+  (`waiting -> active -> completed`), sa en avslutad session kan inte
+  aterupplivas eller rullas tillbaka.
+- **Participants**: dokumentets ID maste matcha `auth.uid` — sa ingen kan
+  skriva nagon annans deltagardokument. Score ar cappad till
+  `answers.length` (trivialt fusk-skydd; full svarsvalidering kraver
+  Cloud Functions och ar inte implementerat i v1).
+- **Storage**: endast icke-anonyma anvandare kan ladda upp fragebilder,
+  max 2 MB, bara `image/*`-typer.
+
+Klientside finns komplementara begransningar:
+
+- `CreateWalkScreen` capar input med `maxLength`: titel 200, frageText 500,
+  alternativ 200 — matchar Firestore-reglernas installningar.
+- Maps API-nyckeln ar restriktionsbunden till Android-paketet
+  `com.tipspromenaden.app` + SHA-1 i Google Cloud Console.
+
+Kanda begransningar som inte ar blockerare:
+
+- Score beraknas klientside och kan inflateras upp till antal svar.
+- `generateId()` anvander `Math.random()` (~48 bits); OK idag men byt till
+  `expo-crypto` vid tillfalle.
+- Deep-link-prefixet `https://tipspromenaden.se` saknar `assetlinks.json`
+  pa domanen — intent-hijacking ar teoretiskt mojligt men domanen ar
+  inte publik idag.
 
 ---
 
@@ -236,22 +313,10 @@ const firebaseConfig = {
 };
 ```
 
-**Firestore-regler** (for utveckling – stram at for produktion):
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /walks/{walkId} {
-      allow read: if true;
-      allow write: if request.auth != null && !request.auth.token.firebase.sign_in_provider.matches('anonymous');
-    }
-    match /sessions/{sessionId} {
-      allow read, write: if request.auth != null;
-    }
-  }
-}
-```
+**Firestore-regler** committas i filen [`firestore.rules`](./firestore.rules) och
+deployas med `firebase deploy --only firestore:rules`. De ar produktions-
+harda; kopiera dem som de ar i ditt eget Firebase-projekt. Se avsnittet
+[Sakerhetsmodell](#sakerhetsmodell) for vad reglerna garanterar.
 
 ### 4. Konfigurera Google OAuth
 
@@ -315,17 +380,24 @@ eas build --platform android --profile production
 
 ## Miljokonfiguration
 
-Appen anvander inga `.env`-filer for narvarande. Konfiguration sker direkt i:
+Konfiguration lases fran dynamisk `app.config.js` som i sin tur laser fran
+`process.env`. For lokal utveckling lagger du en `.env`-fil i projekt-
+roten (gitignored):
+
+```
+GOOGLE_MAPS_API_KEY=AIza...
+```
+
+For EAS-byggen satts samma variabler med `eas secret:create`.
 
 | Fil | Vad konfigureras |
 |-----|-----------------|
-| `src/config/firebase.ts` | Firebase-projektkoppling |
-| `src/screens/LoginScreen.tsx` | Google OAuth klient-ID |
-| `app.json` | App-ID, versioner, permissions, ikoner |
-| `eas.json` | Byggprofiler for EAS |
-
-For en produktionssattning rekommenderas att flytta kanslighetsdata till Expo-miljuvariabler
-med `expo-constants` och `app.config.js` istallet for `app.json`.
+| `src/config/firebase.ts` | Firebase-projektkoppling (publika webb-nycklar, OK att committa) |
+| `app.config.js` | App-ID, versioner, permissions, ikoner, sekretesss-variabler fran `.env` |
+| `eas.json` | Byggprofiler for EAS (internal/preview/production + autoIncrement) |
+| `.env` | Kansliga nycklar (Maps API-nyckel) — **ej committad** |
+| `firestore.rules` | Sakerhetsregler for Firestore |
+| `storage.rules` | Sakerhetsregler for Firebase Storage |
 
 ---
 
@@ -334,13 +406,17 @@ med `expo-constants` och `app.config.js` istallet for `app.json`.
 ### Skapare (krav: Google-inloggning)
 
 - Skapa tipspromenader med valfritt antal kontrollpunkter
-- Placera kontrollpunkter interaktivt pa en interaktiv karta (react-native-maps / Leaflet)
+- Placera kontrollpunkter interaktivt pa en karta (react-native-maps / Leaflet)
 - Lagg till fragor med 3 svarsalternativ per kontrollpunkt
-- Redigera och ta bort kontrollpunkter
+- Bifoga en bild till valfri fraga (laddas upp till Firebase Storage)
+- Ange sprak pa promenaden (sv/en m.fl.) for korrekt UI hos deltagare
+- Redigera och ta bort kontrollpunkter; andra ordning pa fragor
 - Generera QR-kod for deltagare att skanna
-- Importera fardiga frgebatterier (`.tipspack`-fil) och placera fragorna pa kartan en efter en
+- Importera fardiga fragebatterier (`.tipspack`-fil) och placera fragorna pa kartan en efter en
 - Visa realtidstopplista under pagaende promenad
 - Eventlage: samla resultat fran flera grupper under ett datumintervall
+- Automatisk molnsynk av egna promenader vid inloggning (terapporterar promenader efter
+  ny-installation eller telefonbyte)
 
 ### Deltagare (inget konto kravs)
 
@@ -354,10 +430,11 @@ med `expo-constants` och `app.config.js` istallet for `app.json`.
 
 ### Allman
 
-- Funkar som webbapp (Chrome/Edge/Firefox)
-- Funkar som nativapp pa Android (via Expo Go eller byggt APK)
+- Funkar som webbapp (Chrome/Edge/Firefox) och som nativapp pa Android
+- Stod for svenska och engelska via i18n (`src/locales/`); folja systemets sprak som default
 - Realtidsuppdateringar i topplistan via Firestore-prenumerationer
 - Bakgrundssynkning av offline-svar var 30:e sekund
+- OTA-uppdateringar via EAS Update (fingerprint-policy, JS-only-patchar utan ombygge)
 
 ---
 
@@ -403,16 +480,17 @@ i mappsokvagsnamn och att Windows har en standardgrans pa 260 tecken for sokvaga
 C:\projekt\tipspromenaden\
 ```
 
-### Expo Go och SDK 55-kompatibilitet
+### Expo Go och SDK-kompatibilitet
 
-Expo Go i App Store/Google Play stoder vanligen bara den senaste stabila SDK-versionen
-(SDK 52 vid projektets skapande). SDK 55 kravde en **development build** for att testa
-nativa funktioner (kamera, GPS) pa en fysisk enhet.
+Expo Go i App Store/Google Play stoder vanligen bara den senaste stabila
+SDK-versionen. Projektet ar pa **SDK 55**. Om Expo Go-appen pa din enhet
+ar pa en aldre SDK kravs en **development build** for att testa nativa
+funktioner (kamera, GPS, native Google Sign-In) pa en fysisk enhet.
 
-**Losning:** Bygg en development build med EAS:
+**Losning:** Bygg en development build eller en preview-APK med EAS:
 
 ```bash
-eas build --profile development --platform android
+eas build --profile preview --platform android    # APK for sideload
 ```
 
 ### GPS kraver HTTPS pa webben
@@ -425,11 +503,10 @@ GitHub Pages med HTTPS aktiverat.
 
 ### Stor promenad och Firestore-dokumentgrans
 
-Firestore-dokument far vara maximalt 1 MB. Om en session far valdigt manga deltagare
-(hundratals) kan dokumentstorleken narma sig gransen.
-
-**Losning (framtida):** Flytta `participants`-arrayen till en undresamling
-`sessions/{sessionId}/participants/{participantId}`.
+Firestore-dokument far vara maximalt 1 MB. Walks far max 200 fragor enligt
+`firestore.rules`, vilket holler titel + fragor val under gransen.
+Deltagare lagras redan i subkollektionen `sessions/{sessionId}/participants/{uid}`
+sa sessions-dokumentet paverkas inte av antal deltagare.
 
 ---
 
@@ -462,29 +539,45 @@ Se `examples/stockholms-gamla-stan.tipspack` for ett fullstandigt exempel och
 
 ---
 
-## Distribution till testare (Firebase App Distribution)
+## Distribution
 
-APK-byggen distribueras till testgruppen `testers` via Firebase App Distribution.
+### Google Play Console
 
-**Engangskonfiguration:**
+Appen distribueras via Google Play Console (paket `com.tipspromenaden.app`,
+Play-projekt `tipspromenaden-491207`). Tre sparr ar i bruk:
+
+| Spar | Syfte | Granskning | Family Link |
+|------|-------|-----------|-------------|
+| **Internt test** | Snabba iterationer for utvecklare | Nej — visas som `(unreviewed)` | Blockerad (ingen aldersgrans) |
+| **Stangt test** | Testare som Lilly + familjemedlemmar | Ja (nagra timmar till nagra dagar) | OK efter granskning |
+| **Produktion** | Publik release | Ja (ar standard Play-granskning) | OK |
+
+Ladda upp AAB fran senaste EAS-bygget under **Testa och lansera**. `eas.json`
+har `autoIncrement: true` pa `internal` och `production` sa `versionCode`
+rullas automatiskt. Kolla aktuell versionCode med:
 
 ```bash
-npm install -g firebase-tools
-firebase login
+eas build:version:get -p android
 ```
 
-I Firebase Console (`tipspromenaden-491207`) finns gruppen `testers`. Lagg till
-testares e-postadresser dar – de far en inbjudan med installationslank.
+### OTA-uppdateringar (EAS Update)
 
-**Distribuera senaste EAS-bygget:**
+JS-only-andringar kan deployas utan ombygge:
 
-```powershell
-# Hamtar senaste fardiga APK fran EAS och pushar till testers-gruppen
-C:\Users\niklas.eriksson\tipspromenaden-build\distribute.ps1 -Latest -Notes "Beskrivning av byggen"
+```bash
+eas update --branch production --message "Beskrivning"
 ```
 
-Skriptet anvander `firebase appdistribution:distribute` med Android-app-ID
-`1:851934058818:android:6e53f1eea6ac6005f610db`.
+Fingerprint-policyn i `app.config.js` ser till att uppdateringen bara gar ut
+till byggen med samma native-lager.
+
+### APK for sideload (utveckling)
+
+```bash
+eas build --platform android --profile preview   # Bygger APK
+```
+
+Installera direkt fran utvecklar-URL:en som EAS skickar.
 
 ---
 
@@ -496,13 +589,17 @@ hela promenader (`.tipswalk`), cykelturer och B2B-friskvardsspar – finns i
 
 Kortsiktiga tekniska forbattringar:
 
-- [ ] Flytta deltagare till Firestore-undresamling for battre skalbarhet
+- [x] Flytta deltagare till Firestore-undresamling for battre skalbarhet
+- [x] Bildstod for kontrollpunkter (bifoga bild fran galleri)
+- [x] Stod for flera sprak (i18n — svenska och engelska)
+- [x] Flytta kanslighetsdata till Expo-miljuvariabler (`app.config.js` + `.env`)
+- [x] Produktionsharda Firestore- och Storage-regler
+- [ ] Server-side svarsvalidering via Cloud Functions (eliminerar score-fusk)
+- [ ] Byt `Math.random()` mot `expo-crypto` i `generateId()`
+- [ ] Deep-link-verifiering via `assetlinks.json` pa domanen
 - [ ] Push-aviseringar (Expo Notifications) nar en deltagare avslutar
-- [ ] Bildstod for kontrollpunkter (ta foto pa platsen)
 - [ ] Tidsbegransning per fraga
 - [ ] iOS-stod via EAS Build (kravs Apple Developer Program)
-- [ ] Stod for flera sprak (i18n)
-- [ ] Flytta kanslighetsdata till Expo-miljuvariabler
 
 ---
 
