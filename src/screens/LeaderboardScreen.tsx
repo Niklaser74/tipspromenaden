@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
   Platform,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -15,6 +16,8 @@ import {
 } from "../services/firestore";
 import { Session, Participant } from "../types";
 import { useTranslation } from "../i18n";
+import { ShareBadge } from "../components/ShareBadge";
+import { shareBadge } from "../utils/shareBadge";
 
 export default function LeaderboardScreen() {
   const route = useRoute<any>();
@@ -40,6 +43,8 @@ export default function LeaderboardScreen() {
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const badgeRef = useRef<View>(null);
 
   useEffect(() => {
     if (isEvent && walkId) {
@@ -72,8 +77,17 @@ export default function LeaderboardScreen() {
     }
   }, [sessionId, walkId, isEvent]);
 
-  // Sort participants: score desc, then completion time asc
-  const sortedParticipants = [...allParticipants].sort((a, b) => {
+  // Filtrera bort "spök"-deltagare: någon som skapat participant-dokumentet
+  // (joinat + angett namn) men aldrig svarat på en fråga och heller inte
+  // slutfört. I event-läge ackumuleras dessa över alla sessioner för
+  // promenaden och kan ta medaljplatser på podiet så länge <3 riktiga
+  // spelare kört klart. Så snart de har minst ett svar eller completedAt
+  // räknas de som riktiga deltagare (även om score=0).
+  const rankedParticipants = allParticipants.filter(
+    (p) => p.completedAt || (p.answers && p.answers.length > 0)
+  );
+
+  const sortedParticipants = [...rankedParticipants].sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     const aTime = a.completedAt || Infinity;
     const bTime = b.completedAt || Infinity;
@@ -81,11 +95,37 @@ export default function LeaderboardScreen() {
   });
 
   const allDone =
-    allParticipants.length > 0 && allParticipants.every((p) => p.completedAt);
-  const activePlayers = allParticipants.filter((p) => !p.completedAt).length;
-  const completedPlayers = allParticipants.filter(
+    rankedParticipants.length > 0 &&
+    rankedParticipants.every((p) => p.completedAt);
+  const activePlayers = rankedParticipants.filter((p) => !p.completedAt).length;
+  const completedPlayers = rankedParticipants.filter(
     (p) => p.completedAt
   ).length;
+
+  // Dela-badge: visa knapp bara om "jag" finns i listan och har slutfört.
+  // Placeringen baseras på sorteringsordningen (samma som visas på topplistan).
+  const myIndex = sortedParticipants.findIndex((p) => p.id === participantId);
+  const me = myIndex >= 0 ? sortedParticipants[myIndex] : undefined;
+  const myRank = myIndex + 1;
+  const canShare = !!me && !!me.completedAt;
+
+  const handleShare = async () => {
+    if (!me || sharing) return;
+    setSharing(true);
+    try {
+      const ok = await shareBadge({
+        viewRef: badgeRef,
+        dialogTitle: t("leaderboard.shareDialogTitle"),
+      });
+      if (!ok) {
+        Alert.alert(t("common.errorTitle"), t("leaderboard.shareUnavailable"));
+      }
+    } catch {
+      Alert.alert(t("common.errorTitle"), t("leaderboard.shareFailed"));
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -254,8 +294,24 @@ export default function LeaderboardScreen() {
         }
       />
 
-      {/* Home button */}
+      {/* Bottom bar: dela-knapp (när jag har slutfört) + hem-knapp */}
       <View style={styles.bottomBar}>
+        {canShare && (
+          <TouchableOpacity
+            style={[styles.shareButton, sharing && styles.shareButtonBusy]}
+            onPress={handleShare}
+            disabled={sharing}
+            activeOpacity={0.85}
+          >
+            {sharing ? (
+              <ActivityIndicator size="small" color="#1B3D2B" />
+            ) : (
+              <Text style={styles.shareButtonText}>
+                {t("leaderboard.share")}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
           style={styles.homeButton}
           onPress={() => navigation.navigate("Home")}
@@ -264,6 +320,37 @@ export default function LeaderboardScreen() {
           <Text style={styles.homeButtonText}>{t("leaderboard.backHome")}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Offscreen badge — måste finnas i view-trädet för att captureRef ska
+          kunna rasterisera den. Placeras långt utanför skärmen och blockerar
+          inga interaktioner. */}
+      {canShare && me && (
+        <View style={styles.offscreen} pointerEvents="none">
+          <ShareBadge
+            ref={badgeRef}
+            name={me.name}
+            score={me.score}
+            totalQuestions={totalQuestions}
+            rank={myRank}
+            walkTitle={walkTitle}
+            labels={{
+              appName: t("leaderboard.badge.appName"),
+              rankTitles: [
+                t("leaderboard.badge.rank1"),
+                t("leaderboard.badge.rank2"),
+                t("leaderboard.badge.rank3"),
+                t("leaderboard.badge.rankOther", { rank: myRank }),
+              ],
+              tagline: t("leaderboard.badge.tagline"),
+              correct: t("leaderboard.badge.correct", {
+                score: me.score,
+                total: totalQuestions,
+              }),
+              cta: t("leaderboard.badge.cta"),
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 }
@@ -517,6 +604,24 @@ const styles = StyleSheet.create({
   bottomBar: {
     padding: 16,
     paddingBottom: Platform.OS === "web" ? 16 : 32,
+    gap: 10,
+  },
+  shareButton: {
+    backgroundColor: "#F0C040",
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
+  },
+  shareButtonBusy: {
+    opacity: 0.7,
+  },
+  shareButtonText: {
+    color: "#1B3D2B",
+    fontSize: 17,
+    fontWeight: "800",
+    letterSpacing: -0.2,
   },
   homeButton: {
     backgroundColor: "rgba(245,240,232,0.12)",
@@ -530,5 +635,12 @@ const styles = StyleSheet.create({
     color: "#F5F0E8",
     fontSize: 17,
     fontWeight: "600",
+  },
+
+  // Offscreen-container för delnings-badge:n.
+  offscreen: {
+    position: "absolute",
+    left: -10000,
+    top: 0,
   },
 });

@@ -193,7 +193,21 @@
     "correctCount": "{{score}}/{{total}} correct ({{percentage}}%)",
     "emptyText": "No participants yet",
     "backHome": "Back to start",
-    "points": "pt"
+    "points": "pt",
+    "share": "Share result",
+    "shareDialogTitle": "Share your result",
+    "shareUnavailable": "Sharing is not supported on this device",
+    "shareFailed": "Could not create share image",
+    "badge": {
+      "appName": "Tipspromenaden",
+      "rank1": "Gold",
+      "rank2": "Silver",
+      "rank3": "Bronze",
+      "rankOther": "{{rank}}th place",
+      "tagline": "I finished in",
+      "correct": "{{score}} of {{total}} correct",
+      "cta": "Soon you can try it too — watch for Tipspromenaden!"
+    }
   },
   "create": {
     "createTitle": "Create walk",

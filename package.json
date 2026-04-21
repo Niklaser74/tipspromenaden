@@ -51,6 +51,7 @@
     "react-native-screens": "~4.23.0",
     "react-native-svg": "15.15.3",
     "react-native-tab-view": "^4.3.0",
+    "react-native-view-shot": "4.0.3",
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {

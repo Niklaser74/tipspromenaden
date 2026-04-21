@@ -22,6 +22,7 @@
 
 import { getMyWalks } from "./firestore";
 import { getSavedWalks, saveWalkLocally } from "./storage";
+import { recordWalkCreation } from "./stats";
 import { createQRData } from "../utils/qr";
 import { SavedWalk } from "../types";
 
@@ -41,6 +42,23 @@ export async function syncMyWalksFromCloud(userId: string): Promise<number> {
 
   const existingIds = new Set(savedLocally.map((sw) => sw.walk.id));
   const newOnes = cloudWalks.filter((w) => !existingIds.has(w.id));
+
+  // Backfilla creation-stats för ALLA egna molnpromenader — även de som
+  // redan fanns lokalt. Stats ligger separat i AsyncStorage och kan ha
+  // rensats (ex. ny-installation från Play Store) utan att walks gjorde
+  // det; då har vi promenader men ingen creation-räkning. recordWalkCreation
+  // är idempotent via createdWalkIds så upprepade anrop är no-ops.
+  //
+  // Sekventiellt eftersom recordWalkCreation gör read-modify-write på
+  // samma AsyncStorage-nyckel — parallella anrop skulle race:a och
+  // förlora räkningar.
+  for (const walk of cloudWalks) {
+    try {
+      await recordWalkCreation(walk.id);
+    } catch {
+      // Stats är inte affärskritiskt — svälj fel.
+    }
+  }
 
   if (newOnes.length === 0) return 0;
 

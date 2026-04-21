@@ -193,7 +193,21 @@
     "correctCount": "{{score}}/{{total}} rätt ({{percentage}}%)",
     "emptyText": "Inga deltagare ännu",
     "backHome": "Tillbaka till start",
-    "points": "p"
+    "points": "p",
+    "share": "Dela resultat",
+    "shareDialogTitle": "Dela ditt resultat",
+    "shareUnavailable": "Delning stöds inte på den här enheten",
+    "shareFailed": "Kunde inte skapa delningsbild",
+    "badge": {
+      "appName": "Tipspromenaden",
+      "rank1": "Guld",
+      "rank2": "Silver",
+      "rank3": "Brons",
+      "rankOther": "{{rank}}:e plats",
+      "tagline": "Jag kom på",
+      "correct": "{{score}} av {{total}} rätt",
+      "cta": "Snart kan även du testa — håll utkik efter Tipspromenaden!"
+    }
   },
   "create": {
     "createTitle": "Skapa promenad",
