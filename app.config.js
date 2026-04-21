@@ -69,7 +69,7 @@ module.exports = () => ({
       // verifieringen gått igenom — filen behövs bara i verifierings-APK:n.
       [
         "./plugins/withAdiRegistration",
-        { token: "DSV2RH2REXKS6AAAAAAAAAAAA" },
+        { token: "DSV2RH2REXKS6AAAAAAAAAAAAA" },
       ],
     ],
     extra: {
