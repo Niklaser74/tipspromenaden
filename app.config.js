@@ -65,12 +65,6 @@ module.exports = () => ({
       "expo-localization",
       "@react-native-google-signin/google-signin",
       "@react-native-community/datetimepicker",
-      // TEMP: för Play Console-paketnamnsregistrering. Tas bort efter att
-      // verifieringen gått igenom — filen behövs bara i verifierings-APK:n.
-      [
-        "./plugins/withAdiRegistration",
-        { token: "DSV2RH2REXKS6AAAAAAAAAAAAA" },
-      ],
     ],
     extra: {
       eas: {
