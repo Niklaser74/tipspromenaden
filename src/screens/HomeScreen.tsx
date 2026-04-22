@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,19 @@ import { useAuth } from "../context/AuthContext";
 import { SavedWalk, Walk } from "../types";
 import { syncPendingData } from "../services/offlineSync";
 import { refreshAllSavedWalks } from "../services/walkRefresh";
+import {
+  Tag,
+  getAllTags,
+  getTagsByWalk,
+  removeWalkFromTags,
+} from "../services/walkTags";
+import { getCurrentLocation } from "../utils/location";
+import { distanceToWalk, LatLng } from "../utils/walkGeo";
+import EditTagsModal from "../components/EditTagsModal";
 import { useTranslation } from "../i18n";
+
+type WalkTab = "mine" | "saved";
+type SortMode = "recent" | "name" | "distance";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -32,12 +44,43 @@ export default function HomeScreen() {
   const [renameTarget, setRenameTarget] = useState<SavedWalk | null>(null);
   const [aliasDraft, setAliasDraft] = useState("");
 
+  // Tabs + filter + sortering. `activeTagIds` är OR-filter — lista matchar om
+  // den har någon av taggarna (tom = alla). Sparas inte i AsyncStorage; det
+  // ska vara tillfälligt filter, inte en inställning.
+  const [activeTab, setActiveTab] = useState<WalkTab>("mine");
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [sortMenuOpen, setSortMenuOpen] = useState(false);
+  const [activeTagIds, setActiveTagIds] = useState<Set<string>>(new Set());
+
+  // Tagg-data (laddas om när skärmen får fokus så att ändringar på
+  // ManageTags-skärmen slår igenom direkt).
+  const [allTags, setAllTags] = useState<Tag[]>([]);
+  const [tagsByWalk, setTagsByWalk] = useState<Record<string, string[]>>({});
+
+  // GPS för "Närmast"-sortering. `gpsStatus` = "idle" innan användaren
+  // valt distance, sedan "loading" → "ok"/"denied". Vi fångar positionen
+  // en gång när användaren byter till distance-läge; inte en kontinuerlig
+  // watcher eftersom hemskärmen är statisk.
+  const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<
+    "idle" | "loading" | "ok" | "denied"
+  >("idle");
+
+  // Tagg-redigeringsmodal. walkId=null betyder stängd.
+  const [editTagsFor, setEditTagsFor] = useState<SavedWalk | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const walks = await getSavedWalks();
+      const [walks, tags, byWalk] = await Promise.all([
+        getSavedWalks(),
+        getAllTags(),
+        getTagsByWalk(),
+      ]);
       if (cancelled) return;
       setSavedWalks(walks);
+      setAllTags(tags);
+      setTagsByWalk(byWalk);
 
       // Sync av väntande offline-svar och refresh av cachade promenader
       // är oberoende — kör parallellt.
@@ -54,6 +97,111 @@ export default function HomeScreen() {
       unsub();
     };
   }, [navigation]);
+
+  // Hämta GPS en gång när användaren väljer "Närmast". Om rättigheter saknas
+  // flaggar vi det och faller tillbaka på senaste-sorteringen visuellt, men
+  // valet stannar kvar så att användaren vet att hen aktivt valde det.
+  useEffect(() => {
+    if (sortMode !== "distance") return;
+    if (gpsStatus === "ok" || gpsStatus === "loading") return;
+    let cancelled = false;
+    setGpsStatus("loading");
+    getCurrentLocation()
+      .then((loc) => {
+        if (cancelled) return;
+        setUserLocation({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+        setGpsStatus("ok");
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setGpsStatus("denied");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [sortMode, gpsStatus]);
+
+  // Dela upp i två listor (Mina = createdBy == user.uid, Sparade = resten).
+  // Anonym/ej inloggad användare har ingen uid → allt räknas som "Sparade".
+  const { mineWalks, otherWalks } = useMemo(() => {
+    const uid = user?.uid;
+    const mine: SavedWalk[] = [];
+    const others: SavedWalk[] = [];
+    for (const w of savedWalks) {
+      if (uid && w.walk.createdBy === uid) mine.push(w);
+      else others.push(w);
+    }
+    return { mineWalks: mine, otherWalks: others };
+  }, [savedWalks, user?.uid]);
+
+  // Vilken flik visar vi? Ingen auto-växling; vi visar aktuell flik även om
+  // den råkar vara tom, så att användaren inte blir förvirrad över var
+  // hen är.
+  const visibleTabWalks = activeTab === "mine" ? mineWalks : otherWalks;
+
+  // Tagg-filter och sortering. Båda minnesberoende så listan räknas inte
+  // om på varje render.
+  const filteredAndSorted = useMemo(() => {
+    // Filter: OR över valda taggar. Tom = visa allt.
+    const filtered =
+      activeTagIds.size === 0
+        ? visibleTabWalks
+        : visibleTabWalks.filter((sw) =>
+            (tagsByWalk[sw.walk.id] || []).some((id) => activeTagIds.has(id))
+          );
+
+    const sorted = [...filtered];
+    if (sortMode === "name") {
+      sorted.sort((a, b) =>
+        displayWalkTitle(a).localeCompare(displayWalkTitle(b), "sv", {
+          sensitivity: "base",
+        })
+      );
+    } else if (sortMode === "distance" && userLocation) {
+      sorted.sort(
+        (a, b) =>
+          distanceToWalk(userLocation, a.walk) -
+          distanceToWalk(userLocation, b.walk)
+      );
+    } else {
+      // recent (default) — savedAt fallande
+      sorted.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+    }
+    return sorted;
+  }, [visibleTabWalks, activeTagIds, tagsByWalk, sortMode, userLocation]);
+
+  // Bara taggar som används av någon walk i aktuell flik visas i chip-raden
+  // — det håller raden relevant även när användaren har många taggar som
+  // bara gäller Mina (eller vice versa).
+  const visibleTags = useMemo(() => {
+    const usedIds = new Set<string>();
+    for (const sw of visibleTabWalks) {
+      for (const id of tagsByWalk[sw.walk.id] || []) usedIds.add(id);
+    }
+    return allTags.filter((t) => usedIds.has(t.id));
+  }, [allTags, tagsByWalk, visibleTabWalks]);
+
+  const toggleTagFilter = (tagId: string) => {
+    setActiveTagIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(tagId)) next.delete(tagId);
+      else next.add(tagId);
+      return next;
+    });
+  };
+
+  const clearTagFilter = () => setActiveTagIds(new Set());
+
+  const onEditTagsSaved = async (_newTagIds: string[] | null) => {
+    setEditTagsFor(null);
+    // Ladda om efter sparande så att chip-raden och counts stämmer.
+    const [tags, byWalk] = await Promise.all([getAllTags(), getTagsByWalk()]);
+    setAllTags(tags);
+    setTagsByWalk(byWalk);
+  };
 
   const handleDeleteAccount = () => {
     // Dubbel bekräftelse: radering är oåterkallelig och Apple/Google
@@ -159,7 +307,14 @@ export default function HomeScreen() {
               await deleteWalkCompletely(walk.id);
             }
             await removeSavedWalk(walk.id);
+            await removeWalkFromTags(walk.id);
             setSavedWalks((prev) => prev.filter((w) => w.walk.id !== walk.id));
+            setTagsByWalk((prev) => {
+              if (!(walk.id in prev)) return prev;
+              const next = { ...prev };
+              delete next[walk.id];
+              return next;
+            });
           } catch (e: any) {
             Alert.alert(
               t("common.error"),
@@ -342,11 +497,153 @@ export default function HomeScreen() {
         {/* Saved Walks */}
         {savedWalks.length > 0 && (
           <View style={styles.savedSection}>
-            <Text style={styles.sectionTitle}>{t("home.yourWalks")}</Text>
-            {savedWalks.map((item) => {
+            {/* Segmented control: Mina / Sparade */}
+            <View style={styles.segmented}>
+              <TouchableOpacity
+                style={[
+                  styles.segmentedItem,
+                  activeTab === "mine" && styles.segmentedItemActive,
+                ]}
+                onPress={() => setActiveTab("mine")}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.segmentedText,
+                    activeTab === "mine" && styles.segmentedTextActive,
+                  ]}
+                >
+                  {t("home.tabMine")} · {mineWalks.length}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.segmentedItem,
+                  activeTab === "saved" && styles.segmentedItemActive,
+                ]}
+                onPress={() => setActiveTab("saved")}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.segmentedText,
+                    activeTab === "saved" && styles.segmentedTextActive,
+                  ]}
+                >
+                  {t("home.tabSaved")} · {otherWalks.length}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Sort + tagg-filter rad */}
+            <View style={styles.filterBar}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.chipsRow}
+                style={styles.chipsScroll}
+              >
+                <TouchableOpacity
+                  style={[
+                    styles.filterChip,
+                    activeTagIds.size === 0 && styles.filterChipActive,
+                  ]}
+                  onPress={clearTagFilter}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      activeTagIds.size === 0 && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {t("home.tagsAll")}
+                  </Text>
+                </TouchableOpacity>
+                {visibleTags.map((tag) => {
+                  const on = activeTagIds.has(tag.id);
+                  return (
+                    <TouchableOpacity
+                      key={tag.id}
+                      style={[
+                        styles.filterChip,
+                        on && styles.filterChipActive,
+                      ]}
+                      onPress={() => toggleTagFilter(tag.id)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.filterChipText,
+                          on && styles.filterChipTextActive,
+                        ]}
+                      >
+                        {tag.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+                <TouchableOpacity
+                  style={styles.manageChip}
+                  onPress={() => navigation.navigate("ManageTags")}
+                  activeOpacity={0.7}
+                  accessibilityLabel={t("home.tagsManage")}
+                >
+                  <MaterialCommunityIcons
+                    name="tag-edit-outline"
+                    size={16}
+                    color="#4A5E4C"
+                  />
+                </TouchableOpacity>
+              </ScrollView>
+
+              {/* Sortering */}
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={() => setSortMenuOpen(true)}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons
+                  name="sort-variant"
+                  size={16}
+                  color="#2C3E2D"
+                />
+                <Text style={styles.sortButtonText}>
+                  {sortMode === "recent"
+                    ? t("home.sortRecent")
+                    : sortMode === "name"
+                    ? t("home.sortName")
+                    : t("home.sortDistance")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* GPS-status-text när "Närmast" är valt men GPS inte är ok */}
+            {sortMode === "distance" && gpsStatus === "denied" && (
+              <Text style={styles.gpsWarning}>
+                {t("home.sortDistanceNoGps")}
+              </Text>
+            )}
+
+            {/* Filtrerad lista */}
+            {filteredAndSorted.length === 0 && (
+              <View style={styles.emptyFilterCard}>
+                <Text style={styles.emptyFilterTitle}>
+                  {t("home.emptyFiltered")}
+                </Text>
+                <Text style={styles.emptyFilterDesc}>
+                  {t("home.emptyFilteredDesc")}
+                </Text>
+              </View>
+            )}
+
+            {filteredAndSorted.map((item) => {
               const isCreator = user && item.walk.createdBy === user.uid;
               const title = displayWalkTitle(item);
               const hasAlias = title !== item.walk.title;
+              const walkTagNames = (tagsByWalk[item.walk.id] || [])
+                .map((id) => allTags.find((t) => t.id === id)?.name)
+                .filter((n): n is string => !!n);
               return (
                 <TouchableOpacity
                   key={item.walk.id}
@@ -354,6 +651,8 @@ export default function HomeScreen() {
                   onPress={() =>
                     navigation.navigate("JoinWalk", { walk: item.walk })
                   }
+                  onLongPress={() => setEditTagsFor(item)}
+                  delayLongPress={350}
                   activeOpacity={0.7}
                 >
                   {/* Övre rad: ikon + titel får hela bredden */}
@@ -387,6 +686,15 @@ export default function HomeScreen() {
                           ? ` · ${item.walk.event.startDate}`
                           : ""}
                       </Text>
+                      {walkTagNames.length > 0 && (
+                        <View style={styles.walkTagRow}>
+                          {walkTagNames.map((name) => (
+                            <View key={name} style={styles.walkTagPill}>
+                              <Text style={styles.walkTagPillText}>{name}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
                     </View>
                   </View>
 
@@ -399,6 +707,18 @@ export default function HomeScreen() {
                       accessibilityLabel={t("home.leaderboard")}
                     >
                       <Text style={styles.editButtonText}>📊</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => setEditTagsFor(item)}
+                      activeOpacity={0.6}
+                      accessibilityLabel={t("home.tagsEditButton")}
+                    >
+                      <MaterialCommunityIcons
+                        name="tag-outline"
+                        size={20}
+                        color="#2C3E2D"
+                      />
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.editButton}
@@ -547,6 +867,77 @@ export default function HomeScreen() {
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Sort-menu: en minimal "action sheet" över hela skärmen */}
+      <Modal
+        visible={sortMenuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSortMenuOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.sortOverlay}
+          activeOpacity={1}
+          onPress={() => setSortMenuOpen(false)}
+        >
+          <View style={styles.sortSheet}>
+            <Text style={styles.sortSheetTitle}>{t("home.sortLabel")}</Text>
+            {(
+              [
+                { mode: "recent", label: t("home.sortRecent") },
+                { mode: "name", label: t("home.sortName") },
+                { mode: "distance", label: t("home.sortDistance") },
+              ] as { mode: SortMode; label: string }[]
+            ).map((opt) => {
+              const isActive = sortMode === opt.mode;
+              const disabled =
+                opt.mode === "distance" && gpsStatus === "denied";
+              return (
+                <TouchableOpacity
+                  key={opt.mode}
+                  style={[
+                    styles.sortOption,
+                    isActive && styles.sortOptionActive,
+                    disabled && styles.sortOptionDisabled,
+                  ]}
+                  disabled={disabled}
+                  onPress={() => {
+                    setSortMode(opt.mode);
+                    setSortMenuOpen(false);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    style={[
+                      styles.sortOptionText,
+                      isActive && styles.sortOptionTextActive,
+                      disabled && styles.sortOptionTextDisabled,
+                    ]}
+                  >
+                    {isActive ? "✓  " : "    "}
+                    {opt.label}
+                  </Text>
+                  {disabled && (
+                    <Text style={styles.sortOptionHint}>
+                      {t("home.sortDistanceUnavailable")}
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Edit tags modal */}
+      <EditTagsModal
+        walkId={editTagsFor?.walk.id ?? null}
+        walkTitle={editTagsFor ? displayWalkTitle(editTagsFor) : ""}
+        currentTagIds={
+          editTagsFor ? tagsByWalk[editTagsFor.walk.id] || [] : []
+        }
+        onClose={onEditTagsSaved}
+      />
     </View>
   );
 }
@@ -800,6 +1191,202 @@ const styles = StyleSheet.create({
     color: "#2C3E2D",
     marginBottom: 14,
     letterSpacing: -0.3,
+  },
+
+  // Segmented control: Mina / Sparade
+  segmented: {
+    flexDirection: "row",
+    backgroundColor: "#E8E8E4",
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 12,
+  },
+  segmentedItem: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  segmentedItemActive: {
+    backgroundColor: "#FFFFFF",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 3,
+      },
+      android: { elevation: 1 },
+    }),
+  },
+  segmentedText: {
+    color: "#8A9A8D",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  segmentedTextActive: {
+    color: "#2C3E2D",
+  },
+
+  // Filter-rad: tagg-chips + sortering
+  filterBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 12,
+  },
+  chipsScroll: {
+    flex: 1,
+  },
+  chipsRow: {
+    flexDirection: "row",
+    gap: 6,
+    paddingRight: 4,
+    alignItems: "center",
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E0E8E0",
+  },
+  filterChipActive: {
+    backgroundColor: "#1B6B35",
+    borderColor: "#1B6B35",
+  },
+  filterChipText: {
+    color: "#2C3E2D",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  filterChipTextActive: {
+    color: "#F5F0E8",
+  },
+  manageChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E0E8E0",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E0E8E0",
+  },
+  sortButtonText: {
+    color: "#2C3E2D",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  gpsWarning: {
+    color: "#B33A3A",
+    fontSize: 12,
+    marginBottom: 10,
+    fontStyle: "italic",
+  },
+
+  // Sort-menu modal
+  sortOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  sortSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    padding: 20,
+    paddingBottom: Platform.OS === "web" ? 20 : 36,
+  },
+  sortSheetTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#8A9A8D",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  sortOption: {
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  sortOptionActive: {
+    backgroundColor: "#F0F4F0",
+  },
+  sortOptionDisabled: {
+    opacity: 0.5,
+  },
+  sortOptionText: {
+    color: "#2C3E2D",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  sortOptionTextActive: {
+    color: "#1B6B35",
+    fontWeight: "700",
+  },
+  sortOptionTextDisabled: {
+    color: "#8A9A8D",
+  },
+  sortOptionHint: {
+    color: "#8A9A8D",
+    fontSize: 12,
+    marginTop: 2,
+    marginLeft: 24,
+  },
+
+  // Tagg-pills visade direkt på walk-korten
+  walkTagRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 4,
+    marginTop: 6,
+  },
+  walkTagPill: {
+    backgroundColor: "#E8F0E0",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  walkTagPillText: {
+    color: "#2D7A3A",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+
+  // Empty state för filtrerad lista
+  emptyFilterCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#F0F0EC",
+  },
+  emptyFilterTitle: {
+    color: "#2C3E2D",
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  emptyFilterDesc: {
+    color: "#8A9A8D",
+    fontSize: 13,
+    textAlign: "center",
   },
   walkCard: {
     backgroundColor: "#FFFFFF",

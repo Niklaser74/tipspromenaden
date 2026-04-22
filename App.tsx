@@ -18,6 +18,7 @@ import ResultsScreen from "./src/screens/ResultsScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import OpenWalkScreen from "./src/screens/OpenWalkScreen";
+import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import { APP_SCHEME, WALK_PATH } from "./src/constants/deepLinks";
 
 const Stack = createNativeStackNavigator();
@@ -156,6 +157,15 @@ function AppNavigator() {
           name="OpenWalk"
           component={OpenWalkScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ManageTags"
+          component={ManageTagsScreen}
+          options={{
+            title: t("nav.manageTags"),
+            headerStyle: { backgroundColor: "#F5F0E8" },
+            headerTintColor: "#2C3E2D",
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

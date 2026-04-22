@@ -24,7 +24,8 @@
     "results": "Results",
     "leaderboard": "Leaderboard",
     "settings": "Settings",
-    "stats": "Stats"
+    "stats": "Stats",
+    "manageTags": "Manage tags"
   },
   "home": {
     "brandTagline": "Quiz & Adventure",
@@ -69,7 +70,50 @@
     "renameMessage": "The alias is only shown to you on this device. It doesn't change the walk's real name.",
     "renamePlaceholder": "Your own name for the walk",
     "renameSave": "Save",
-    "renameReset": "Reset to original name"
+    "renameReset": "Reset to original name",
+    "tabMine": "Mine",
+    "tabSaved": "Saved",
+    "sortLabel": "Sort",
+    "sortRecent": "Recent",
+    "sortName": "Name A–Z",
+    "sortDistance": "Closest",
+    "sortDistanceUnavailable": "GPS is required to sort by distance",
+    "sortDistanceNoGps": "Couldn't get your location",
+    "tagsAll": "All",
+    "tagsManage": "Manage tags",
+    "tagsEditButton": "Tags",
+    "tagsEditTitle": "Tags",
+    "tagsEditMessage": "Choose which tags apply to this walk.",
+    "tagsEditEmpty": "You don't have any tags yet. Create one below.",
+    "tagsNewPlaceholder": "New tag",
+    "tagsAdd": "Add",
+    "tagsSave": "Done",
+    "tagsCount": {
+      "one": "{{count}} walk",
+      "other": "{{count}} walks"
+    },
+    "emptyFiltered": "No walks match the filter",
+    "emptyFilteredDesc": "Try another tag, or tap All."
+  },
+  "manageTags": {
+    "title": "Manage tags",
+    "empty": "You don't have any tags yet",
+    "emptyHint": "Create a tag below and you can use it to organise your walks.",
+    "newTagPlaceholder": "New tag name",
+    "addButton": "Add",
+    "usedIn": {
+      "one": "Used on {{count}} walk",
+      "other": "Used on {{count}} walks"
+    },
+    "unused": "Not used yet",
+    "rename": "Rename",
+    "delete": "Delete",
+    "renameTitle": "Rename tag",
+    "renamePrompt": "New name",
+    "deleteTitle": "Delete tag",
+    "deleteMessage": "The tag \"{{name}}\" will be removed from all walks it's on. The walks themselves are not affected.",
+    "tagAlreadyExists": "A tag with that name already exists",
+    "nameTooLong": "Max 30 characters"
   },
   "results": {
     "done": "Walk complete!",

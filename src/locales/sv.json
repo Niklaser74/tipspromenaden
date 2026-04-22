@@ -24,7 +24,8 @@
     "results": "Resultat",
     "leaderboard": "Topplista",
     "settings": "Inställningar",
-    "stats": "Statistik"
+    "stats": "Statistik",
+    "manageTags": "Hantera taggar"
   },
   "home": {
     "brandTagline": "Quiz & Äventyr",
@@ -69,7 +70,50 @@
     "renameMessage": "Aliaset visas bara för dig på den här enheten. Det ändrar inte promenadens riktiga namn.",
     "renamePlaceholder": "Eget namn för promenaden",
     "renameSave": "Spara",
-    "renameReset": "Återställ originalnamn"
+    "renameReset": "Återställ originalnamn",
+    "tabMine": "Mina",
+    "tabSaved": "Sparade",
+    "sortLabel": "Sortera",
+    "sortRecent": "Senaste",
+    "sortName": "Namn A–Ö",
+    "sortDistance": "Närmast",
+    "sortDistanceUnavailable": "GPS krävs för att sortera på avstånd",
+    "sortDistanceNoGps": "Kunde inte hämta din position",
+    "tagsAll": "Alla",
+    "tagsManage": "Hantera taggar",
+    "tagsEditButton": "Taggar",
+    "tagsEditTitle": "Taggar",
+    "tagsEditMessage": "Välj vilka taggar som ska gälla för den här promenaden.",
+    "tagsEditEmpty": "Du har inga taggar än. Skapa en nedan.",
+    "tagsNewPlaceholder": "Ny tagg",
+    "tagsAdd": "Lägg till",
+    "tagsSave": "Klar",
+    "tagsCount": {
+      "one": "{{count}} promenad",
+      "other": "{{count}} promenader"
+    },
+    "emptyFiltered": "Inga promenader matchar filtret",
+    "emptyFilteredDesc": "Testa att välja en annan tagg eller tryck på Alla."
+  },
+  "manageTags": {
+    "title": "Hantera taggar",
+    "empty": "Du har inga taggar än",
+    "emptyHint": "Skapa en tagg nedan så kan du använda den för att sortera dina promenader.",
+    "newTagPlaceholder": "Namn på ny tagg",
+    "addButton": "Lägg till",
+    "usedIn": {
+      "one": "Används på {{count}} promenad",
+      "other": "Används på {{count}} promenader"
+    },
+    "unused": "Används inte ännu",
+    "rename": "Döp om",
+    "delete": "Radera",
+    "renameTitle": "Döp om tagg",
+    "renamePrompt": "Nytt namn",
+    "deleteTitle": "Radera tagg",
+    "deleteMessage": "Taggen \"{{name}}\" tas bort från alla promenader den är satt på. Promenaderna påverkas i övrigt inte.",
+    "tagAlreadyExists": "En tagg med det namnet finns redan",
+    "nameTooLong": "Max 30 tecken"
   },
   "results": {
     "done": "Promenaden klar!",
