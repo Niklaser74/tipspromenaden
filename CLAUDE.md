@@ -164,15 +164,6 @@ kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
 sökvägen utan problem. OneDrive-buggen träffar bara den tar-baserade
 uppladdningen i `eas build`.
 
-## Roadmap / idéer (ej planerade, men sparade)
-
-- **Återanvänd positioner, byt frågor**: ladda in ett nytt `.tipspack` på
-  en befintlig promenads kontroll-koordinater och få en ny promenad med
-  samma positioner men nya frågor. Bra när man återanvänder en kurerad
-  runda för flera event. Import-flödet finns redan (`questionBattery.ts`);
-  behövs ett nytt steg "välj vilken befintlig promenads positioner som
-  ska återanvändas" + matchning frågor→positioner (troligen i ordning).
-
 ## Kända begränsningar / icke-blockerare
 
 - `generateId()` i `src/utils/qr.ts` använder `Math.random()` (ca 48 bits).

@@ -32,7 +32,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { getCurrentLocation } from "../utils/location";
 import { generateId, createQRData } from "../utils/qr";
 import { saveWalk } from "../services/firestore";
-import { saveWalkLocally } from "../services/storage";
+import { saveWalkLocally, getSavedWalks, displayWalkTitle } from "../services/storage";
+import type { SavedWalk } from "../types";
 import { recordWalkCreation } from "../services/stats";
 import {
   pickAndParseBattery,
@@ -265,6 +266,13 @@ export default function CreateWalkScreen() {
   const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>([]);
   const [batteryName, setBatteryName] = useState<string>("");
 
+  // Återanvänd positioner från en tidigare promenad: picker-modal + källa.
+  // När `reusedFromTitle` är satt har vi laddat in tomma kontroller på en
+  // befintlig promenads koordinater — nästa batteri-import fyller dem i ordning.
+  const [reusePickerVisible, setReusePickerVisible] = useState(false);
+  const [reuseCandidates, setReuseCandidates] = useState<SavedWalk[]>([]);
+  const [reusedFromTitle, setReusedFromTitle] = useState<string | null>(null);
+
   // Uppdatera rubrik i headern beroende på läge
   useEffect(() => {
     navigation.setOptions({
@@ -353,8 +361,33 @@ export default function CreateWalkScreen() {
       }
 
       const battery = result.battery;
-      setBatteryQueue(battery.questions);
       setBatteryName(battery.name);
+
+      // Om vi har pre-laddade tomma kontroller (via "återanvänd positioner")
+      // fyller vi dem i ordning innan resten köas. Tomma = text är trim-tom.
+      const emptyIndices: number[] = [];
+      questions.forEach((q, i) => {
+        if (!q.text.trim()) emptyIndices.push(i);
+      });
+      const toFillCount = Math.min(emptyIndices.length, battery.questions.length);
+      let filledCount = 0;
+      if (toFillCount > 0) {
+        const filled = [...questions];
+        for (let i = 0; i < toFillCount; i++) {
+          const bq = battery.questions[i];
+          const idx = emptyIndices[i];
+          filled[idx] = {
+            ...filled[idx],
+            text: bq.text,
+            options: [...bq.options],
+            correctOptionIndex: bq.correctOptionIndex,
+          };
+        }
+        setQuestions(filled);
+        filledCount = toFillCount;
+      }
+      setBatteryQueue(battery.questions.slice(filledCount));
+
       // Auto-fyll titel om tom
       if (!title.trim()) {
         setTitle(battery.name);
@@ -371,13 +404,84 @@ export default function CreateWalkScreen() {
       } else if (!battery.language && !language) {
         languageNote = "\n\n" + t("create.batteryLanguageUnknown");
       }
-      Alert.alert(
-        t("create.batteryImportedTitle"),
-        t("create.batteryImportedMessage", { count: battery.questions.length, name: battery.name }) + languageNote
-      );
+      // Meddelandet varierar beroende på om batteriet auto-matchades mot
+      // pre-laddade positioner (reuse-flöde) eller köades som vanligt.
+      const baseMessage =
+        filledCount > 0
+          ? t("create.batteryMatchedMessage", {
+              matched: filledCount,
+              remaining: battery.questions.length - filledCount,
+              name: battery.name,
+            })
+          : t("create.batteryImportedMessage", {
+              count: battery.questions.length,
+              name: battery.name,
+            });
+      Alert.alert(t("create.batteryImportedTitle"), baseMessage + languageNote);
     } catch (e: any) {
       Alert.alert(t("common.errorTitle"), t("create.importGenericError", { message: e?.message || String(e) }));
     }
+  };
+
+  /**
+   * Öppnar picker-modal för att återanvända positioner från en lokalt sparad
+   * promenad. Varje kontrollpunkts koordinat kopieras in som en tom fråga,
+   * så att skaparen sedan kan importera ett nytt frågebatteri (som matchas
+   * automatiskt i ordning) eller fylla i frågorna manuellt.
+   */
+  const openReusePicker = async () => {
+    try {
+      const walks = await getSavedWalks();
+      const candidates = walks.filter((sw) => (sw.walk.questions?.length ?? 0) > 0);
+      if (candidates.length === 0) {
+        Alert.alert(t("create.reuseNoneTitle"), t("create.reuseNoneMessage"));
+        return;
+      }
+      // Sortera på senast sparad först — matchar HomeScreen-intuitionen.
+      candidates.sort((a, b) => (b.savedAt ?? 0) - (a.savedAt ?? 0));
+      setReuseCandidates(candidates);
+      setReusePickerVisible(true);
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || String(e));
+    }
+  };
+
+  /**
+   * Laddar in en befintlig promenads positioner som tomma kontroller.
+   * Centrerar kartan på första positionen. Nya walkId:n skapas automatiskt
+   * via walkIdRef (gäller bara ny promenad, inte redigering).
+   */
+  const applyReusedPositions = (source: Walk) => {
+    const emptyQuestions: Question[] = source.questions.map((q, i) => ({
+      id: generateId(),
+      text: "",
+      options: ["", "", ""],
+      correctOptionIndex: 0,
+      coordinate: { ...q.coordinate },
+      order: i + 1,
+    }));
+    setQuestions(emptyQuestions);
+    setReusedFromTitle(source.title);
+    setReusePickerVisible(false);
+
+    // Centrera kartan på första positionen så skaparen ser var de landar.
+    if (emptyQuestions.length > 0) {
+      const first = emptyQuestions[0].coordinate;
+      setRegion({
+        latitude: first.latitude,
+        longitude: first.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+
+    Alert.alert(
+      t("create.reuseSuccessTitle"),
+      t("create.reuseSuccessMessage", {
+        count: emptyQuestions.length,
+        name: source.title,
+      })
+    );
   };
 
   /** Avbryt batteriläge — släng resterande oplacerade frågor. */
@@ -656,20 +760,44 @@ export default function CreateWalkScreen() {
       {/* Bottom panel */}
       <View style={styles.bottomPanel}>
 
-        {/* Importera frågebatteri (visas bara när inga frågor finns och vi inte redigerar) */}
+        {/* Importera frågebatteri + Återanvänd positioner — båda visas bara
+            på fräsch ny promenad (inga frågor, inte redigering). */}
         {!isEditing && questions.length === 0 && batteryQueue.length === 0 && (
-          <TouchableOpacity
-            style={styles.importBatteryButton}
-            onPress={handleImportBattery}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.importBatteryIcon}>📋</Text>
-            <View style={styles.importBatteryContent}>
-              <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
-              <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
-            </View>
-            <Text style={styles.importBatteryArrow}>›</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={styles.importBatteryButton}
+              onPress={handleImportBattery}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.importBatteryIcon}>📋</Text>
+              <View style={styles.importBatteryContent}>
+                <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
+                <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
+              </View>
+              <Text style={styles.importBatteryArrow}>›</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.reusePositionsButton}
+              onPress={openReusePicker}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.importBatteryIcon}>📍</Text>
+              <View style={styles.importBatteryContent}>
+                <Text style={styles.reusePositionsTitle}>{t("create.reuseTitle")}</Text>
+                <Text style={styles.reusePositionsSubtitle}>{t("create.reuseDesc")}</Text>
+              </View>
+              <Text style={styles.reusePositionsArrow}>›</Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Banner när positioner är återanvända men inga frågor satta än */}
+        {reusedFromTitle && questions.some((q) => !q.text.trim()) && (
+          <View style={styles.reusedBanner}>
+            <Text style={styles.reusedBannerText}>
+              {t("create.reusedBanner", { name: reusedFromTitle })}
+            </Text>
+          </View>
         )}
 
         {/* Frågelista-toggle */}
@@ -849,6 +977,52 @@ export default function CreateWalkScreen() {
           På iOS: KeyboardAvoidingView med padding lyfter modalen ovanför tgb.
           På Android: ingen KeyboardAvoidingView (orsakar flimmer) — ScrollView
           hanterar scrollning när tangentbordet dyker upp istället. */}
+
+      {/* Återanvänd-positioner-picker */}
+      <Modal
+        visible={reusePickerVisible}
+        animationType="slide"
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => setReusePickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.reusePickerModal}>
+            <Text style={styles.reusePickerTitle}>{t("create.reusePickerTitle")}</Text>
+            <Text style={styles.reusePickerHint}>{t("create.reusePickerHint")}</Text>
+            <ScrollView style={styles.reusePickerList}>
+              {reuseCandidates.map((sw) => (
+                <TouchableOpacity
+                  key={sw.walk.id}
+                  style={styles.reusePickerItem}
+                  onPress={() => applyReusedPositions(sw.walk)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.reusePickerItemContent}>
+                    <Text style={styles.reusePickerItemTitle} numberOfLines={1}>
+                      {displayWalkTitle(sw)}
+                    </Text>
+                    <Text style={styles.reusePickerItemMeta}>
+                      {t("create.reusePickerMeta", {
+                        count: sw.walk.questions.length,
+                      })}
+                    </Text>
+                  </View>
+                  <Text style={styles.reusePickerItemArrow}>›</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.reusePickerCancel}
+              onPress={() => setReusePickerVisible(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.reusePickerCancelText}>{t("common.cancel")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -1070,6 +1244,104 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#C49A2A",
     fontWeight: "300",
+  },
+  reusePositionsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EAF2E8",
+    borderWidth: 1.5,
+    borderColor: "#1B6B35",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    gap: 12,
+  },
+  reusePositionsTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1B4A22",
+    marginBottom: 2,
+  },
+  reusePositionsSubtitle: {
+    fontSize: 12,
+    color: "#2D7A3A",
+  },
+  reusePositionsArrow: {
+    fontSize: 24,
+    color: "#2D7A3A",
+    fontWeight: "300",
+  },
+  reusedBanner: {
+    backgroundColor: "#EAF2E8",
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+  },
+  reusedBannerText: {
+    color: "#1B4A22",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  reusePickerModal: {
+    backgroundColor: "#F5F0E8",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    marginTop: "auto",
+    padding: 24,
+    paddingBottom: 36,
+    maxHeight: "80%",
+  },
+  reusePickerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2C3E2D",
+    marginBottom: 4,
+  },
+  reusePickerHint: {
+    fontSize: 13,
+    color: "#5A6B5B",
+    marginBottom: 16,
+  },
+  reusePickerList: {
+    maxHeight: 400,
+  },
+  reusePickerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    gap: 12,
+  },
+  reusePickerItemContent: {
+    flex: 1,
+  },
+  reusePickerItemTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2C3E2D",
+    marginBottom: 2,
+  },
+  reusePickerItemMeta: {
+    fontSize: 12,
+    color: "#5A6B5B",
+  },
+  reusePickerItemArrow: {
+    fontSize: 22,
+    color: "#2D7A3A",
+  },
+  reusePickerCancel: {
+    alignItems: "center",
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  reusePickerCancelText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#5A6B5B",
   },
   saveButton: {
     backgroundColor: "#1B6B35",
