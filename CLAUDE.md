@@ -164,6 +164,30 @@ kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
 sökvägen utan problem. OneDrive-buggen träffar bara den tar-baserade
 uppladdningen i `eas build`.
 
+### OTA-kanaler: publicera alltid till båda branches
+
+`eas.json` binder varje build-profil till en EAS-channel:
+- `preview` → `channel: "preview"`
+- `internal` → `channel: "internal"`
+- `production` → `channel: "production"`
+
+Channel-namnet bakas in i AAB:n vid build-tid. En installerad app lyssnar
+**bara** på OTA-updates publicerade till sin channel. Att flytta en AAB i
+Play Console (t.ex. från internal track till closed testing) påverkar inte
+channel — AAB:n är fysiskt samma fil, med samma inbakade channel.
+
+Eftersom vi normalt bygger med `--profile internal` för testare men
+också har produktions-builds i omlopp, publicera alltid till **båda**
+branches:
+
+```bash
+npm run update:all -- --message "Beskrivning av ändringen"
+```
+
+Scriptet (`scripts/update-all.mjs`) kör `eas update --branch internal` +
+`eas update --branch production` i följd. Använd bara en enskild branch
+om du medvetet vill hålla tillbaka en förändring från en kanal.
+
 ## Kända begränsningar / icke-blockerare
 
 - `generateId()` i `src/utils/qr.ts` använder `Math.random()` (ca 48 bits).

@@ -13,7 +13,8 @@
     "build:production": "npm run strip-readonly && eas build -p android --profile production",
     "update:preview": "eas update --channel preview",
     "update:internal": "eas update --channel internal",
-    "update:production": "eas update --channel production"
+    "update:production": "eas update --channel production",
+    "update:all": "node scripts/update-all.mjs"
   },
   "dependencies": {
     "@expo/ngrok": "^4.1.3",
