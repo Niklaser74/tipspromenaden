@@ -24,7 +24,7 @@ import { Walk, Question, Answer, Participant, Session } from "../types";
 import { generateId } from "../utils/qr";
 import { useTranslation } from "../i18n";
 
-const TRIGGER_DISTANCE_METERS = 3;
+const TRIGGER_DISTANCE_METERS = 15;
 
 export default function ActiveWalkScreen() {
   const route = useRoute<any>();
@@ -402,7 +402,7 @@ export default function ActiveWalkScreen() {
       <View style={styles.distancePill}>
         {nearestDistance !== null && nearestQuestion ? (
           <Text style={styles.distanceText}>
-            {nearestDistance <= 10 && nearestDistance > TRIGGER_DISTANCE_METERS
+            {nearestDistance <= 30 && nearestDistance > TRIGGER_DISTANCE_METERS
               ? "📍 "
               : ""}
             {t("active.distanceToControl", {
@@ -412,7 +412,7 @@ export default function ActiveWalkScreen() {
                   : `${nearestDistance} m`,
               order: nearestQuestion.order,
             })}
-            {nearestDistance <= 10 && nearestDistance > TRIGGER_DISTANCE_METERS
+            {nearestDistance <= 30 && nearestDistance > TRIGGER_DISTANCE_METERS
               ? t("active.almostThere")
               : ""}
           </Text>
