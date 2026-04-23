@@ -38,6 +38,10 @@ yarn-error.*
 # EAS build temp-artefakter (skapas av eas build:list-debug-skript)
 lastbuild.json
 
+# Google Play Service Account-nyckel — används av `eas submit` för att
+# pusha AAB:er till Play Console. Får ALDRIG committas.
+google-service-account.json
+
 # typescript
 *.tsbuildinfo
 

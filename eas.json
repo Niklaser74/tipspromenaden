@@ -29,12 +29,14 @@
   "submit": {
     "internal": {
       "android": {
-        "track": "internal"
+        "track": "internal",
+        "serviceAccountKeyPath": "./google-service-account.json"
       }
     },
     "production": {
       "android": {
-        "track": "production"
+        "track": "production",
+        "serviceAccountKeyPath": "./google-service-account.json"
       }
     }
   }
