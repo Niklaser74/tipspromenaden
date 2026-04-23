@@ -188,6 +188,29 @@ Scriptet (`scripts/update-all.mjs`) kör `eas update --branch internal` +
 `eas update --branch production` i följd. Använd bara en enskild branch
 om du medvetet vill hålla tillbaka en förändring från en kanal.
 
+## Nästa steg / roadmap
+
+Idéer och planerade förbättringar, grovt prioriterat. Inga hårda deadlines —
+plocka det som passar när tillfälle ges.
+
+**Kod / app:**
+- Byt `generateId()` i `src/utils/qr.ts` från `Math.random()` till
+  `expo-crypto.getRandomBytesAsync` (128 bits). Snabb fix, höjer kollisionssäkerhet.
+- Cloud Functions för score-validering — flytta poängberäkningen serverside
+  så att klient-inflaterad score inte går igenom. Kräver Firebase Functions-setup.
+- `assetlinks.json` på `tipspromenaden.se` när domänen registrerats, så att
+  deep-links verifieras av Android och intent-hijacking stängs ner.
+- Statistik-vy för skaparen: antal deltagare per session, genomsnittlig poäng,
+  svarsfördelning per fråga. Data finns redan i `sessions/*/participants`.
+- Exportera resultat som CSV/PDF efter avslutad session.
+
+**Distribution / drift:**
+- Få 12+ testare i stängt test i 14 dagar → öppnar prod-track för API-push.
+- Registrera `tipspromenaden.se` + peka DNS mot en enkel landningssida med
+  app-länkar och `assetlinks.json`.
+- Flytta projektet ut ur OneDrive permanent (eller konfigurera OneDrive att
+  exkludera repo-mappen) så `eas build` kan köras direkt utan `/c/dev/`-kopian.
+
 ## Kända begränsningar / icke-blockerare
 
 - `generateId()` i `src/utils/qr.ts` använder `Math.random()` (ca 48 bits).
