@@ -126,8 +126,13 @@ export async function watchPosition(
   }
   return await Location.watchPositionAsync(
     {
-      accuracy: Location.Accuracy.High,
-      distanceInterval: 1, // Uppdatera varje meter
+      // BestForNavigation = GPS + sensor-fusion (accelerometer/gyro) och
+      // högre uppdateringstakt. Högre batteriåtgång än `High`, men en
+      // tipspromenad tar 30–60 min så det är värt det — utan detta släpar
+      // positionen efter vid snabb gång och triggern missar kontroller.
+      accuracy: Location.Accuracy.BestForNavigation,
+      distanceInterval: 1, // Uppdatera när användaren rört sig minst 1m.
+      timeInterval: 1000,  // Android: tillåt även tidsbaserad uppdatering varje sekund.
     },
     callback
   );
