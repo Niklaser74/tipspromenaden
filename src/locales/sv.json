@@ -190,7 +190,6 @@
     "hint": "Dela QR-koden med deltagarna",
     "shareAsImage": "Dela som bild",
     "shareAsText": "Dela som text",
-    "shareMessage": "Gå med i tipspromenaden \"{{title}}\"!\n\nScanna QR-koden i Tipspromenaden-appen, eller använd koden:\n{{code}}",
     "shareDialogTitle": "Dela tipspromenaden \"{{title}}\"",
     "shareImageText": "Tipspromenaden: {{title}}",
     "copiedTitle": "Kopierat!",
@@ -335,5 +334,9 @@
     "correctAnswerSimple": "Rätt svar!",
     "correctAnswerWith": "Rätt svar: {{answer}}",
     "gpsError": "GPS-fel"
+  },
+  "share": {
+    "walkMessage": "Kolla in min tipspromenad: {{title}} 🌳\n\nÖppna i appen: {{link}}\n\nHar du inte appen?\n{{playStore}}",
+    "walkButton": "Dela"
   }
 }

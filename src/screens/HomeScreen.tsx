@@ -30,6 +30,7 @@ import {
 } from "../services/walkTags";
 import { getCurrentLocation } from "../utils/location";
 import { distanceToWalk, LatLng } from "../utils/walkGeo";
+import { shareWalk } from "../utils/shareWalk";
 import EditTagsModal from "../components/EditTagsModal";
 import { useTranslation } from "../i18n";
 
@@ -716,6 +717,18 @@ export default function HomeScreen() {
                     >
                       <MaterialCommunityIcons
                         name="tag-outline"
+                        size={20}
+                        color="#2C3E2D"
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => shareWalk(item.walk, t)}
+                      activeOpacity={0.6}
+                      accessibilityLabel={t("share.walkButton")}
+                    >
+                      <MaterialCommunityIcons
+                        name="share-variant"
                         size={20}
                         color="#2C3E2D"
                       />

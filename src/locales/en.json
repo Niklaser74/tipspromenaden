@@ -190,7 +190,6 @@
     "hint": "Share the QR code with the participants",
     "shareAsImage": "Share as image",
     "shareAsText": "Share as text",
-    "shareMessage": "Join the quiz walk \"{{title}}\"!\n\nScan the QR code in the Tipspromenaden app, or use this code:\n{{code}}",
     "shareDialogTitle": "Share quiz walk \"{{title}}\"",
     "shareImageText": "Tipspromenaden: {{title}}",
     "copiedTitle": "Copied!",
@@ -335,5 +334,9 @@
     "correctAnswerSimple": "Correct answer!",
     "correctAnswerWith": "Correct answer: {{answer}}",
     "gpsError": "GPS error"
+  },
+  "share": {
+    "walkMessage": "Check out my quiz walk: {{title}} 🌳\n\nOpen in app: {{link}}\n\nDon't have the app?\n{{playStore}}",
+    "walkButton": "Share"
   }
 }

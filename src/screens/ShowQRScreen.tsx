@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Share,
   Platform,
   Alert,
   ScrollView,
@@ -16,6 +15,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Walk } from "../types";
 import { useTranslation } from "../i18n";
+import { shareWalk } from "../utils/shareWalk";
 
 export default function ShowQRScreen() {
   const route = useRoute<any>();
@@ -209,29 +209,15 @@ export default function ShowQRScreen() {
           dialogTitle: t("showQR.shareDialogTitle", { title: walk.title }),
         });
       } else {
-        await Share.share({
-          message: t("showQR.shareMessage", { title: walk.title, code: qrData }),
-        });
+        await shareWalk(walk, t);
       }
     } catch (e) {
       console.error("Share error:", e);
-      try {
-        await Share.share({
-          message: t("showQR.shareMessage", { title: walk.title, code: qrData }),
-        });
-      } catch (_) {}
+      await shareWalk(walk, t);
     }
   };
 
-  const handleShareText = async () => {
-    try {
-      await Share.share({
-        message: t("showQR.shareMessage", { title: walk.title, code: qrData }),
-      });
-    } catch (e) {
-      // Avbruten av användaren
-    }
-  };
+  const handleShareText = () => shareWalk(walk, t);
 
   return (
     <ScrollView
