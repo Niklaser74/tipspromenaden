@@ -23,6 +23,29 @@ import { SavedWalk, Answer } from "../types";
  */
 export const SAVED_WALKS_KEY = "saved_walks";
 const PENDING_SYNC_KEY = "pending_sync";
+const MAP_TYPE_KEY = "map_type";
+
+// ===== Karttyp (persistent användarpreferens) =====
+
+/** Karttyp som användaren kan cykla mellan via MapTypeToggle-knappen. */
+export type MapType = "standard" | "hybrid" | "terrain";
+
+const VALID_MAP_TYPES: readonly MapType[] = ["standard", "hybrid", "terrain"];
+
+/**
+ * Läser användarens valda karttyp. Faller tillbaka till "standard" om
+ * inget är sparat eller värdet är ogiltigt (skyddar mot kass data efter
+ * migrering/manipulation).
+ */
+export async function getMapType(): Promise<MapType> {
+  const data = await AsyncStorage.getItem(MAP_TYPE_KEY);
+  return VALID_MAP_TYPES.includes(data as MapType) ? (data as MapType) : "standard";
+}
+
+/** Sparar karttypsval. Tyst no-op vid AsyncStorage-fel — preferensen är inte kritisk. */
+export async function setMapType(type: MapType): Promise<void> {
+  await AsyncStorage.setItem(MAP_TYPE_KEY, type);
+}
 
 // ===== Sparade promenader (offline-stöd) =====
 

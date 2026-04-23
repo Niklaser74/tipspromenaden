@@ -24,6 +24,10 @@ if (Platform.OS !== "web") {
 
 // ==================== WEB IMPLEMENTATION ====================
 
+// Karttyp — synkas med `MapType` i services/storage.ts. Native mappar rakt
+// till react-native-maps `mapType`-prop. På web swappas Leaflet tile-layer.
+type WebMapType = "standard" | "hybrid" | "terrain";
+
 interface WebMapProps {
   style?: any;
   initialRegion?: {
@@ -36,6 +40,7 @@ interface WebMapProps {
   showsUserLocation?: boolean;
   showsMyLocationButton?: boolean;
   followsUserLocation?: boolean;
+  mapType?: WebMapType;
   children?: React.ReactNode;
 }
 
@@ -103,6 +108,7 @@ const WebMapView = forwardRef(
       initialRegion,
       onPress,
       showsUserLocation,
+      mapType = "standard",
       children,
     }: WebMapProps,
     ref: any
@@ -180,6 +186,15 @@ const WebMapView = forwardRef(
       onPress: markers.map((m) => m.onPress || (() => {})),
       ids: markers.map((_, i) => String(i)),
     };
+
+    // Send map type changes to iframe (initial värdet sätts i HTML:en).
+    useEffect(() => {
+      if (!iframeReady || !iframeRef.current?.contentWindow) return;
+      iframeRef.current.contentWindow.postMessage(
+        { source: "react-app", type: "setMapType", mapType },
+        "*"
+      );
+    }, [iframeReady, mapType]);
 
     // Send data to iframe
     useEffect(() => {
@@ -298,10 +313,40 @@ const WebMapView = forwardRef(
 <script>
   var map = L.map('map').setView([${lat}, ${lng}], ${zoom});
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors',
-    maxZoom: 19,
-  }).addTo(map);
+  // Gratis tile-källor, inga API-nycklar:
+  // - standard: OpenStreetMap
+  // - hybrid:   Esri World Imagery (satellit) + Esri reference (etiketter)
+  // - terrain:  OpenTopoMap (topografi med höjdkurvor, bra i skogen)
+  var currentBase = null;
+  var currentOverlay = null;
+
+  function setMapType(type) {
+    if (currentBase) { map.removeLayer(currentBase); currentBase = null; }
+    if (currentOverlay) { map.removeLayer(currentOverlay); currentOverlay = null; }
+
+    if (type === 'hybrid') {
+      currentBase = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+      ).addTo(map);
+      currentOverlay = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+        { maxZoom: 19 }
+      ).addTo(map);
+    } else if (type === 'terrain') {
+      currentBase = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        attribution: 'Map: &copy; OpenTopoMap (CC-BY-SA)',
+        maxZoom: 17,
+      }).addTo(map);
+    } else {
+      currentBase = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+      }).addTo(map);
+    }
+  }
+
+  setMapType('${mapType}');
 
   var markers = [];
   var circles = [];
@@ -332,6 +377,11 @@ const WebMapView = forwardRef(
   // Listen for messages from parent
   window.addEventListener('message', function(event) {
     if (!event.data || event.data.source !== 'react-app') return;
+
+    if (event.data.type === 'setMapType') {
+      setMapType(event.data.mapType);
+      return;
+    }
 
     if (event.data.type === 'updateMarkers') {
       // Clear existing

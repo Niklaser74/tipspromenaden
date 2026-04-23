@@ -1,4 +1,10 @@
 {
+  "mapType": {
+    "standard": "Karta",
+    "hybrid": "Satellit",
+    "terrain": "Terräng",
+    "toggleLabel": "Byt karttyp"
+  },
   "common": {
     "cancel": "Avbryt",
     "ok": "OK",

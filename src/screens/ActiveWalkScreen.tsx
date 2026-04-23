@@ -11,6 +11,8 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 import MapView, { Marker, Circle } from "../components/MapViewWeb";
+import MapTypeToggle from "../components/MapTypeToggle";
+import { useMapType } from "../hooks/useMapType";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { watchPosition, getDistanceInMeters, AccuracyTier } from "../utils/location";
 import {
@@ -72,6 +74,9 @@ export default function ActiveWalkScreen() {
   // GPS noggrannhetsnivå styrs av kartans zoomnivå:
   // inzoomad (latitudeDelta ≤ 0.02) → precise, utzoomad → battery.
   const [accuracyTier, setAccuracyTier] = useState<AccuracyTier>("precise");
+
+  // Karttyp (standard/hybrid/terrain), persisterad mellan sessioner.
+  const { mapType, cycleMapType } = useMapType();
 
   // Refs for GPS callback to access latest state
   const answeredIdsRef = useRef(answeredIds);
@@ -368,6 +373,7 @@ export default function ActiveWalkScreen() {
         showsUserLocation
         followsUserLocation
         initialRegion={getInitialRegion()}
+        mapType={mapType}
         onRegionChangeComplete={
           Platform.OS !== "web" ? handleRegionChange : undefined
         }
@@ -424,6 +430,13 @@ export default function ActiveWalkScreen() {
           </View>
         </View>
       </View>
+
+      {/* Karttyp-toggle */}
+      <MapTypeToggle
+        mapType={mapType}
+        onPress={cycleMapType}
+        style={styles.mapTypeToggle}
+      />
 
       {/* Distance indicator - floating pill */}
       <View style={styles.distancePill}>
@@ -746,6 +759,12 @@ const styles = StyleSheet.create({
     color: "#E8B830",
     fontSize: 15,
     fontWeight: "700",
+  },
+
+  mapTypeToggle: {
+    position: "absolute",
+    top: Platform.OS === "web" ? 16 : 120,
+    right: 16,
   },
 
   // Distance pill

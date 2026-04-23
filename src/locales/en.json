@@ -1,4 +1,10 @@
 {
+  "mapType": {
+    "standard": "Map",
+    "hybrid": "Satellite",
+    "terrain": "Terrain",
+    "toggleLabel": "Change map type"
+  },
   "common": {
     "cancel": "Cancel",
     "ok": "OK",

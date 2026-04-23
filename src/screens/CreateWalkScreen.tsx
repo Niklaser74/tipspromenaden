@@ -14,6 +14,8 @@ import {
   Image,
 } from "react-native";
 import MapView, { Marker } from "../components/MapViewWeb";
+import MapTypeToggle from "../components/MapTypeToggle";
+import { useMapType } from "../hooks/useMapType";
 import { DateField } from "../components/DateField";
 import { parseIsoDate } from "../utils/date";
 import { LANGUAGES, flagForLanguage } from "../constants/languages";
@@ -213,6 +215,7 @@ function ModalContent({
  *   Om den saknas skapas en ny promenad från scratch.
  */
 export default function CreateWalkScreen() {
+  const { mapType, cycleMapType } = useMapType();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { user } = useAuth();
@@ -591,6 +594,7 @@ export default function CreateWalkScreen() {
         onPress={handleMapPress}
         showsUserLocation
         showsMyLocationButton
+        mapType={mapType}
       >
         {questions.map((q, idx) => (
           <Marker
@@ -617,6 +621,13 @@ export default function CreateWalkScreen() {
           </Marker>
         ))}
       </MapView>
+
+      {/* Karttyp-toggle */}
+      <MapTypeToggle
+        mapType={mapType}
+        onPress={cycleMapType}
+        style={styles.mapTypeToggle}
+      />
 
       {/* Floating info pill — visar olika text i batteriläge */}
       {batteryQueue.length > 0 ? (
@@ -928,6 +939,11 @@ const styles = StyleSheet.create({
   // Map
   map: {
     flex: 1,
+  },
+  mapTypeToggle: {
+    position: "absolute",
+    top: 72,
+    right: 16,
   },
   markerContainer: {
     alignItems: "center",
