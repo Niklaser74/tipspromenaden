@@ -12,7 +12,7 @@ import {
 import * as Speech from "expo-speech";
 import MapView, { Marker, Circle } from "../components/MapViewWeb";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { watchPosition, getDistanceInMeters } from "../utils/location";
+import { watchPosition, getDistanceInMeters, AccuracyTier } from "../utils/location";
 import {
   createSession,
   addParticipant,
@@ -69,6 +69,10 @@ export default function ActiveWalkScreen() {
     correctAnswer: string;
   } | null>(null);
 
+  // GPS noggrannhetsnivå styrs av kartans zoomnivå:
+  // inzoomad (latitudeDelta ≤ 0.02) → precise, utzoomad → battery.
+  const [accuracyTier, setAccuracyTier] = useState<AccuracyTier>("precise");
+
   // Refs for GPS callback to access latest state
   const answeredIdsRef = useRef(answeredIds);
   answeredIdsRef.current = answeredIds;
@@ -113,47 +117,56 @@ export default function ActiveWalkScreen() {
     })();
   }, []);
 
-  // GPS-bevakning
+  // Stabil GPS-callback — använder refs för föränderlig state så att
+  // callbacken inte behöver bytas ut vid varje render.
+  const handleGpsLocation = useCallback(
+    (loc: { coords: { latitude: number; longitude: number } }) => {
+      const lat = loc.coords.latitude;
+      const lng = loc.coords.longitude;
+      setUserLat(lat);
+      setUserLng(lng);
+
+      let minDist = Infinity;
+      let closest: Question | null = null;
+
+      for (const question of walk.questions) {
+        if (answeredIdsRef.current.has(question.id)) continue;
+
+        const dist = getDistanceInMeters(
+          lat,
+          lng,
+          question.coordinate.latitude,
+          question.coordinate.longitude
+        );
+
+        if (dist < minDist) {
+          minDist = dist;
+          closest = question;
+        }
+
+        if (dist <= TRIGGER_DISTANCE_METERS && !modalVisibleRef.current) {
+          setActiveQuestion(question);
+          setSelectedAnswer(null);
+          setAnswerFeedback(null);
+          setModalVisible(true);
+        }
+      }
+
+      setNearestDistance(minDist === Infinity ? null : Math.round(minDist));
+      setNearestQuestion(closest);
+    },
+    [walk.questions] // walk är stabilt under hela promenaden
+  );
+
+  // GPS-bevakning — återprenumererar när zoomnivån ändrar noggrannhetsnivå.
+  // Korta glapp vid byte (~50–100 ms) är acceptabla eftersom den gamla
+  // prenumerationen tas bort i cleanup och en ny skapas direkt efter.
   useEffect(() => {
     let subscription: any;
 
     (async () => {
       try {
-        subscription = await watchPosition((loc) => {
-          const lat = loc.coords.latitude;
-          const lng = loc.coords.longitude;
-          setUserLat(lat);
-          setUserLng(lng);
-
-          let minDist = Infinity;
-          let closest: Question | null = null;
-
-          for (const question of walk.questions) {
-            if (answeredIdsRef.current.has(question.id)) continue;
-
-            const dist = getDistanceInMeters(
-              lat,
-              lng,
-              question.coordinate.latitude,
-              question.coordinate.longitude
-            );
-
-            if (dist < minDist) {
-              minDist = dist;
-              closest = question;
-            }
-
-            if (dist <= TRIGGER_DISTANCE_METERS && !modalVisibleRef.current) {
-              setActiveQuestion(question);
-              setSelectedAnswer(null);
-              setAnswerFeedback(null);
-              setModalVisible(true);
-            }
-          }
-
-          setNearestDistance(minDist === Infinity ? null : Math.round(minDist));
-          setNearestQuestion(closest);
-        });
+        subscription = await watchPosition(handleGpsLocation, accuracyTier);
       } catch (e: any) {
         Alert.alert(t("active.gpsError"), e.message);
       }
@@ -162,7 +175,18 @@ export default function ActiveWalkScreen() {
     return () => {
       if (subscription) subscription.remove();
     };
-  }, []);
+  }, [accuracyTier, handleGpsLocation]);
+
+  // Uppdatera noggrannhetsnivå när användaren zoomar kartan.
+  // latitudeDelta > 0.02 (~2 km vy) = översikt → spara batteri.
+  // latitudeDelta ≤ 0.02 = inzoomad, letar kontroll → maxnoggrannhet.
+  const handleRegionChange = useCallback(
+    (region: { latitudeDelta: number }) => {
+      const tier: AccuracyTier = region.latitudeDelta > 0.02 ? "battery" : "precise";
+      setAccuracyTier((prev) => (prev === tier ? prev : tier));
+    },
+    []
+  );
 
   /**
    * Läser upp frågetexten + svarsalternativen på svenska via TTS.
@@ -344,6 +368,9 @@ export default function ActiveWalkScreen() {
         showsUserLocation
         followsUserLocation
         initialRegion={getInitialRegion()}
+        onRegionChangeComplete={
+          Platform.OS !== "web" ? handleRegionChange : undefined
+        }
       >
         {walk.questions.map((q, idx) => {
           const isDone = answeredIds.has(q.id);

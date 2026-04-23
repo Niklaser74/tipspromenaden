@@ -97,14 +97,26 @@ export async function getCurrentLocation(): Promise<Location.LocationObject> {
 }
 
 /**
+ * Noggrannhetsnivå för GPS-bevakning.
+ *
+ * - `'precise'`  – `BestForNavigation` (GPS + sensor-fusion) + 1 s-intervall.
+ *   Används när användaren är inzoomad och letar efter en kontrollpunkt.
+ * - `'battery'`  – `High` (ren GPS, ingen sensor-fusion) + 5 s-intervall.
+ *   Används när kartan är utzoomad och exakt position är mindre kritisk.
+ */
+export type AccuracyTier = "precise" | "battery";
+
+/**
  * Begär platstillstånd och startar kontinuerlig GPS-positionsövervakning.
- * Anropar `callback` varje gång enheten rör sig minst 1 meter.
- * Använder hög noggrannhet för korrekt kontrollpunktsdetektion.
+ * Anropar `callback` varje gång enheten rör sig minst 1 meter, eller vid
+ * tidsintervallet som bestäms av `tier` (se nedan).
  *
  * Kom ihåg att avsluta prenumerationen när den inte längre behövs
  * för att spara batteri och undvika minneläckor.
  *
  * @param callback - Funktion som anropas med den uppdaterade positionen.
+ * @param tier     - Noggrannhetsnivå: `'precise'` (standard) vid inzoomad vy,
+ *                   `'battery'` vid översiktsvy för lägre batteriåtgång.
  * @returns En prenumerationsobjekt – anropa `.remove()` för att avsluta övervakningen.
  * @throws `Error("Platstillstånd nekades")` om användaren nekar tillstånd.
  *
@@ -118,7 +130,8 @@ export async function getCurrentLocation(): Promise<Location.LocationObject> {
  * subscription.remove();
  */
 export async function watchPosition(
-  callback: (location: Location.LocationObject) => void
+  callback: (location: Location.LocationObject) => void,
+  tier: AccuracyTier = "precise"
 ): Promise<Location.LocationSubscription> {
   const { status } = await Location.requestForegroundPermissionsAsync();
   if (status !== "granted") {
@@ -126,13 +139,16 @@ export async function watchPosition(
   }
   return await Location.watchPositionAsync(
     {
-      // BestForNavigation = GPS + sensor-fusion (accelerometer/gyro) och
-      // högre uppdateringstakt. Högre batteriåtgång än `High`, men en
-      // tipspromenad tar 30–60 min så det är värt det — utan detta släpar
-      // positionen efter vid snabb gång och triggern missar kontroller.
-      accuracy: Location.Accuracy.BestForNavigation,
-      distanceInterval: 1, // Uppdatera när användaren rört sig minst 1m.
-      timeInterval: 1000,  // Android: tillåt även tidsbaserad uppdatering varje sekund.
+      // 'precise': BestForNavigation = GPS + sensor-fusion (accelerometer/gyro)
+      // och hög uppdateringstakt — används nära kontrollpunkter.
+      // 'battery': High = ren GPS utan sensor-fusion, längre intervall —
+      // används i översiktsvy där exakt position är mindre kritisk.
+      accuracy:
+        tier === "precise"
+          ? Location.Accuracy.BestForNavigation
+          : Location.Accuracy.High,
+      distanceInterval: 1,                       // Uppdatera vid minst 1 m rörelse.
+      timeInterval: tier === "precise" ? 1000 : 5000, // Android: tids-fallback.
     },
     callback
   );
