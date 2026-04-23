@@ -121,6 +121,49 @@ Play Store-spår: **Internt test** visar "(unreviewed)" + ingen innehålls-
 klassificering → Family Link blockerar. **Stängt test** ger riktig granskning
 och klassificering — använd det för riktiga testare.
 
+### OneDrive-buggen (drabbar ENDAST `eas build`)
+
+Projektet ligger på en OneDrive-synkad sökväg. När `eas build` komprimerar
+projektet för uppladdning blir tar-arkivet korrupt (troligen pga. Files-
+On-Demand-placeholders som rehydreras mitt i tar-körningen). Bygget kör
+då fast i **PREPARE_PROJECT**-fasen med fel som:
+
+```
+tar: src/screens: Cannot mkdir: Permission denied
+tar: src/screens/HomeScreen.tsx: Cannot open: No such file or directory
+tar: Exiting with failure status due to previous errors
+```
+
+**Fix:** bygg från en kopia på lokal disk utanför OneDrive.
+
+```bash
+# Första gången (eller efter längre paus)
+mkdir -p /c/dev
+cp -r "/c/Users/<user>/OneDrive - .../tipspromenaden-app" /c/dev/tipspromenaden-app
+
+# node_modules kopieras brutet — kör om install
+cd /c/dev/tipspromenaden-app
+# Radera via cmd (PowerShell/bash kan fastna på långa path-längder i node_modules):
+cmd //c "rmdir /s /q C:\dev\tipspromenaden-app\node_modules"
+npm install
+
+# Därefter: bygg alltid härifrån
+cd /c/dev/tipspromenaden-app
+eas build -p android --profile production --non-interactive --no-wait
+
+# Submit kan också köras härifrån när bygget är klart:
+eas submit -p android --id <build-id> --non-interactive --profile internal
+```
+
+**Viktigt:** nya commits ska fortfarande göras i OneDrive-kopian (det är
+"sanningen"). Innan nästa build: synka över ändringar till `/c/dev/`-
+kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
+`node_modules`).
+
+**`eas update` (OTA) drabbas INTE** — kan köras direkt från OneDrive-
+sökvägen utan problem. OneDrive-buggen träffar bara den tar-baserade
+uppladdningen i `eas build`.
+
 ## Kända begränsningar / icke-blockerare
 
 - `generateId()` i `src/utils/qr.ts` använder `Math.random()` (ca 48 bits).
@@ -129,8 +172,8 @@ och klassificering — använd det för riktiga testare.
   (ingen `assetlinks.json` på domänen). Intent-hijacking möjlig i teorin;
   domänen är inte publik idag så låg praktisk risk.
 - Score-fusk (se säkerhetsmodellen).
-- OneDrive-synkade sökvägar kan bryta EAS-bygget — vid fel: flytta projektet
-  till en lokal disk utan synk.
+- OneDrive-synkade sökvägar bryter `eas build` (se "OneDrive-buggen" under
+  Byggflöde). OTA (`eas update`) påverkas inte.
 
 ## Filer att läsa först för ny kontext
 
