@@ -118,10 +118,10 @@ Kvarstående svaghet: klient-uträknad score kan fortfarande inflateras upp till
 serverside-bedömning av varje svar.
 
 **Återstår att aktivera (manuellt i konsolerna):**
-- **Firebase App Check** — utan App Check kan vem som helst anropa Firestore
-  direkt utanför appen och förlita sig på reglerna som enda skydd. Aktivera
-  Play Integrity (Android) + DeviceCheck/App Attest (iOS) + reCAPTCHA (web)
-  i Firebase-konsolen, slå sedan på enforce.
+- **Firebase App Check** — kräver `@react-native-firebase/app-check` (native
+  Play Integrity-provider, inte JS SDK). Webbappen är inte deployad så
+  reCAPTCHA-vägen är irrelevant just nu. Lägg till i nästa build-cykel som
+  kräver ny AAB ändå. Se roadmappen nedan.
 - **Google Maps API-restriktioner** — verifiera i GCP att nyckeln har
   Android-restriktion (package + SHA-1) så att utdragen nyckel ur APK:n
   inte kan användas fritt.
@@ -265,8 +265,12 @@ plocka det som passar när tillfälle ges.
 **Kod / app:**
 - Cloud Functions för score-validering — flytta poängberäkningen serverside
   så att klient-inflaterad score inte går igenom. Kräver Firebase Functions-setup.
-- Aktivera Firebase App Check (Play Integrity / App Attest / reCAPTCHA) +
-  enforce i konsolen så att Firestore-anrop från icke-app-klienter blockeras.
+- **Firebase App Check** — lägg till `@react-native-firebase/app-check` som
+  native dep, konfigurera Play Integrity i Firebase-konsolen, initiera i
+  `src/config/firebase.ts`. Kräver ny AAB-build (inte OTA). Aktivera
+  "Monitoring" i konsolen, vänta tills all legitim trafik syns som *verified*,
+  slå sedan på Enforce. (Web App i konsolen finns men appen har ingen publik
+  web-deployment — reCAPTCHA-provider är inte relevant just nu.)
 - `assetlinks.json` på `tipspromenaden.se` när domänen registrerats, så att
   deep-links verifieras av Android och intent-hijacking stängs ner.
 - Statistik-vy för skaparen: antal deltagare per session, genomsnittlig poäng,
