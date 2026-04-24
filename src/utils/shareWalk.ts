@@ -34,6 +34,7 @@ export async function shareWalk(walk: Walk, t: TFn): Promise<void> {
   const message = t("share.walkMessage", {
     title: walk.title,
     link: buildWalkLink(walk.id),
+    walkId: walk.id,
     playStore: PLAY_STORE_URL,
   });
   try {
