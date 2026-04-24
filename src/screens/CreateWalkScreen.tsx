@@ -791,12 +791,25 @@ export default function CreateWalkScreen() {
           </>
         )}
 
-        {/* Banner när positioner är återanvända men inga frågor satta än */}
+        {/* Banner när positioner är återanvända men inga frågor satta än.
+            Knappen bredvid gör det lätt att direkt importera ett tipspack
+            som fyller de tomma positionerna i ordning. */}
         {reusedFromTitle && questions.some((q) => !q.text.trim()) && (
           <View style={styles.reusedBanner}>
             <Text style={styles.reusedBannerText}>
               {t("create.reusedBanner", { name: reusedFromTitle })}
             </Text>
+            <TouchableOpacity
+              style={styles.reusedBannerButton}
+              onPress={handleImportBattery}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.reusedBannerButtonIcon}>📋</Text>
+              <Text style={styles.reusedBannerButtonText}>
+                {t("create.importBatteryTitle")}
+              </Text>
+              <Text style={styles.reusedBannerButtonArrow}>›</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -1283,6 +1296,32 @@ const styles = StyleSheet.create({
     color: "#1B4A22",
     fontSize: 13,
     fontWeight: "600",
+  },
+  reusedBannerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#C8DCC0",
+  },
+  reusedBannerButtonIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  reusedBannerButtonText: {
+    flex: 1,
+    color: "#1B4A22",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  reusedBannerButtonArrow: {
+    fontSize: 20,
+    color: "#2D7A3A",
+    fontWeight: "300",
   },
   reusePickerModal: {
     backgroundColor: "#F5F0E8",
