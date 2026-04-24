@@ -17,6 +17,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from "r
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { AppUser, onAuthChange } from "../services/auth";
 import { syncMyWalksFromCloud } from "../services/walkSync";
+import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
 
 /**
  * Formen på värdet som tillhandahålls av `AuthContext`.
@@ -84,6 +85,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           syncedUidsRef.current.add(u.uid);
           syncMyWalksFromCloud(u.uid).catch((err) => {
             console.warn("[AuthProvider] walk sync failed:", err);
+          });
+          pullWalkTagsFromCloud(u.uid).catch((err) => {
+            console.warn("[AuthProvider] tag sync failed:", err);
           });
         }
       });

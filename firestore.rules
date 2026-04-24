@@ -25,6 +25,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // -------------------- users --------------------
+    // Privata kontodokument — endast ägaren. Används för taggar som
+    // följer kontot (users/{uid}/meta/walkTags), framtida preferenser
+    // etc. Firestore ger inbyggd 1 MB-gräns per dokument; övriga
+    // storleksgränser hanteras i klienten.
+    match /users/{uid}/meta/{docId} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // Hämtar walks/{walkId} och kontrollerar att inloggad user är ägare.
     // Måste deklareras inuti service-scopet eftersom den använder $(database).
     function isWalkOwner(walkId) {

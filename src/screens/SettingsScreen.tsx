@@ -18,6 +18,7 @@ import {
 } from "../i18n";
 import { useAuth } from "../context/AuthContext";
 import { syncMyWalksFromCloud } from "../services/walkSync";
+import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -36,7 +37,15 @@ export default function SettingsScreen() {
     if (!user || syncing) return;
     setSyncing(true);
     try {
-      const added = await syncMyWalksFromCloud(user.uid);
+      const [added] = await Promise.all([
+        syncMyWalksFromCloud(user.uid),
+        // Pull:a taggar i samma sveph — syftet med knappen är "återställ
+        // allt från molnet efter ominstallation". Tag-pull är tyst; fel
+        // loggas bara och blockerar inte walk-resultatet.
+        pullWalkTagsFromCloud(user.uid).catch((err) => {
+          console.warn("Manual tag sync failed:", err);
+        }),
+      ]);
       const msg =
         added === 0
           ? t("settings.syncWalksResultNone")

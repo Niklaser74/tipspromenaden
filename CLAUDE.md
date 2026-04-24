@@ -64,6 +64,12 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 - `walkSync.ts` — Hämtar egna walks från Firestore vid login, mergar in i lokal lista.
   Körs en gång per uid per app-körning från `AuthContext`. Viktigt efter
   Play Store-installation eftersom AsyncStorage då är tom.
+- `walkTags.ts` — Privata taggar per walk (AsyncStorage `walk_tags_v1`).
+  Varje mutation bumpar `updatedAt` och triggar en push-hook.
+- `walkTagsSync.ts` — Synkar tagg-storen till `users/{uid}/meta/walkTags`
+  i Firestore. Debouncad auto-push efter lokala ändringar,
+  `pullWalkTagsFromCloud()` vid login och från "Återställ promenader"-knappen.
+  Last-write-wins på doc-nivå via `updatedAt`.
 - `walkRefresh.ts` — Refresh av en enskild walk från molnet (t.ex. efter edit)
 - `offlineSync.ts` — Synkar offline-svar var 30:e sekund
 - `questionBattery.ts` — Validerar och importerar `.tipspack`-filer
@@ -83,6 +89,9 @@ sessions/{sessionId}                      # Publik läsning, signed-in kan creat
 
 sessions/{sessionId}/participants/{uid}   # Doc-id MÅSTE == auth.uid
   id, name, score, answers[], completedAt?
+
+users/{uid}/meta/walkTags                 # Privat, endast ägaren
+  catalog: Tag[], byWalk: Record<walkId, tagId[]>, updatedAt
 ```
 
 Deltagare är en **undresamling**, inte en array inbäddad i session-dokumentet.
