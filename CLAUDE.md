@@ -32,12 +32,29 @@ src/
 ├── types/index.ts              # Walk, Session, Participant, Question, SavedWalk, m.m.
 ├── i18n/                       # useTranslation(), setLanguage(), useLanguageChoice()
 ├── locales/                    # sv.json (primär), en.json
-├── constants/                  # languages, deepLinks
-├── utils/                      # location (haversine, GPS), qr (QR-payload), date
-├── components/                 # MapViewWeb (Leaflet), DateField, ErrorBoundary
+├── constants/                  # languages, deepLinks (APP_SCHEME + buildWalkLink)
+├── hooks/useMapType.ts         # Toggle standard/hybrid/terrain, persistas i AsyncStorage
+├── utils/                      # location, qr, date, shareWalk
+├── components/                 # MapViewWeb (Leaflet), MapTypeToggle, DateField, ErrorBoundary
 ├── services/                   # All extern I/O — inga React-beroenden här
 └── screens/                    # En fil per skärm, useNavigation() för routing
+
+scripts/                        # Node/PS-helpers utanför app-bundlet
+├── update-all.mjs              # `npm run update:all` — OTA till båda branches
+└── strip-readonly.ps1          # Tar bort read-only-flagga (OneDrive-artefakt) före build
 ```
+
+**Utils värda att känna till:**
+- `qr.ts` → `parseQRData()` accepterar **tre format**: JSON från QR-kod,
+  deep link `tipspromenaden://walk/<id>`, eller rått walkId. Samma kodväg
+  hanterar alltså både kameraskanning och inklistring av delade länkar.
+- `shareWalk.ts` → `Share.share()` med en delningsbar text som innehåller
+  titel + deep link + bart walkId (sista är fallback när länken inte är
+  klickbar i Messenger/SMS) + Play Store-länk.
+- `location.ts` → `watchPosition(callback, tier)` med `tier: "precise" |
+  "battery"`. Precise = `BestForNavigation` + 1s, battery = `High` + 5s.
+  Används av `ActiveWalkScreen` med zoom-baserad växling: ovan
+  latitudeDelta 0.02 → battery (panning/överblick), under → precise.
 
 ### Services-lagret (viktigt)
 
@@ -105,6 +122,22 @@ Dokumenterat, inte avsett att fixas i v1.
   ofta via `Platform.select`. Se `CreateWalkScreen.tsx`-modalen för ett
   typiskt exempel (KeyboardAvoidingView enbart på iOS).
 
+## Funktioner värda att veta om
+
+- **Karttyp-toggle** — knapp på `ActiveWalkScreen` och `CreateWalkScreen`
+  cyklar standard → hybrid → terräng. Native använder `react-native-maps`
+  `mapType`-prop. Web swappar Leaflet-tile-layers via postMessage (Esri
+  World Imagery + Reference för hybrid, OpenTopoMap för terräng). Valet
+  persistas via `useMapType()` (AsyncStorage).
+- **Återanvänd positioner** — knapp i `CreateWalkScreen` när det är en
+  fräsch ny promenad. Hämtar `getSavedWalks()` (innehåller egna walks +
+  sparade andras) och kopierar koordinater till tomma frågeslots i en ny
+  walk. När man sedan importerar ett `.tipspack` matchas frågorna mot
+  tomma positioner i ordning, resten köas (`batteryQueue`).
+- **Klistra in länk** — på `ScanQRScreen` (under kameraöverlayen) finns
+  en knapp som öppnar en modal där man kan klistra in en delad länk
+  eller ett walk-id. Workaround tills universal-https-länkar finns.
+
 ## Byggflöde
 
 ```
@@ -164,7 +197,21 @@ kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
 sökvägen utan problem. OneDrive-buggen träffar bara den tar-baserade
 uppladdningen i `eas build`.
 
-### OTA-kanaler: publicera alltid till båda branches
+### OTA: appVersion-policy + båda branches
+
+`runtimeVersion.policy: "appVersion"` i `app.config.js` — runtime är
+literal `"1.0.0"` (= `version`-fältet). Tidigare körde vi `"fingerprint"`
+men det drev isär: EAS-build-servern och `eas update` lokalt hashade
+olika filuppsättningar, så varje build/publicering fick olika runtime-
+hash och OTA:er nådde aldrig fram. appVersion ger deterministisk
+matchning mellan miljöer.
+
+**Konsekvens:** när native-lagret ändras (nytt expo-paket, plugin,
+permissions, app-icon, splash, etc) MÅSTE `version` bumpas manuellt i
+`app.config.js` + en ny AAB byggas. JS-only-patchar går som vanligt
+via `eas update`.
+
+
 
 `eas.json` binder varje build-profil till en EAS-channel:
 - `preview` → `channel: "preview"`
@@ -213,14 +260,16 @@ plocka det som passar när tillfälle ges.
 
 ## Kända begränsningar / icke-blockerare
 
-- `generateId()` i `src/utils/qr.ts` använder `Math.random()` (ca 48 bits).
-  Låg prio, men byt till `expo-crypto.getRandomBytesAsync` vid tillfälle.
-- Deep-link-prefix `https://tipspromenaden.se` är oregistrerad hos Google
-  (ingen `assetlinks.json` på domänen). Intent-hijacking möjlig i teorin;
-  domänen är inte publik idag så låg praktisk risk.
-- Score-fusk (se säkerhetsmodellen).
-- OneDrive-synkade sökvägar bryter `eas build` (se "OneDrive-buggen" under
-  Byggflöde). OTA (`eas update`) påverkas inte.
+(Punkterna nedan är *accepterade* svagheter just nu — fixar finns på
+roadmappen ovan, men ingen blockerar v1.)
+
+- `generateId()` i `src/utils/qr.ts` använder `Math.random()` (~48 bits).
+- Deep-link-prefix `tipspromenaden://` är custom-scheme — auto-länkas inte
+  i Messenger/SMS. `assetlinks.json` + `https://tipspromenaden.se` löser
+  detta när domänen finns. Workaround idag: "Klistra in länk"-knappen i
+  ScanQRScreen + bart walkId i delningsmeddelandet.
+- Score-fusk: klient räknar poäng (se säkerhetsmodellen).
+- OneDrive-sökväg bryter `eas build` (se OneDrive-buggen). OTA opåverkad.
 
 ## Filer att läsa först för ny kontext
 
