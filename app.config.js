@@ -11,12 +11,16 @@ module.exports = () => ({
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
     version: "1.0.0",
-    // EAS Update (OTA) — fingerprint-policy: EAS hashar native-lagret och
-    // serverar bara updates till binaries med samma fingerprint. Fel-säkrare
-    // än "appVersion" eftersom JS-only-patchar automatiskt undviker gamla
-    // byggen om vi lägger till/ändrar en native-modul.
+    // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
+    // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
+    // samma värde, vilket ger stabil matchning för OTA-delivery.
+    // Fingerprint-policyn drev isär mellan EAS-build-miljön och lokal
+    // miljö — updates landade aldrig på installerade builds. Med
+    // appVersion: när native-lagret ändras (nytt expo-paket, plugin,
+    // permissions) MÅSTE vi manuellt bumpa `version` ovan + bygga ny AAB.
+    // JS-only-patchar går som vanligt via `eas update`.
     runtimeVersion: {
-      policy: "fingerprint",
+      policy: "appVersion",
     },
     updates: {
       url: "https://u.expo.dev/c2f369b6-e07e-401c-a53b-1dc69443e4b7",

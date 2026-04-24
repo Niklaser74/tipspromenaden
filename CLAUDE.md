@@ -19,7 +19,7 @@ Marknad: Sverige först (svensk UI-default, `sv-SE` i Play Console). App-ID
 - **Expo SDK 55** + React Native 0.83 + React 19 + TypeScript 5.9
 - **Firebase**: Firestore (data), Auth (Google + anonym), Storage (frågebilder)
 - **EAS Build** för Android AAB/APK, `appVersionSource: "remote"`, `autoIncrement: true`
-- **EAS Update** för OTA-patchar (fingerprint-policy)
+- **EAS Update** för OTA-patchar (appVersion-policy; native-ändringar kräver manuell `version`-bump)
 - Kartor: `react-native-maps` på native, Leaflet via WebView på web
 - i18n: `expo-localization` + egen hook i `src/i18n/`, locales i `src/locales/{sv,en}.json`
 
