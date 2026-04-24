@@ -172,7 +172,12 @@
   "scan": {
     "backButton": "← Tillbaka",
     "webTitle": "Ange QR-kod",
-    "webHint": "Kameran är inte tillgänglig i webbläsaren.\nKlistra in QR-kodens innehåll nedan:",
+    "webHint": "Kameran är inte tillgänglig i webbläsaren.\nKlistra in QR-kodens innehåll, en delad länk eller ett walk-id:",
+    "pasteLinkButton": "Klistra in länk",
+    "pasteLinkTitle": "Öppna från länk",
+    "pasteLinkMessage": "Klistra in en delad tipspromenad-länk eller ett walk-id:",
+    "pasteLinkOpen": "Öppna",
+    "pasteLinkPlaceholder": "tipspromenaden://walk/...",
     "webFetchWalk": "Hämta promenad",
     "invalidTitle": "Ogiltig QR-kod",
     "invalidMessage": "Det här är inte en Tipspromenaden-kod.",

@@ -8,6 +8,8 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { parseQRData } from "../utils/qr";
@@ -89,6 +91,9 @@ function NativeScanner({ navigation }: { navigation: any }) {
   const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
+  const [pasteVisible, setPasteVisible] = useState(false);
+  const [pasteValue, setPasteValue] = useState("");
+  const [pasteLoading, setPasteLoading] = useState(false);
 
   useEffect(() => {
     requestPermission();
@@ -98,6 +103,16 @@ function NativeScanner({ navigation }: { navigation: any }) {
     if (scanned) return;
     setScanned(true);
     await processQRData(data, navigation, t, () => setScanned(false));
+  };
+
+  const submitPasted = async () => {
+    const value = pasteValue.trim();
+    if (!value) return;
+    setPasteLoading(true);
+    setPasteVisible(false);
+    setPasteValue("");
+    await processQRData(value, navigation, t, () => {});
+    setPasteLoading(false);
   };
 
   if (!permission?.granted) {
@@ -153,9 +168,75 @@ function NativeScanner({ navigation }: { navigation: any }) {
             <View style={styles.hintPill}>
               <Text style={styles.hint}>{t("scan.aimHint")}</Text>
             </View>
+            {/* Reservalternativ när delade länkar inte är klickbara
+                (t.ex. Messenger gör inte tipspromenaden:// klickbart). */}
+            <TouchableOpacity
+              style={styles.pasteLinkButton}
+              onPress={() => setPasteVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.pasteLinkButtonText}>
+                📋 {t("scan.pasteLinkButton")}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </CameraView>
+
+      <Modal
+        visible={pasteVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPasteVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.pasteModalBackdrop}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={styles.pasteModalCard}>
+            <Text style={styles.pasteModalTitle}>{t("scan.pasteLinkTitle")}</Text>
+            <Text style={styles.pasteModalText}>{t("scan.pasteLinkMessage")}</Text>
+            <TextInput
+              style={styles.pasteModalInput}
+              placeholder={t("scan.pasteLinkPlaceholder")}
+              placeholderTextColor="#B0BAB2"
+              value={pasteValue}
+              onChangeText={setPasteValue}
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect={false}
+              multiline
+            />
+            <View style={styles.pasteModalRow}>
+              <TouchableOpacity
+                style={styles.pasteModalCancel}
+                onPress={() => {
+                  setPasteVisible(false);
+                  setPasteValue("");
+                }}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.pasteModalCancelText}>{t("common.cancel")}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.pasteModalSubmit,
+                  (!pasteValue.trim() || pasteLoading) && styles.pasteModalSubmitDisabled,
+                ]}
+                onPress={submitPasted}
+                disabled={!pasteValue.trim() || pasteLoading}
+                activeOpacity={0.8}
+              >
+                {pasteLoading ? (
+                  <ActivityIndicator color="#F5F0E8" />
+                ) : (
+                  <Text style={styles.pasteModalSubmitText}>{t("scan.pasteLinkOpen")}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </View>
   );
 }
@@ -307,6 +388,85 @@ const styles = StyleSheet.create({
     color: "#F5F0E8",
     fontSize: 15,
     fontWeight: "500",
+  },
+  pasteLinkButton: {
+    marginTop: 18,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
+  pasteLinkButtonText: {
+    color: "#F5F0E8",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  pasteModalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    padding: 24,
+  },
+  pasteModalCard: {
+    backgroundColor: "#F5F0E8",
+    borderRadius: 18,
+    padding: 22,
+  },
+  pasteModalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2C3E2D",
+    marginBottom: 6,
+  },
+  pasteModalText: {
+    fontSize: 14,
+    color: "#4A5E4C",
+    marginBottom: 14,
+    lineHeight: 20,
+  },
+  pasteModalInput: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1.5,
+    borderColor: "#E8E8E4",
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 14,
+    minHeight: 80,
+    color: "#2C3E2D",
+    marginBottom: 16,
+  },
+  pasteModalRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+  },
+  pasteModalCancel: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 10,
+  },
+  pasteModalCancelText: {
+    color: "#4A5E4C",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  pasteModalSubmit: {
+    backgroundColor: "#1B6B35",
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 10,
+    minWidth: 90,
+    alignItems: "center",
+  },
+  pasteModalSubmitDisabled: {
+    opacity: 0.5,
+  },
+  pasteModalSubmitText: {
+    color: "#F5F0E8",
+    fontSize: 15,
+    fontWeight: "700",
   },
 
   // Permission screen

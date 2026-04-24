@@ -52,33 +52,51 @@ export function createQRData(walk: Walk): string {
 }
 
 /**
- * Tolkar en rå QR-kodssträng och returnerar strukturerad QR-data.
- * Validerar att strängen är giltig JSON med rätt format för Tipspromenaden.
- * Returnerar `null` om strängen inte är en giltig Tipspromenaden-QR-kod,
- * t.ex. om användaren skannar en QR-kod från en annan app.
+ * Tolkar en rå sträng och returnerar strukturerad QR-data.
  *
- * @param raw - Den råa strängen från QR-kodsläsaren.
+ * Accepterar tre format så att samma kodväg fungerar för QR-skanning,
+ * delade länkar och manuell inklistring:
+ *   1. JSON från en QR-kod: `{"type":"tipspromenaden","walkId":"…"}`
+ *   2. Deep link: `tipspromenaden://walk/<walkId>` (med eller utan
+ *      url-encoding av id:t)
+ *   3. Rått walkId — t.ex. när någon skickat över bara id-strängen i text
+ *
+ * Returnerar `null` om inget av dessa matchar (t.ex. en QR-kod från en
+ * annan app, eller en länk till någon annan tjänst).
+ *
+ * @param raw - Den råa strängen från QR-kodsläsaren eller textinput.
  * @returns Tolkad `QRData` om strängen är giltig, annars `null`.
- *
- * @example
- * // I ScanQRScreen efter en lyckad skanning:
- * const qrData = parseQRData(scannedString);
- * if (qrData) {
- *   navigation.navigate('JoinWalk', { walkId: qrData.walkId });
- * } else {
- *   Alert.alert('Ogiltig QR-kod', 'Det här är inte en Tipspromenaden-kod.');
- * }
  */
 export function parseQRData(raw: string): QRData | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+
+  // 1. JSON-format (vad våra egna QR-koder innehåller)
   try {
-    const data = JSON.parse(raw);
-    if (data.type === "tipspromenaden" && data.walkId) {
+    const data = JSON.parse(trimmed);
+    if (data?.type === "tipspromenaden" && data?.walkId) {
       return data as QRData;
     }
-    return null;
   } catch {
-    return null;
+    // inte JSON — fortsätt försöka andra format
   }
+
+  // 2. Deep link `tipspromenaden://walk/<id>`
+  const deepLinkMatch = trimmed.match(/^tipspromenaden:\/\/walk\/(.+)$/i);
+  if (deepLinkMatch) {
+    const walkId = decodeURIComponent(deepLinkMatch[1]).trim();
+    if (walkId) return { type: "tipspromenaden", walkId, title: "" };
+  }
+
+  // 3. Rått walkId. generateId() ger base-36 (a-z, 0-9) ~16 tecken; vi är
+  //    lite snälla i regexen för att även äldre/manuellt skapade id:n går
+  //    igenom. Krävs att det inte ser ut som en URL eller innehåller
+  //    whitespace.
+  if (/^[a-zA-Z0-9_-]{6,64}$/.test(trimmed)) {
+    return { type: "tipspromenaden", walkId: trimmed, title: "" };
+  }
+
+  return null;
 }
 
 /**

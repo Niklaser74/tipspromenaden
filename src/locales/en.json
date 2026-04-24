@@ -172,7 +172,12 @@
   "scan": {
     "backButton": "← Back",
     "webTitle": "Enter QR code",
-    "webHint": "The camera isn't available in the browser.\nPaste the QR code contents below:",
+    "webHint": "The camera isn't available in the browser.\nPaste the QR code contents, a shared link or a walk id:",
+    "pasteLinkButton": "Paste link",
+    "pasteLinkTitle": "Open from link",
+    "pasteLinkMessage": "Paste a shared tipspromenaden link or a walk id:",
+    "pasteLinkOpen": "Open",
+    "pasteLinkPlaceholder": "tipspromenaden://walk/...",
     "webFetchWalk": "Fetch walk",
     "invalidTitle": "Invalid QR code",
     "invalidMessage": "This isn't a Tipspromenaden code.",
