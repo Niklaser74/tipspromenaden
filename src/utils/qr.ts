@@ -11,7 +11,9 @@
  * för att skapa unika ID:n för promenader, sessioner och frågor.
  */
 
+import * as Crypto from "expo-crypto";
 import { Walk } from "../types";
+import { APP_SCHEME, WALK_PATH } from "../constants/deepLinks";
 
 /**
  * Datastrukturen som kodas i QR-koden.
@@ -78,20 +80,25 @@ export function parseQRData(raw: string): QRData | null {
       return data as QRData;
     }
   } catch {
-    // inte JSON — fortsätt försöka andra format
+    /* faller igenom till nästa format */
   }
 
-  // 2. Deep link `tipspromenaden://walk/<id>`
-  const deepLinkMatch = trimmed.match(/^tipspromenaden:\/\/walk\/(.+)$/i);
-  if (deepLinkMatch) {
-    const walkId = decodeURIComponent(deepLinkMatch[1]).trim();
-    if (walkId) return { type: "tipspromenaden", walkId, title: "" };
+  // 2. Deep link. decodeURIComponent kan kasta URIError på trasig
+  //    procent-kodning — fånga och fall vidare till nästa format.
+  const deepLinkPrefix = `${APP_SCHEME}://${WALK_PATH}/`;
+  if (trimmed.toLowerCase().startsWith(deepLinkPrefix)) {
+    try {
+      const walkId = decodeURIComponent(trimmed.slice(deepLinkPrefix.length)).trim();
+      if (walkId) return { type: "tipspromenaden", walkId, title: "" };
+    } catch {
+      /* trasig URI — fall vidare */
+    }
   }
 
-  // 3. Rått walkId. generateId() ger base-36 (a-z, 0-9) ~16 tecken; vi är
-  //    lite snälla i regexen för att även äldre/manuellt skapade id:n går
-  //    igenom. Krävs att det inte ser ut som en URL eller innehåller
-  //    whitespace.
+  // 3. Rått walkId. generateId() ger base-36 (~16 tecken); regexen är
+  //    bred för att också ta in manuellt skapade id:n. Träffar mer än
+  //    den borde, men processQRData faller på getWalk() om id:t inte
+  //    finns och visar "not found"-alert.
   if (/^[a-zA-Z0-9_-]{6,64}$/.test(trimmed)) {
     return { type: "tipspromenaden", walkId: trimmed, title: "" };
   }
@@ -100,29 +107,24 @@ export function parseQRData(raw: string): QRData | null {
 }
 
 /**
- * Genererar ett unikt ID baserat på aktuell tid och slumpmässiga tecken.
- * Kombinerar en base-36-kodad tidsstämpel med åtta slumpmässiga tecken
- * för att skapa ett ID som är praktiskt taget unikt.
+ * Genererar ett unikt ID. Använder kryptografiskt slumpmässiga bytes
+ * från expo-crypto (`getRandomBytes` mappar till `crypto.getRandomValues`
+ * på alla plattformar) för att undvika gissningsbara walkId:n. WalkId:n
+ * fungerar som capability — den som kan gissa ett walkId ser hela facit.
  *
- * Används för att generera ID:n för promenader, sessioner och frågor
- * utan att kräva en serverrundresa.
+ * Tidsstämpeln behålls som prefix för att hålla id:n grovt sorterbara
+ * och för bakåtkompatibel längd.
  *
- * @returns Ett unikt ID-sträng, t.ex. `"lq3k2f8ab7c9d1e2"`.
+ * @returns Ett unikt ID-sträng, ~22 tecken base-36.
  *
  * @example
- * const newWalk: Walk = {
- *   id: generateId(),
- *   title: 'Min promenad',
- *   // ...
- * };
- *
- * const newQuestion: Question = {
- *   id: generateId(),
- *   // ...
- * };
+ * const newWalk: Walk = { id: generateId(), ... };
  */
 export function generateId(): string {
-  return (
-    Date.now().toString(36) + Math.random().toString(36).substring(2, 10)
-  );
+  const bytes = Crypto.getRandomBytes(12);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return Date.now().toString(36) + hex;
 }

@@ -10,13 +10,9 @@ rules_version = '2';
 // Begränsningar:
 //   - max 2 MB per fil
 //   - endast image/*
-//
-// Obs: storage-regler kan inte göra `get` mot Firestore direkt i äldre
-// versioner av regel-engine, så ägarskap härleds från path-prefixet:
-// skaparen måste vara inloggad (icke-anonym) och path:en börjar med
-// `walks/{walkId}/...`. Firestore-reglerna ser fortfarande till att
-// bara ägaren kan skriva `imageUrl` i själva walk-dokumentet, så även
-// om någon laddar upp en extra bild hit hamnar den aldrig i appen.
+//   - skribent måste matcha walks/{walkId}.createdBy i Firestore
+//     (utan denna check kan vem som helst Google-inloggad skriva
+//     över andras frågebilder eftersom path:en är publikt känd).
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -26,10 +22,12 @@ service firebase.storage {
       allow write: if request.auth != null
                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
                    && request.resource.size < 2 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+                   && request.resource.contentType.matches('image/.*')
+                   && firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid;
 
       allow delete: if request.auth != null
-                    && request.auth.token.firebase.sign_in_provider != 'anonymous';
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid;
     }
   }
 }

@@ -95,17 +95,39 @@ Se `firestore.rules` och `storage.rules` för bindande sanning.
 
 Principer:
 - **Walks**: skapas endast av Google-inloggade (icke-anonyma). Ägaren kan
-  uppdatera/radera. `hasValidWalkShape` capar title ≤ 200, questions ≤ 200.
+  uppdatera/radera. `hasValidWalkShape` capar title ≤ 200, questions ≤ 200,
+  description ≤ 2000.
 - **Sessions**: vem som helst inloggad (inkl. anonym) kan skapa, men `walkId`
   måste peka på en existerande walk (`exists()`-check). Status-uppdateringar
   är **framåtriktade bara** (`waiting→active→completed`), vilket hindrar
   återuppväckning av avslutade sessioner.
-- **Participants**: doc-id måste matcha `auth.uid`. Score ≤ `answers.size()`
-  (trivialt fusk-skydd; full validering kräver Cloud Functions).
-- **Storage**: endast icke-anonyma kan skriva frågebilder, max 2 MB, `image/*`.
+- **Participants**: doc-id måste matcha `auth.uid`. Score ≤ `answers.size()`,
+  `answers.size()` ≤ 300 (taket hindrar att man inflaterar svarslistan
+  godtyckligt). Namn-regex blockerar HTML-tecken (`<>"'`` `) som skydd
+  mot XSS-yta i framtida render-kod. **Sessionen får inte vara `completed`**
+  — efter avslutat spel är topplistan fryst.
+- **Storage**: endast icke-anonyma kan skriva frågebilder, max 2 MB, `image/*`,
+  och `walks/{walkId}.createdBy` måste matcha skribentens uid (kollas via
+  `firestore.get` i storage.rules — utan denna check kan vem som helst
+  Google-inloggad skriva över andras frågebilder eftersom path:en är
+  publikt känd från `imageUrl`-fältet).
 
-Känd begränsning: klient-uträknad score kan inflateras upp till antal svar.
-Dokumenterat, inte avsett att fixas i v1.
+Kvarstående svaghet: klient-uträknad score kan fortfarande inflateras upp till
+`min(answers.size(), 300)`. Full validering mot facit kräver Cloud Functions
+(roadmap). Reglernas tak gör attacken småskalig — full motåtgärd kräver
+serverside-bedömning av varje svar.
+
+**Återstår att aktivera (manuellt i konsolerna):**
+- **Firebase App Check** — utan App Check kan vem som helst anropa Firestore
+  direkt utanför appen och förlita sig på reglerna som enda skydd. Aktivera
+  Play Integrity (Android) + DeviceCheck/App Attest (iOS) + reCAPTCHA (web)
+  i Firebase-konsolen, slå sedan på enforce.
+- **Google Maps API-restriktioner** — verifiera i GCP att nyckeln har
+  Android-restriktion (package + SHA-1) så att utdragen nyckel ur APK:n
+  inte kan användas fritt.
+- **Service-account-rotation** — `google-service-account.json` ligger i
+  OneDrive-synkad mapp. Flytta ut och rotera nyckeln i GCP om det finns
+  minsta tveksamhet om OneDrive-läckage.
 
 ## Konventioner
 
@@ -241,10 +263,10 @@ Idéer och planerade förbättringar, grovt prioriterat. Inga hårda deadlines �
 plocka det som passar när tillfälle ges.
 
 **Kod / app:**
-- Byt `generateId()` i `src/utils/qr.ts` från `Math.random()` till
-  `expo-crypto.getRandomBytesAsync` (128 bits). Snabb fix, höjer kollisionssäkerhet.
 - Cloud Functions för score-validering — flytta poängberäkningen serverside
   så att klient-inflaterad score inte går igenom. Kräver Firebase Functions-setup.
+- Aktivera Firebase App Check (Play Integrity / App Attest / reCAPTCHA) +
+  enforce i konsolen så att Firestore-anrop från icke-app-klienter blockeras.
 - `assetlinks.json` på `tipspromenaden.se` när domänen registrerats, så att
   deep-links verifieras av Android och intent-hijacking stängs ner.
 - Statistik-vy för skaparen: antal deltagare per session, genomsnittlig poäng,
@@ -263,7 +285,6 @@ plocka det som passar när tillfälle ges.
 (Punkterna nedan är *accepterade* svagheter just nu — fixar finns på
 roadmappen ovan, men ingen blockerar v1.)
 
-- `generateId()` i `src/utils/qr.ts` använder `Math.random()` (~48 bits).
 - Deep-link-prefix `tipspromenaden://` är custom-scheme — auto-länkas inte
   i Messenger/SMS. `assetlinks.json` + `https://tipspromenaden.se` löser
   detta när domänen finns. Workaround idag: "Klistra in länk"-knappen i

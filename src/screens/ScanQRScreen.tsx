@@ -93,7 +93,6 @@ function NativeScanner({ navigation }: { navigation: any }) {
   const [scanned, setScanned] = useState(false);
   const [pasteVisible, setPasteVisible] = useState(false);
   const [pasteValue, setPasteValue] = useState("");
-  const [pasteLoading, setPasteLoading] = useState(false);
 
   useEffect(() => {
     requestPermission();
@@ -108,11 +107,9 @@ function NativeScanner({ navigation }: { navigation: any }) {
   const submitPasted = async () => {
     const value = pasteValue.trim();
     if (!value) return;
-    setPasteLoading(true);
     setPasteVisible(false);
     setPasteValue("");
     await processQRData(value, navigation, t, () => {});
-    setPasteLoading(false);
   };
 
   if (!permission?.granted) {
@@ -221,17 +218,13 @@ function NativeScanner({ navigation }: { navigation: any }) {
               <TouchableOpacity
                 style={[
                   styles.pasteModalSubmit,
-                  (!pasteValue.trim() || pasteLoading) && styles.pasteModalSubmitDisabled,
+                  !pasteValue.trim() && styles.pasteModalSubmitDisabled,
                 ]}
                 onPress={submitPasted}
-                disabled={!pasteValue.trim() || pasteLoading}
+                disabled={!pasteValue.trim()}
                 activeOpacity={0.8}
               >
-                {pasteLoading ? (
-                  <ActivityIndicator color="#F5F0E8" />
-                ) : (
-                  <Text style={styles.pasteModalSubmitText}>{t("scan.pasteLinkOpen")}</Text>
-                )}
+                <Text style={styles.pasteModalSubmitText}>{t("scan.pasteLinkOpen")}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -34,6 +34,10 @@ service cloud.firestore {
                 == request.auth.uid;
     }
 
+    function sessionStatus(sessionId) {
+      return get(/databases/$(database)/documents/sessions/$(sessionId)).data.status;
+    }
+
     // -------------------- walks --------------------
     match /walks/{walkId} {
       allow read: if true;
@@ -88,25 +92,23 @@ service cloud.firestore {
         // Doc-id MÅSTE matcha auth.uid. Det är den centrala spärren mot att
         // manipulera andras poäng. Score får inte vara större än antalet svar
         // — detta stoppar trivial inflation; full validering mot facit kräver
-        // Cloud Functions (se roadmap).
+        // Cloud Functions (se roadmap). Tak på answers.size() (300) hindrar
+        // att någon inflaterar svarslistan med tomma objekt för att blåsa
+        // upp score utan tak.
+        //
+        // Sessionen får inte vara `completed` — efter avslutat spel ska
+        // topplistan vara fryst.
         allow create: if isSignedIn()
                       && request.auth.uid == participantId
                       && request.resource.data.id == participantId
-                      && request.resource.data.name is string
-                      && request.resource.data.name.size() > 0
-                      && request.resource.data.name.size() <= 60
-                      && request.resource.data.score is number
-                      && request.resource.data.score >= 0
-                      && request.resource.data.answers is list
-                      && request.resource.data.score <= request.resource.data.answers.size();
+                      && hasValidParticipantShape(request.resource.data)
+                      && sessionStatus(sessionId) != 'completed';
 
         allow update: if isSignedIn()
                       && request.auth.uid == participantId
                       && request.resource.data.id == participantId
-                      && request.resource.data.score is number
-                      && request.resource.data.score >= 0
-                      && request.resource.data.answers is list
-                      && request.resource.data.score <= request.resource.data.answers.size();
+                      && hasValidParticipantShape(request.resource.data)
+                      && sessionStatus(sessionId) != 'completed';
 
         // Deltagaren får radera sin egen post (GDPR), och promenadens ägare
         // får radera när de raderar konto/promenad.
@@ -146,7 +148,24 @@ function hasValidWalkShape(data) {
          && data.createdBy is string
          && data.createdAt is number
          && data.questions is list
-         && data.questions.size() <= 200;
+         && data.questions.size() <= 200
+         && (!('description' in data)
+             || (data.description is string && data.description.size() <= 2000));
+}
+
+// Validerar deltagardokument. Namn-regex blockerar HTML/script-tecken så att
+// rendering i WebView/Leaflet aldrig kan bli en XSS-yta. answers tak är 300
+// (= 200 frågor i walk + marginal). score måste vara <= answers.size().
+function hasValidParticipantShape(data) {
+  return data.name is string
+         && data.name.size() > 0
+         && data.name.size() <= 60
+         && !data.name.matches('.*[<>"\'`].*')
+         && data.score is number
+         && data.score >= 0
+         && data.answers is list
+         && data.answers.size() <= 300
+         && data.score <= data.answers.size();
 }
 
 // (isWalkOwner är deklarerad inuti service-scopet ovan eftersom den behöver
