@@ -46,6 +46,12 @@ import {
   deleteQuestionImage,
 } from "../services/questionImage";
 import { Question, Walk } from "../types";
+import {
+  saveDraft,
+  loadDraft,
+  clearDraft,
+  type WalkDraft,
+} from "../services/walkDraft";
 import { useTranslation } from "../i18n";
 
 /**
@@ -307,12 +313,104 @@ export default function CreateWalkScreen() {
   const [reuseCandidates, setReuseCandidates] = useState<SavedWalk[]>([]);
   const [reusedFromTitle, setReusedFromTitle] = useState<string | null>(null);
 
+  // Autospar (draft) — hydratedRef hindrar att första render fyr:ar en
+  // save innan vi hunnit ladda ev. lagrad draft. Debounce-timer rensas
+  // när komponenten unmountar.
+  const hydratedRef = useRef(false);
+  const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Uppdatera rubrik i headern beroende på läge
   useEffect(() => {
     navigation.setOptions({
       title: isEditing ? t("create.editTitle") : t("create.createTitle"),
     });
   }, [isEditing, t]);
+
+  // Mount: kolla om en lokal draft existerar för detta walkId. För nya
+  // promenader: erbjud restore om något hittades. För redigering: bara
+  // restore om draften är NYARE än senaste molnsave (annars är "draft"
+  // sannolikt en uråldrig session vi glömt rensa).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const walkId = walkIdRef.current;
+      const draft = await loadDraft(walkId);
+      const draftStaleVsCloud =
+        draft && existingWalk?.updatedAt
+          ? draft.savedAt <= existingWalk.updatedAt
+          : false;
+      const restore = (d: WalkDraft) => {
+        setTitle(d.title);
+        setQuestions(d.questions);
+        setLanguage(d.language ?? "");
+        setIsEvent(d.isEvent);
+        setEventStartDate(d.eventStartDate);
+        setEventEndDate(d.eventEndDate);
+      };
+      if (!cancelled && draft && !draftStaleVsCloud) {
+        Alert.alert(
+          t("create.draftFoundTitle"),
+          t("create.draftFoundMessage"),
+          [
+            {
+              text: t("create.draftDiscard"),
+              style: "destructive",
+              onPress: () => {
+                clearDraft(walkId).catch(() => {});
+                hydratedRef.current = true;
+              },
+            },
+            {
+              text: t("create.draftRestore"),
+              onPress: () => {
+                restore(draft);
+                hydratedRef.current = true;
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        if (draft && draftStaleVsCloud) {
+          // Draft är äldre än cloud-versionen — rensa tyst, det är skräp.
+          clearDraft(walkId).catch(() => {});
+        }
+        hydratedRef.current = true;
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // walkIdRef.current och existingWalk är stabila för komponentens
+    // livstid, så tom dep-lista är korrekt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Debounced autospar — efter 1 s utan ändring sparas draft till
+  // AsyncStorage. Sparar inte förrän hydration är klar (annars skriver
+  // vi över ett ev. ej-restoradt draft direkt vid mount).
+  useEffect(() => {
+    if (!hydratedRef.current) return;
+    if (draftSaveTimer.current) clearTimeout(draftSaveTimer.current);
+    draftSaveTimer.current = setTimeout(() => {
+      saveDraft({
+        id: walkIdRef.current,
+        title,
+        questions,
+        language: language || undefined,
+        isEvent,
+        eventStartDate,
+        eventEndDate,
+        savedAt: Date.now(),
+      });
+    }, 1000);
+    return () => {
+      if (draftSaveTimer.current) {
+        clearTimeout(draftSaveTimer.current);
+        draftSaveTimer.current = null;
+      }
+    };
+  }, [title, questions, language, isEvent, eventStartDate, eventEndDate]);
 
   useEffect(() => {
     (async () => {
@@ -691,6 +789,10 @@ export default function CreateWalkScreen() {
       if (!existingWalk) {
         recordWalkCreation(walk.id).catch(() => {});
       }
+
+      // Walk:en är nu i molnet + lokalt — autospar-draft är inte längre
+      // relevant. Tar bort tyst, fel blockerar inte navigationen.
+      clearDraft(walk.id).catch(() => {});
 
       const qrData = createQRData(walk);
       navigation.navigate("ShowQR", { walk, qrData });
