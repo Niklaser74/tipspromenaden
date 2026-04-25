@@ -13,6 +13,8 @@ import {
   ActivityIndicator,
   Image,
   useWindowDimensions,
+  Animated,
+  PanResponder,
 } from "react-native";
 import MapView, { Marker } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
@@ -127,9 +129,62 @@ function ModalContent({
   // att fokuserade fält i botten av modalen kan scrollas upp ovanför det.
   // Plus 16 px luft så att fältet inte klistras direkt mot tgb-kanten.
   const kbHeight = useKeyboardHeight();
+
+  // Swipe-down-to-dismiss på handle + header. translateY följer fingret
+  // medan man drar nedåt; vid release över tröskel (eller snabb flick)
+  // animeras modalen ut och onCancel triggas. PanResponder anropar bara
+  // onMove när rörelsen är klart vertikal nedåt — tap på fält fungerar
+  // som vanligt, och horizontal swipe ignoreras helt.
+  const translateY = useRef(new Animated.Value(0)).current;
+  const dismissPanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, g) =>
+        g.dy > 8 && Math.abs(g.dy) > Math.abs(g.dx) * 1.5,
+      onPanResponderMove: (_, g) => {
+        if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_, g) => {
+        const fastFlick = g.vy > 1.2;
+        const farEnough = g.dy > 120;
+        if (fastFlick || farEnough) {
+          Animated.timing(translateY, {
+            toValue: 800,
+            duration: 200,
+            useNativeDriver: true,
+          }).start(() => {
+            translateY.setValue(0); // återställ för nästa öppning
+            onCancel();
+          });
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 4,
+          }).start();
+        }
+      },
+      onPanResponderTerminate: () => {
+        // T.ex. om systemet kapar gesten (notifikation kommer in) — fjädra
+        // tillbaka istället för att lämna modalen halvvägs nere.
+        Animated.spring(translateY, {
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
+    })
+  ).current;
+
   return (
-    <View style={styles.modal}>
-      <View style={styles.modalHandle} />
+    <Animated.View style={[styles.modal, { transform: [{ translateY }] }]}>
+      {/* Handle-zon — extra padding ger ett ~28 px touchområde att dra
+          fingret nedåt på även om själva handle-strecket bara är 4 px tjockt. */}
+      <View
+        style={styles.modalHandleZone}
+        {...dismissPanResponder.panHandlers}
+      >
+        <View style={styles.modalHandle} />
+      </View>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -138,7 +193,10 @@ function ModalContent({
           kbHeight > 0 && { paddingBottom: kbHeight + 16 },
         ]}
       >
-        <View style={styles.modalHeader}>
+        <View
+          style={styles.modalHeader}
+          {...dismissPanResponder.panHandlers}
+        >
           <Text style={styles.modalTitle}>
             {t("create.controlLabel", { order: editingQuestion?.order })}
           </Text>
@@ -246,7 +304,7 @@ function ModalContent({
           </View>
         </View>
       </ScrollView>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -1676,13 +1734,16 @@ const styles = StyleSheet.create({
   modalScrollContent: {
     paddingBottom: 32,
   },
+  modalHandleZone: {
+    paddingTop: 4,
+    paddingBottom: 16,
+    alignItems: "center",
+  },
   modalHandle: {
     width: 40,
     height: 4,
     borderRadius: 2,
     backgroundColor: "#D4D4D0",
-    alignSelf: "center",
-    marginBottom: 20,
   },
   modalHeader: {
     flexDirection: "row",
