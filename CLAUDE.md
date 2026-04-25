@@ -140,9 +140,6 @@ serverside-bedömning av varje svar.
   Play Integrity-provider, inte JS SDK). Webbappen är inte deployad så
   reCAPTCHA-vägen är irrelevant just nu. Lägg till i nästa build-cykel som
   kräver ny AAB ändå. Se roadmappen nedan.
-- **Google Maps API-restriktioner** — verifiera i GCP att nyckeln har
-  Android-restriktion (package + SHA-1) så att utdragen nyckel ur APK:n
-  inte kan användas fritt.
 - **Service-account-rotation** — `google-service-account.json` ligger i
   OneDrive-synkad mapp. Flytta ut och rotera nyckeln i GCP om det finns
   minsta tveksamhet om OneDrive-läckage.
