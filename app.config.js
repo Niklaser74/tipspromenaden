@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.0.0",
+    version: "1.1.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -37,7 +37,12 @@ module.exports = () => ({
       // installerar en build som har den nya inställningen.
       fallbackToCacheTimeout: 5000,
     },
-    orientation: "portrait",
+    // "default" tillåter alla orienteringar på native-nivå. Runtime-koden
+    // (App.tsx) låser sedan TELEFONER till portrait via expo-screen-
+    // orientation, medan SURFPLATTOR får rotera fritt. Tablet-detektering
+    // sker via skärmens kortaste sida (>= 600 dp = surfplatte-kategori
+    // enligt Android-konventionen).
+    orientation: "default",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     splash: {

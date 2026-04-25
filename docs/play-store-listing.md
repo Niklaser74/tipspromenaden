@@ -108,7 +108,23 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
-### Senaste — Walk insights, autospar, auth-persist, save-fix (april 2026)
+### v1.1.0 — Surfplatte-läge (april 2026)
+
+**Svenska (sv-SE):**
+```
+• Surfplattor stödjer nu landscape-läge — perfekt för att skapa promenader på en större skärm.
+• Telefoner är fortfarande låsta till porträtt eftersom layouterna är optimerade för det.
+```
+
+**English (en-US):**
+```
+• Tablets now support landscape mode — perfect for creating walks on a larger screen.
+• Phones remain locked to portrait since the layouts are tuned for that orientation.
+```
+
+---
+
+### Walk insights, autospar, auth-persist, save-fix (april 2026)
 
 **Svenska (sv-SE):**
 ```

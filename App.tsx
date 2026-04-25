@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, Platform, Dimensions } from "react-native";
 import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
+import * as ScreenOrientation from "expo-screen-orientation";
 import { AuthProvider } from "./src/context/AuthContext";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import { initI18n, useTranslation } from "./src/i18n";
@@ -11,6 +12,27 @@ import { installWalkTagsSync } from "./src/services/walkTagsSync";
 // Koppla in taggarnas auto-push till molnet en gång vid modulladdning.
 // Ligger utanför komponentträdet så det inte återupprepas vid re-render.
 installWalkTagsSync();
+
+// Orientation: native-config är "default" (alla rotationer tillåtna).
+// Här bestämmer vi runtime: telefoner låses till portrait (där flesta
+// layouter är finputsade), surfplattor får rotera fritt så att t.ex.
+// CreateWalkScreen kan visa karta + frågelista i splitvy. Tröskeln 600 dp
+// är Androids standardgräns mellan "phone" och "tablet" sw-qualifier.
+// Web/iOS-iPad fungerar också med samma logik via Dimensions API.
+function applyOrientationLock() {
+  if (Platform.OS === "web") return; // web styrs av webbläsaren
+  const { width, height } = Dimensions.get("screen");
+  const shortestSide = Math.min(width, height);
+  const isTablet = shortestSide >= 600;
+  if (isTablet) {
+    ScreenOrientation.unlockAsync().catch(() => {});
+  } else {
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.PORTRAIT_UP
+    ).catch(() => {});
+  }
+}
+applyOrientationLock();
 
 import HomeTabs from "./src/navigation/HomeTabs";
 import LoginScreen from "./src/screens/LoginScreen";
