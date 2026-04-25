@@ -224,9 +224,19 @@ eas submit -p android --id <build-id> --non-interactive --profile internal
 kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
 `node_modules`).
 
-**`eas update` (OTA) drabbas INTE** — kan köras direkt från OneDrive-
-sökvägen utan problem. OneDrive-buggen träffar bara den tar-baserade
-uppladdningen i `eas build`.
+**`eas update` (OTA) drabbas också** — fast på ett annat sätt. När `eas
+update` har exporterat dist/ börjar OneDrive synka upp de nya .hbc-
+bundlarna (~3.6 MB var) till molnet samtidigt som EAS-CLI försöker
+strömma upp dem till Expo. File handles krockar och uploaden timeoutar
+med "Asset processing timed out for assets". Symptom: assetmap.json
+går igenom på sekunder, sedan dör de stora .hbc-filerna.
+
+**Fix före varje OTA-publicering från OneDrive-sökvägen:**
+högerklicka OneDrive-ikonen i systray → "Pausa synkning 2 timmar".
+Sedan kör `npm run update:all -- --message "..."`. Återaktivera
+synken efteråt.
+
+(Permanent lösning: flytta projektet ut ur OneDrive — se roadmap.)
 
 ### OTA: appVersion-policy + båda branches
 
