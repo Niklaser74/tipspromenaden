@@ -97,6 +97,39 @@ Perfect for:
 
 ---
 
+## "What's new"-texter per release
+
+Konvention: vid varje meningsfull release (AAB-build eller större OTA-push)
+skriver vi en kort förändringstext på **både svenska och engelska**, max
+500 tecken per språk (Play-gränsen). Klistras in i Play Console under
+respektive release ("What's new in this version" per språk).
+
+Hålls i omvänd kronologisk ordning. Senaste överst.
+
+---
+
+### Senaste — Walk insights, autospar, auth-persist, save-fix (april 2026)
+
+**Svenska (sv-SE):**
+```
+• Skapare ser nu statistik per promenad: deltagare, snittpoäng och svarsfördelning per fråga.
+• Autospar: dina pågående promenader sparas medan du skriver — slipp tappa jobb om appen stängs.
+• Du behöver inte logga in om vid varje omstart längre.
+• Tangentbordet täcker inte längre svarstextrutan.
+• Fixad sparbugg som drabbade vissa promenader.
+```
+
+**English (en-US):**
+```
+• Creators now see stats per walk: participants, average score and answer distribution per question.
+• Autosave: your in-progress walk drafts persist as you edit — no more losing work if the app closes.
+• You no longer need to sign in again after every restart.
+• Keyboard no longer covers the answer text field.
+• Fixed a save bug that affected some walks.
+```
+
+---
+
 ## Grafik — krav och förslag
 
 | Asset | Krav | Status / förslag |

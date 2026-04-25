@@ -158,6 +158,13 @@ serverside-bedömning av varje svar.
 - **Plattformsskillnader**: `Platform.OS === "ios"` / `"android"` / `"web"`,
   ofta via `Platform.select`. Se `CreateWalkScreen.tsx`-modalen för ett
   typiskt exempel (KeyboardAvoidingView enbart på iOS).
+- **Release-notes (Play Console "What's new")**: vid varje meningsfull
+  release-batch (AAB-build eller större OTA-push) skriv en kort
+  förändringstext på **både svenska och engelska**, max 500 tecken per
+  språk. Lägg överst i `docs/play-store-listing.md` under
+  `## "What's new"-texter per release` så användaren kan kopiera till
+  Play Console när AAB:n promotas. Bullet-format, användar-orienterat
+  ("du ser nu…"), inte tekniskt ("vi bytte initializeAuth…").
 
 ## Funktioner värda att veta om
 
