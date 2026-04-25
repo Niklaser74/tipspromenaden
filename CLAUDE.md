@@ -28,6 +28,11 @@ Marknad: Sverige först (svensk UI-default, `sv-SE` i Play Console). App-ID
 ```
 src/
 ├── config/firebase.ts          # Firebase-init, exporterar db/auth/storage
+│                               # OBS: auth init:as via initializeAuth +
+│                               # getReactNativePersistence(AsyncStorage) på
+│                               # native — annars förloras login vid varje
+│                               # cold start (firebase/auth defaultar till
+│                               # in-memory på RN). Web kör default getAuth.
 ├── context/AuthContext.tsx     # useAuth() — user + loading; triggar walkSync på login
 ├── types/index.ts              # Walk, Session, Participant, Question, SavedWalk, m.m.
 ├── i18n/                       # useTranslation(), setLanguage(), useLanguageChoice()
@@ -59,7 +64,11 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 ### Services-lagret (viktigt)
 
 - `auth.ts` — Google Sign-In (native) / popup (web), anonym login, `onAuthChange`
-- `firestore.ts` — CRUD + realtidsprenumerationer; alla Firestore-anrop bor här
+- `firestore.ts` — CRUD + realtidsprenumerationer; alla Firestore-anrop bor här.
+  `saveWalk()` kör en rekursiv `stripUndefined()` innan `setDoc`, eftersom
+  Firestore avvisar `undefined`-värden ("Unsupported field value: undefined")
+  och optional-fält som `Question.imageUrl` lätt blir explicit `undefined`
+  via spread/import. Lägg motsvarande scrub i nya save-funktioner.
 - `storage.ts` — AsyncStorage: `SavedWalk[]` + offline-kö
 - `walkSync.ts` — Hämtar egna walks från Firestore vid login, mergar in i lokal lista.
   Körs en gång per uid per app-körning från `AuthContext`. Viktigt efter
@@ -168,6 +177,15 @@ serverside-bedömning av varje svar.
 - **Klistra in länk** — på `ScanQRScreen` (under kameraöverlayen) finns
   en knapp som öppnar en modal där man kan klistra in en delad länk
   eller ett walk-id. Workaround tills universal-https-länkar finns.
+- **OTA debug-rad** — `SettingsScreen` visar `channel · rt {runtimeVersion} ·
+  {updateId}` (sista 8 tecken). Används för att verifiera vilken bundle som
+  faktiskt körs när en OTA är publicerad — `updateId` ändras efter
+  dubbel-cold-start (Expo laddar i bakgrunden, aktiverar nästa start).
+- **Radera konto & data** — knapp i `SettingsScreen` (under "Konto"). Kräver
+  typad bekräftelse ("RADERA") för att undvika oavsiktlig klick. Kallar
+  `deleteAccount()`-flödet i `services/auth.ts` som tar bort både Firebase-
+  Auth-användaren och relaterad data. Tidigare låg knappen på Home — flyttad
+  till Settings för att ge den mindre framträdande plats.
 
 ## Byggflöde
 
