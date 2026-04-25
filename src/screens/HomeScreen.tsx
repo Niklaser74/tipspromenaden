@@ -17,7 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getSavedWalks, removeSavedWalk, setWalkAlias, displayWalkTitle } from "../services/storage";
 import { flagForLanguage } from "../constants/languages";
 import { findActiveSession, deleteWalkCompletely } from "../services/firestore";
-import { signOut, deleteAccountAndData } from "../services/auth";
+import { signOut } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { SavedWalk, Walk } from "../types";
 import { syncPendingData } from "../services/offlineSync";
@@ -204,55 +204,7 @@ export default function HomeScreen() {
     setTagsByWalk(byWalk);
   };
 
-  const handleDeleteAccount = () => {
-    // Dubbel bekräftelse: radering är oåterkallelig och Apple/Google
-    // kräver att det inte kan ske av misstag.
-    Alert.alert(
-      t("home.deleteConfirmTitle"),
-      t("home.deleteConfirmMessage"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("home.deleteContinue"),
-          style: "destructive",
-          onPress: () => {
-            Alert.alert(
-              t("home.deleteSureTitle"),
-              t("home.deleteSureMessage"),
-              [
-                { text: t("home.deleteSureNo"), style: "cancel" },
-                {
-                  text: t("home.deleteSureYes"),
-                  style: "destructive",
-                  onPress: async () => {
-                    try {
-                      await deleteAccountAndData();
-                      Alert.alert(
-                        t("home.deleteDoneTitle"),
-                        t("home.deleteDoneMessage")
-                      );
-                    } catch (e: any) {
-                      if (e?.code === "auth/requires-recent-login") {
-                        Alert.alert(
-                          t("home.deleteReloginTitle"),
-                          t("home.deleteReloginMessage")
-                        );
-                      } else {
-                        Alert.alert(
-                          t("common.error"),
-                          e?.message || t("common.error")
-                        );
-                      }
-                    }
-                  },
-                },
-              ]
-            );
-          },
-        },
-      ]
-    );
-  };
+  // handleDeleteAccount flyttad till SettingsScreen.
 
   // Topplisteknapp för sparade promenader. För events räcker walkId —
   // LeaderboardScreen slår upp alla sessioner för promenaden. För vanliga
@@ -803,17 +755,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* GDPR: möjlighet att radera konto + data */}
-        {user && (
-          <View style={styles.dangerZone}>
-            <TouchableOpacity
-              onPress={handleDeleteAccount}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.deleteAccountText}>{t("home.deleteAccount")}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        {/* "Radera konto och data" är flyttad till SettingsScreen — GDPR-
+            funktionen ligger inte längre här eftersom Home-skärmen ska
+            visa promenadlistan, inte kontoåtgärder. */}
       </ScrollView>
 
       {/* Rename-modal: lokalt alias för sparade promenader */}
@@ -1547,18 +1491,6 @@ const styles = StyleSheet.create({
   },
 
   // Danger zone (GDPR-radering)
-  dangerZone: {
-    alignItems: "center",
-    marginTop: 40,
-    paddingHorizontal: 24,
-  },
-  deleteAccountText: {
-    color: "#B33A3A",
-    fontSize: 13,
-    fontWeight: "500",
-    textDecorationLine: "underline",
-  },
-
   // Rename-modal
   modalOverlay: {
     flex: 1,

@@ -155,7 +155,15 @@
     "syncWalksResultAdded": "{{count}} promenad(er) återställda",
     "syncWalksError": "Kunde inte synka, försök igen",
     "about": "Om appen",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "dangerZone": "Farozon",
+    "deleteAccount": "Radera konto och data",
+    "deleteAccountHint": "Tar bort dig från appen och raderar alla dina promenader. Kan inte ångras.",
+    "deleteTypeTitle": "Sista bekräftelse",
+    "deleteTypePrompt": "Skriv RADERA i fältet nedan för att bekräfta.",
+    "deleteTypePlaceholder": "RADERA",
+    "deleteTypeConfirm": "Radera permanent",
+    "deleteTypeMismatch": "Texten matchar inte. Radering avbruten."
   },
   "auth": {
     "welcome": "Välkommen",

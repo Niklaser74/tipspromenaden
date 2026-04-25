@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   Platform,
   ActivityIndicator,
   Alert,
+  Modal,
 } from "react-native";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
@@ -20,12 +22,21 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { syncMyWalksFromCloud } from "../services/walkSync";
 import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
+import { deleteAccountAndData } from "../services/auth";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const choice = useLanguageChoice();
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  // Det förväntade ordet i bekräftelseinputen — översatt så att svensk
+  // användare ser "RADERA", engelsk ser "DELETE". Vi jämför mot exakt
+  // samma sträng som visas som placeholder.
+  const deleteConfirmWord = t("settings.deleteTypePlaceholder");
 
   const version =
     (Constants.expoConfig?.version as string | undefined) ?? "1.0.0";
@@ -44,6 +55,49 @@ export default function SettingsScreen() {
   // Visa synk-raden bara för inloggade (icke-anonyma) användare.
   // Anonyma har inga Firestore-ägda promenader att synka.
   const canSync = !!user && !user.isAnonymous;
+
+  // Steg 1: snabb avbryt-bar varning. Steg 2 (om de fortsätter):
+  // modal med textinput som kräver att de skriver "RADERA"/"DELETE"
+  // exakt. Två separata mentala bekräftelser hindrar både feltap och
+  // muskelminnesfortsättning.
+  function startDeleteFlow() {
+    Alert.alert(
+      t("home.deleteConfirmTitle"),
+      t("home.deleteConfirmMessage"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("home.deleteContinue"),
+          style: "destructive",
+          onPress: () => {
+            setDeleteConfirmText("");
+            setDeleteModalVisible(true);
+          },
+        },
+      ]
+    );
+  }
+
+  async function performDelete() {
+    if (deleteConfirmText.trim().toUpperCase() !== deleteConfirmWord.toUpperCase()) {
+      Alert.alert(t("common.errorTitle"), t("settings.deleteTypeMismatch"));
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAccountAndData();
+      setDeleteModalVisible(false);
+      Alert.alert(t("home.deleteDoneTitle"), t("home.deleteDoneMessage"));
+    } catch (e: any) {
+      if (e?.code === "auth/requires-recent-login") {
+        Alert.alert(t("home.deleteReloginTitle"), t("home.deleteReloginMessage"));
+      } else {
+        Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+      }
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   async function handleSync() {
     if (!user || syncing) return;
@@ -72,6 +126,7 @@ export default function SettingsScreen() {
   }
 
   return (
+    <>
     <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.container}
@@ -126,6 +181,32 @@ export default function SettingsScreen() {
         </>
       )}
 
+      {/* Danger zone — radera konto + all data. Bara för icke-anonyma;
+          anonyma användare har inget Firestore-konto att radera. */}
+      {canSync && (
+        <>
+          <Text style={[styles.sectionTitle, styles.sectionTitleDanger]}>
+            {t("settings.dangerZone")}
+          </Text>
+          <View style={[styles.card, styles.cardDanger]}>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={startDeleteFlow}
+              activeOpacity={0.6}
+            >
+              <View style={styles.syncLabelWrap}>
+                <Text style={[styles.rowLabel, styles.rowLabelDanger]}>
+                  {t("settings.deleteAccount")}
+                </Text>
+                <Text style={styles.rowHint}>
+                  {t("settings.deleteAccountHint")}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
+
       {/* Om appen */}
       <Text style={styles.sectionTitle}>{t("settings.about")}</Text>
       <View style={styles.card}>
@@ -144,6 +225,71 @@ export default function SettingsScreen() {
         </View>
       </View>
     </ScrollView>
+
+    {/* Sista bekräftelse-modal: kräver att användaren skriver
+        det lokaliserade ordet (RADERA/DELETE) för att bekräfta. */}
+    <Modal
+      visible={deleteModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => !deleting && setDeleteModalVisible(false)}
+    >
+      <View style={styles.deleteOverlay}>
+        <View style={styles.deleteCard}>
+          <Text style={styles.deleteTitle}>
+            {t("settings.deleteTypeTitle")}
+          </Text>
+          <Text style={styles.deletePrompt}>
+            {t("settings.deleteTypePrompt")}
+          </Text>
+          <TextInput
+            style={styles.deleteInput}
+            value={deleteConfirmText}
+            onChangeText={setDeleteConfirmText}
+            placeholder={deleteConfirmWord}
+            placeholderTextColor="#B0BAB2"
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!deleting}
+          />
+          <View style={styles.deleteButtonRow}>
+            <TouchableOpacity
+              style={styles.deleteCancelBtn}
+              onPress={() => setDeleteModalVisible(false)}
+              disabled={deleting}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.deleteCancelText}>
+                {t("common.cancel")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.deleteConfirmBtn,
+                deleteConfirmText.trim().toUpperCase() !==
+                  deleteConfirmWord.toUpperCase() && styles.deleteConfirmBtnDisabled,
+              ]}
+              onPress={performDelete}
+              disabled={
+                deleting ||
+                deleteConfirmText.trim().toUpperCase() !==
+                  deleteConfirmWord.toUpperCase()
+              }
+              activeOpacity={0.7}
+            >
+              {deleting ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.deleteConfirmText}>
+                  {t("settings.deleteTypeConfirm")}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+    </>
   );
 }
 
@@ -212,5 +358,83 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#8A9A8D",
     marginTop: 2,
+  },
+  sectionTitleDanger: {
+    color: "#B33A3A",
+  },
+  cardDanger: {
+    borderColor: "#F0D6D6",
+  },
+  rowLabelDanger: {
+    color: "#B33A3A",
+  },
+  deleteOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
+  deleteCard: {
+    width: "100%",
+    maxWidth: 420,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+  },
+  deleteTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#B33A3A",
+    marginBottom: 8,
+  },
+  deletePrompt: {
+    fontSize: 14,
+    color: "#2C3E2D",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  deleteInput: {
+    borderWidth: 1,
+    borderColor: "#E0DDD3",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: "#2C3E2D",
+    backgroundColor: "#FAF8F2",
+    marginBottom: 16,
+  },
+  deleteButtonRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  deleteCancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#F0F0EC",
+  },
+  deleteCancelText: {
+    fontSize: 15,
+    color: "#2C3E2D",
+    fontWeight: "600",
+  },
+  deleteConfirmBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#B33A3A",
+    minWidth: 120,
+    alignItems: "center",
+  },
+  deleteConfirmBtnDisabled: {
+    backgroundColor: "#D9A0A0",
+  },
+  deleteConfirmText: {
+    fontSize: 15,
+    color: "#FFFFFF",
+    fontWeight: "700",
   },
 });
