@@ -44,10 +44,32 @@ const PARTICIPANTS_SUBCOLLECTION = "participants";
  * Firestore-reglerna tillåter bara uppdatering om `createdBy` matchar den
  * inloggade användaren.
  */
+/**
+ * Tar rekursivt bort `undefined`-fält ur ett objekt/array innan det skickas
+ * till Firestore. Firestore avvisar `undefined` med "Unsupported field value:
+ * undefined" — TypeScript-typer hjälper inte alltid eftersom optional-fält
+ * (t.ex. `Question.imageUrl`) lätt blir explicit `undefined` via spread eller
+ * import från `.tipspack`-filer. Bevarar `null` (giltigt Firestore-värde).
+ */
+function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((v) => stripUndefined(v)) as unknown as T;
+  }
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v === undefined) continue;
+      out[k] = stripUndefined(v);
+    }
+    return out as T;
+  }
+  return value;
+}
+
 export async function saveWalk(walk: Walk): Promise<void> {
   // updatedAt låter klienter snabbt avgöra om deras cache är inaktuell
   // utan att jämföra hela dokumentet.
-  const stamped: Walk = { ...walk, updatedAt: Date.now() };
+  const stamped: Walk = stripUndefined({ ...walk, updatedAt: Date.now() });
   await setDoc(doc(db, WALKS_COLLECTION, walk.id), stamped);
 }
 

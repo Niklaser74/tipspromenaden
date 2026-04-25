@@ -10,9 +10,13 @@
  * se installationsguiden i README.md.
  */
 
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
+// @ts-ignore — getReactNativePersistence finns i firebase/auth runtime men
+// saknas i typdeklarationerna i firebase v12. Känd öppen issue.
+import { getAuth, initializeAuth, getReactNativePersistence, Auth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -29,8 +33,22 @@ const app = initializeApp(firebaseConfig);
 /** Firestore-databasinstansen som används för att läsa och skriva promenader, sessioner och deltagare. */
 export const db = getFirestore(app);
 
-/** Firebase Authentication-instansen som används för inloggning och utloggning. */
-export const auth = getAuth(app);
+/**
+ * Firebase Authentication-instansen.
+ *
+ * VIKTIGT: På React Native defaultar `firebase/auth` till **in-memory**-
+ * persistens om man bara kör `getAuth(app)`. Resultat: användaren loggas
+ * ut vid varje kall-start eftersom token inte överlever app-restart.
+ * Lösningen är att explicit koppla AsyncStorage via `initializeAuth +
+ * getReactNativePersistence`. På web används default browser-persistens
+ * via `getAuth`.
+ */
+export const auth: Auth =
+  Platform.OS === "web"
+    ? getAuth(app)
+    : initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
 
 /** Firebase Storage-instansen som används för att ladda upp/hämta bilder till frågor. */
 export const storage = getStorage(app);
