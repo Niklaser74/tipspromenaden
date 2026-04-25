@@ -8,7 +8,7 @@ import {
   Alert,
   ScrollView,
   Modal,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ActivityIndicator,
   Image,
@@ -47,6 +47,33 @@ import {
 } from "../services/questionImage";
 import { Question, Walk } from "../types";
 import { useTranslation } from "../i18n";
+
+/**
+ * Lyssnar på tangentbordets visning och returnerar dess pixel-höjd
+ * (0 när dolt). Används för att skjuta upp innehåll i modaler där
+ * KeyboardAvoidingView + animationType="slide" + statusBarTranslucent
+ * bryter ihop på Android (flimmer/överlapp). Vi sätter höjden som
+ * bottenpadding på ScrollView istället — uppdateras endast när
+ * tangentbordet visas/döljs så ingen render-loop uppstår.
+ */
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    // På iOS ger willShow exakt timing med animationen; på Android finns
+    // inte willShow, så vi faller tillbaka på didShow.
+    const showEvt = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvt = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvt, (e) => {
+      setHeight(e.endCoordinates?.height ?? 0);
+    });
+    const hideSub = Keyboard.addListener(hideEvt, () => setHeight(0));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+  return height;
+}
 
 /** Props för den delade modalinnehålls-komponenten */
 interface ModalContentProps {
@@ -89,13 +116,20 @@ function ModalContent({
   onCancel,
   t,
 }: ModalContentProps) {
+  // När tangentbordet öppnas: lägg dess höjd som extra bottenpadding så
+  // att fokuserade fält i botten av modalen kan scrollas upp ovanför det.
+  // Plus 16 px luft så att fältet inte klistras direkt mot tgb-kanten.
+  const kbHeight = useKeyboardHeight();
   return (
     <View style={styles.modal}>
       <View style={styles.modalHandle} />
       <ScrollView
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.modalScrollContent}
+        contentContainerStyle={[
+          styles.modalScrollContent,
+          kbHeight > 0 && { paddingBottom: kbHeight + 16 },
+        ]}
       >
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>
@@ -1042,50 +1076,25 @@ export default function CreateWalkScreen() {
         transparent
         statusBarTranslucent
       >
-        {Platform.OS === "ios" ? (
-          <KeyboardAvoidingView
-            style={styles.modalOverlay}
-            behavior="padding"
-          >
-            <ModalContent
-              editingQuestion={editingQuestion}
-              tempText={tempText}
-              setTempText={setTempText}
-              tempOptions={tempOptions}
-              setTempOptions={setTempOptions}
-              tempCorrect={tempCorrect}
-              setTempCorrect={setTempCorrect}
-              tempImageUrl={tempImageUrl}
-              imageUploading={imageUploading}
-              onPickImage={handlePickImage}
-              onRemoveImage={handleRemoveImage}
-              onSave={saveQuestion}
-              onDelete={() => editingQuestion && deleteQuestion(editingQuestion.id)}
-              onCancel={() => setModalVisible(false)}
-              t={t}
-            />
-          </KeyboardAvoidingView>
-        ) : (
-          <View style={styles.modalOverlay}>
-            <ModalContent
-              editingQuestion={editingQuestion}
-              tempText={tempText}
-              setTempText={setTempText}
-              tempOptions={tempOptions}
-              setTempOptions={setTempOptions}
-              tempCorrect={tempCorrect}
-              setTempCorrect={setTempCorrect}
-              tempImageUrl={tempImageUrl}
-              imageUploading={imageUploading}
-              onPickImage={handlePickImage}
-              onRemoveImage={handleRemoveImage}
-              onSave={saveQuestion}
-              onDelete={() => editingQuestion && deleteQuestion(editingQuestion.id)}
-              onCancel={() => setModalVisible(false)}
-              t={t}
-            />
-          </View>
-        )}
+        <View style={styles.modalOverlay}>
+          <ModalContent
+            editingQuestion={editingQuestion}
+            tempText={tempText}
+            setTempText={setTempText}
+            tempOptions={tempOptions}
+            setTempOptions={setTempOptions}
+            tempCorrect={tempCorrect}
+            setTempCorrect={setTempCorrect}
+            tempImageUrl={tempImageUrl}
+            imageUploading={imageUploading}
+            onPickImage={handlePickImage}
+            onRemoveImage={handleRemoveImage}
+            onSave={saveQuestion}
+            onDelete={() => editingQuestion && deleteQuestion(editingQuestion.id)}
+            onCancel={() => setModalVisible(false)}
+            t={t}
+          />
+        </View>
       </Modal>
     </View>
   );
