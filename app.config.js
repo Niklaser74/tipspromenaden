@@ -24,6 +24,18 @@ module.exports = () => ({
     },
     updates: {
       url: "https://u.expo.dev/c2f369b6-e07e-401c-a53b-1dc69443e4b7",
+      // Vid app-start: vänta upp till 5 s på att ladda ner och aktivera
+      // en ny OTA innan vi faller tillbaka på den inbakade bundeln.
+      // Default är 0 ms vilket innebär att en nyss-publicerad OTA inte
+      // syns förrän användaren startat om appen två gånger (första
+      // starten laddar ner i bakgrunden, andra aktiverar). Med 5000
+      // får majoriteten med bra nät uppdateringen direkt; dåligt nät
+      // betyder upp till 5 s extra startup men appen startar alltid.
+      //
+      // OBS: detta är en NATIVE-config — kräver ny AAB-build för att
+      // träda i kraft. Installerade enheter behåller default tills de
+      // installerar en build som har den nya inställningen.
+      fallbackToCacheTimeout: 5000,
     },
     orientation: "portrait",
     icon: "./assets/icon.png",
