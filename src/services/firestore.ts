@@ -93,6 +93,94 @@ export async function getMyWalks(userId: string): Promise<Walk[]> {
   return snap.docs.map((d) => d.data() as Walk);
 }
 
+/**
+ * Aggregerad statistik för en walk: alla sessioner, alla deltagare och
+ * per-fråga-fördelning av svar. Kostnad: 1 walk-läsning + 1 sessions-query
+ * + 1 participants-query per session. Inte gratis för walks med många
+ * sessioner — målgrupp är skaparen som vill se hur deltagarna gått, inte
+ * realtidsövervakning.
+ */
+export interface WalkInsights {
+  walk: Walk;
+  totalSessions: number;
+  totalParticipants: number;
+  completedParticipants: number;
+  /** Snittpoäng (av completedParticipants) som procent av antal frågor. 0 om inga klara. */
+  averageScorePct: number;
+  questionStats: Array<{
+    questionId: string;
+    questionText: string;
+    options: string[];
+    correctOptionIndex: number;
+    /** Antal deltagare som svarat på denna fråga (alla sessioner). */
+    totalAnswers: number;
+    correctCount: number;
+    /** Antal som valt varje option, samma index som options[]. */
+    optionCounts: number[];
+  }>;
+}
+
+export async function getWalkInsights(walkId: string): Promise<WalkInsights | null> {
+  const walk = await getWalk(walkId);
+  if (!walk) return null;
+
+  const sessionsSnap = await getDocs(
+    query(collection(db, SESSIONS_COLLECTION), where("walkId", "==", walkId))
+  );
+  const sessions = sessionsSnap.docs.map((d) => d.data() as Session);
+
+  // Hämta deltagare för alla sessioner i parallell — annars blir det
+  // sekventiellt vilket gör en walk med 10 sessioner märkbart segt.
+  const participantsBySession = await Promise.all(
+    sessions.map((s) => getParticipants(s.id))
+  );
+  const allParticipants = participantsBySession.flat();
+  const completed = allParticipants.filter((p) => p.completedAt);
+
+  const questionStats = walk.questions.map((q) => {
+    const optionCounts = new Array(q.options.length).fill(0) as number[];
+    let totalAnswers = 0;
+    let correctCount = 0;
+    for (const p of allParticipants) {
+      const a = p.answers.find((ans) => ans.questionId === q.id);
+      if (!a) continue;
+      totalAnswers++;
+      if (a.correct) correctCount++;
+      if (a.selectedOptionIndex >= 0 && a.selectedOptionIndex < optionCounts.length) {
+        optionCounts[a.selectedOptionIndex]++;
+      }
+    }
+    return {
+      questionId: q.id,
+      questionText: q.text,
+      options: q.options,
+      correctOptionIndex: q.correctOptionIndex,
+      totalAnswers,
+      correctCount,
+      optionCounts,
+    };
+  });
+
+  const totalQuestions = walk.questions.length || 1;
+  const averageScorePct =
+    completed.length === 0
+      ? 0
+      : Math.round(
+          (completed.reduce((sum, p) => sum + p.score, 0) /
+            (completed.length * totalQuestions)) *
+            100
+        );
+
+  return {
+    walk,
+    totalSessions: sessions.length,
+    totalParticipants: allParticipants.length,
+    completedParticipants: completed.length,
+    averageScorePct,
+    questionStats,
+  };
+}
+
 // ===== SESSIONER =====
 
 /**

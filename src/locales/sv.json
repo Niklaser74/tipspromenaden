@@ -31,7 +31,8 @@
     "leaderboard": "Topplista",
     "settings": "Inställningar",
     "stats": "Statistik",
-    "manageTags": "Hantera taggar"
+    "manageTags": "Hantera taggar",
+    "walkInsights": "Promenad-statistik"
   },
   "home": {
     "brandTagline": "Quiz & Äventyr",
@@ -47,6 +48,7 @@
       "other": "{{count}} frågor"
     },
     "createdBadge": "Skapad",
+    "insights": "Statistik",
     "emptyTitle": "Inga promenader ännu",
     "emptyDesc": "Skapa din egen eller scanna en QR-kod för att komma igång",
     "loginButton": "Logga in",
@@ -372,5 +374,19 @@
   "share": {
     "walkMessage": "Kolla in min tipspromenad: {{title}} 🌳\n\nÖppna i appen: {{link}}\n\nFungerar inte länken? Kopiera id:t och klistra in via Scanna QR → Klistra in länk:\n{{walkId}}\n\nHar du inte appen?\n{{playStore}}",
     "walkButton": "Dela"
+  },
+  "insights": {
+    "subtitle": "Hur deltagarna har gått",
+    "sessions": "Sessioner",
+    "participants": "Deltagare",
+    "completed": "Klara",
+    "avgScore": "Snittpoäng",
+    "perQuestion": "Per fråga",
+    "questionMeta": "{{answers}} svar · {{correctPct}}% rätt",
+    "noQuestionText": "(ingen frågetext)",
+    "emptyTitle": "Inga deltagare ännu",
+    "emptyDesc": "När någon har genomfört din promenad samlar vi statistiken här.",
+    "loadFailed": "Kunde inte ladda statistiken",
+    "footnote": "Dra för att uppdatera"
   }
 }

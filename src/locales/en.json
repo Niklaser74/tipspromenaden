@@ -31,7 +31,8 @@
     "leaderboard": "Leaderboard",
     "settings": "Settings",
     "stats": "Stats",
-    "manageTags": "Manage tags"
+    "manageTags": "Manage tags",
+    "walkInsights": "Walk insights"
   },
   "home": {
     "brandTagline": "Quiz & Adventure",
@@ -47,6 +48,7 @@
       "other": "{{count}} questions"
     },
     "createdBadge": "Created",
+    "insights": "Insights",
     "emptyTitle": "No walks yet",
     "emptyDesc": "Create your own or scan a QR code to get started",
     "loginButton": "Sign in",
@@ -372,5 +374,19 @@
   "share": {
     "walkMessage": "Check out my quiz walk: {{title}} 🌳\n\nOpen in app: {{link}}\n\nLink not clickable? Copy the id and paste it via Scan QR → Paste link:\n{{walkId}}\n\nDon't have the app?\n{{playStore}}",
     "walkButton": "Share"
+  },
+  "insights": {
+    "subtitle": "How participants are doing",
+    "sessions": "Sessions",
+    "participants": "Participants",
+    "completed": "Completed",
+    "avgScore": "Avg score",
+    "perQuestion": "Per question",
+    "questionMeta": "{{answers}} answers · {{correctPct}}% correct",
+    "noQuestionText": "(no question text)",
+    "emptyTitle": "No participants yet",
+    "emptyDesc": "Once someone completes your walk we'll surface the stats here.",
+    "loadFailed": "Couldn't load insights",
+    "footnote": "Pull to refresh"
   }
 }

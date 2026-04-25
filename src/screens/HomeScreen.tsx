@@ -702,6 +702,22 @@ export default function HomeScreen() {
                         <TouchableOpacity
                           style={styles.editButton}
                           onPress={() =>
+                            navigation.navigate("WalkInsights", {
+                              walkId: item.walk.id,
+                            })
+                          }
+                          activeOpacity={0.6}
+                          accessibilityLabel={t("home.insights")}
+                        >
+                          <MaterialCommunityIcons
+                            name="chart-bar"
+                            size={20}
+                            color="#2C3E2D"
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.editButton}
+                          onPress={() =>
                             navigation.navigate("CreateWalk", {
                               walk: item.walk,
                             })
