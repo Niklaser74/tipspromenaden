@@ -10,6 +10,7 @@ import {
   Alert,
 } from "react-native";
 import Constants from "expo-constants";
+import * as Updates from "expo-updates";
 import {
   availableLanguages,
   setLanguage,
@@ -28,6 +29,17 @@ export default function SettingsScreen() {
 
   const version =
     (Constants.expoConfig?.version as string | undefined) ?? "1.0.0";
+
+  // OTA-debug — visar vilken bundle som faktiskt körs. När en ny OTA
+  // publicerats ska updateId här ändras efter att man stängt och
+  // startat om appen två gånger (Expo laddar i bakgrunden, aktiverar
+  // vid nästa start). "embedded" = kör inbakade bundeln från AAB:n,
+  // ingen OTA aktiv än.
+  const updateId = Updates.updateId
+    ? Updates.updateId.slice(-8)
+    : "embedded";
+  const channel = Updates.channel ?? "—";
+  const runtime = Updates.runtimeVersion ?? "—";
 
   // Visa synk-raden bara för inloggade (icke-anonyma) användare.
   // Anonyma har inga Firestore-ägda promenader att synka.
@@ -117,10 +129,18 @@ export default function SettingsScreen() {
       {/* Om appen */}
       <Text style={styles.sectionTitle}>{t("settings.about")}</Text>
       <View style={styles.card}>
-        <View style={styles.row}>
+        <View style={[styles.row, styles.rowBorder]}>
           <Text style={styles.rowLabel}>
             {t("settings.version", { version })}
           </Text>
+        </View>
+        <View style={styles.row}>
+          <View style={styles.syncLabelWrap}>
+            <Text style={styles.rowLabel}>OTA</Text>
+            <Text style={styles.rowHint}>
+              {channel} · rt {runtime} · {updateId}
+            </Text>
+          </View>
         </View>
       </View>
     </ScrollView>
