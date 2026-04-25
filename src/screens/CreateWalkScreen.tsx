@@ -12,6 +12,7 @@ import {
   Platform,
   ActivityIndicator,
   Image,
+  useWindowDimensions,
 } from "react-native";
 import MapView, { Marker } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
@@ -301,6 +302,16 @@ export default function CreateWalkScreen() {
 
   // Frågepanel (visa/dölj lista med alla frågor)
   const [showQuestionList, setShowQuestionList] = useState(false);
+
+  // Splitvy på bredskärm: surfplatte-landscape får map vänster + sidopanel
+  // höger istället för att stapla vertikalt. Tröskeln 900 px täcker
+  // surfplatte-landscape men inte telefon-landscape (där portrait-låsning
+  // ändå kickar in via App.tsx). useWindowDimensions uppdateras vid rotation.
+  const { width: screenWidth } = useWindowDimensions();
+  const isWide = screenWidth >= 900;
+  // I splitvy är panelen alltid synlig och bred nog att visa frågelistan
+  // direkt — toggle:n behövs bara i kompakt läge.
+  const showList = isWide ? questions.length > 0 : showQuestionList;
 
   // Frågebatteri-import: lista med ej-placerade batterifrågor + index för nästa
   const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>([]);
@@ -826,6 +837,12 @@ export default function CreateWalkScreen() {
         />
       </View>
 
+      {/* Map + sidopanel — column på telefon, row på surfplatta-landscape.
+          mapWrap fungerar som ankare för de absolut-positionerade overlay:erna
+          så att MapTypeToggle och InfoPill hamnar inom kartans hörn även när
+          panelen ligger till höger. */}
+      <View style={[styles.mainArea, isWide && styles.mainAreaRow]}>
+      <View style={[styles.mapWrap, isWide && styles.mapWrapWide]}>
       {/* Map */}
       <MapView
         ref={mapRef}
@@ -892,9 +909,10 @@ export default function CreateWalkScreen() {
           </Text>
         </View>
       )}
+      </View>{/* end mapWrap */}
 
-      {/* Bottom panel */}
-      <View style={styles.bottomPanel}>
+      {/* Bottom panel (sidopanel i splitvy) */}
+      <View style={[styles.bottomPanel, isWide && styles.sidePanel]}>
 
         {/* Importera frågebatteri + Återanvänd positioner — båda visas bara
             på fräsch ny promenad (inga frågor, inte redigering). */}
@@ -949,8 +967,8 @@ export default function CreateWalkScreen() {
           </View>
         )}
 
-        {/* Frågelista-toggle */}
-        {questions.length > 0 && (
+        {/* Frågelista-toggle — döljs i splitvy där listan alltid syns */}
+        {questions.length > 0 && !isWide && (
           <TouchableOpacity
             style={styles.questionListToggle}
             onPress={() => setShowQuestionList(!showQuestionList)}
@@ -970,10 +988,12 @@ export default function CreateWalkScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Kollapsbar frågelista */}
-        {showQuestionList && questions.length > 0 && (
+        {/* Kollapsbar frågelista (alltid synlig i splitvy).
+            I splitvy får listan växa fritt så att den fyller panelen
+            mellan ev. banner och save-knappen — istället för fixed 220 px. */}
+        {showList && questions.length > 0 && (
           <ScrollView
-            style={styles.questionList}
+            style={[styles.questionList, isWide && styles.questionListWide]}
             showsVerticalScrollIndicator={false}
             nestedScrollEnabled
           >
@@ -1119,7 +1139,8 @@ export default function CreateWalkScreen() {
             </Text>
           )}
         </TouchableOpacity>
-      </View>
+      </View>{/* end bottomPanel/sidePanel */}
+      </View>{/* end mainArea */}
 
       {/* Question editor modal */}
       {/* Frågeredigeringsmodal
@@ -1232,6 +1253,34 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#2C3E2D",
+  },
+
+  // Splitvy-wrappers — flex column på smal skärm (default), row på bred
+  mainArea: {
+    flex: 1,
+  },
+  mainAreaRow: {
+    flexDirection: "row",
+  },
+  // mapWrap är defaultcontainer för kartan + dess overlays. På smal skärm
+  // beter det sig som att kartan vore direkt-barn (overlays positioneras
+  // mot screenens topp via absolute). På bred skärm ger det kartan en egen
+  // flex:1 så den delar utrymmet med sidopanelen.
+  mapWrap: {
+    flex: 1,
+  },
+  mapWrapWide: {
+    flex: 1,
+  },
+  // Sidopanel-stil — overlay:as ovanpå bottomPanel-stilarna i splitvy.
+  // Fast bredd så att kartan fortfarande får merparten av skärmen, men
+  // tillräckligt bred för att frågelistan ska vara läsbar.
+  sidePanel: {
+    width: 380,
+    flex: undefined,
+    borderTopWidth: 0,
+    borderLeftWidth: 1,
+    borderLeftColor: "#F0F0EC",
   },
 
   // Map
@@ -1835,6 +1884,10 @@ const styles = StyleSheet.create({
   questionList: {
     maxHeight: 220,
     marginBottom: 12,
+  },
+  questionListWide: {
+    flex: 1,
+    maxHeight: undefined,
   },
   questionRow: {
     flexDirection: "row",
