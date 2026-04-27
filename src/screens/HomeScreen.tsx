@@ -151,13 +151,20 @@ export default function HomeScreen() {
   // Tagg-filter och sortering. Båda minnesberoende så listan räknas inte
   // om på varje render.
   const filteredAndSorted = useMemo(() => {
-    // Filter: OR över valda taggar. Tom = visa allt.
+    // Filter: AND över valda taggar — varje vald tagg måste finnas på
+    // walken. Smalnar av listan ju fler chips man trycker, vilket är
+    // det förväntade beteendet (jämför Google Photos / iOS Photos).
+    // Tom = visa allt.
     const filtered =
       activeTagIds.size === 0
         ? visibleTabWalks
-        : visibleTabWalks.filter((sw) =>
-            (tagsByWalk[sw.walk.id] || []).some((id) => activeTagIds.has(id))
-          );
+        : visibleTabWalks.filter((sw) => {
+            const walkTags = new Set(tagsByWalk[sw.walk.id] || []);
+            for (const tagId of activeTagIds) {
+              if (!walkTags.has(tagId)) return false;
+            }
+            return true;
+          });
 
     const sorted = [...filtered];
     if (sortMode === "name") {
