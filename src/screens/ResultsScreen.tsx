@@ -32,12 +32,13 @@ export default function ResultsScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const { walk, participantName, answers, score, total } = route.params as {
+  const { walk, participantName, answers, score, total, steps } = route.params as {
     walk: Walk;
     participantName: string;
     answers: Answer[];
     score: number;
     total: number;
+    steps?: number;
   };
 
   const percentage = Math.round((score / total) * 100);
@@ -127,6 +128,11 @@ export default function ResultsScreen() {
           </View>
           <Text style={styles.percentageText}>{percentage}%</Text>
         </View>
+        {typeof steps === "number" && steps > 0 && (
+          <Text style={styles.stepsLine}>
+            {t("results.stepsLine", { count: steps })}
+          </Text>
+        )}
       </View>
 
       {/* Share button — V1 viral loop */}
@@ -302,6 +308,13 @@ const styles = StyleSheet.create({
     color: "#2C3E2D",
     width: 50,
     textAlign: "right",
+  },
+  stepsLine: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#6B7568",
+    textAlign: "center",
+    fontWeight: "600",
   },
 
   // Share button

@@ -80,6 +80,7 @@ export async function syncPendingData(): Promise<{
         answers: data.answers,
         score: data.score,
         completedAt: data.completedAt,
+        ...(typeof data.steps === "number" ? { steps: data.steps } : {}),
       };
 
       await updateParticipant(data.sessionId, participant);

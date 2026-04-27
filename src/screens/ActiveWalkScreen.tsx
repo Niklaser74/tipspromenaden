@@ -24,6 +24,7 @@ import { savePendingSync } from "../services/storage";
 import { recordWalkCompletion } from "../services/stats";
 import { Walk, Question, Answer, Participant, Session } from "../types";
 import { generateId } from "../utils/qr";
+import { usePedometer } from "../hooks/usePedometer";
 import { useTranslation } from "../i18n";
 
 const TRIGGER_DISTANCE_METERS = 15;
@@ -78,6 +79,13 @@ export default function ActiveWalkScreen() {
   // Karttyp (standard/hybrid/terrain), persisterad mellan sessioner.
   const { mapType, cycleMapType } = useMapType();
 
+  // Stegräkning — startar när vi har en session och stannar när vi unmountar.
+  // Värdet sparas på Participant vid varje answer-update så att Results,
+  // Leaderboard och Insights kan visa det. På enheter utan sensor eller
+  // utan permission blir det `undefined` och fältet utelämnas tyst.
+  const [pedometerEnabled, setPedometerEnabled] = useState(false);
+  const { steps, available: stepsAvailable } = usePedometer(pedometerEnabled);
+
   // Refs for GPS callback to access latest state
   const answeredIdsRef = useRef(answeredIds);
   answeredIdsRef.current = answeredIds;
@@ -112,12 +120,18 @@ export default function ActiveWalkScreen() {
         };
         await addParticipant(sid, participant);
         setIsOnline(true);
+        // Aktivera stegräknaren när session är på plats — då börjar
+        // räkningen tickas så vi har totalsumman för promenaden.
+        setPedometerEnabled(true);
       } catch (e: any) {
         console.log("Session-fel (offline-läge):", e.message);
         setIsOnline(false);
         if (!existingSessionId) {
           setSessionId(generateId());
         }
+        // Stegräknaren ska köra även offline — sparas via savePendingSync
+        // i samma payload som svaren.
+        setPedometerEnabled(true);
       }
     })();
   }, []);
@@ -274,6 +288,11 @@ export default function ActiveWalkScreen() {
           answers: newAnswers,
           score: newScore,
           completedAt: isComplete ? Date.now() : undefined,
+          // Bara inkludera fältet om vi har en faktisk siffra. Saknas
+          // sensor/permission utelämnas det helt — stripUndefined i
+          // saveWalk skulle annars rensat det, men för Participant går
+          // vägen via updateParticipant utan scrub.
+          ...(typeof steps === "number" ? { steps } : {}),
         };
 
         if (sessionId) {
@@ -289,6 +308,7 @@ export default function ActiveWalkScreen() {
               answers: newAnswers,
               score: newScore,
               completedAt: isComplete ? Date.now() : undefined,
+              ...(typeof steps === "number" ? { steps } : {}),
               timestamp: Date.now(),
             });
           }
@@ -322,6 +342,7 @@ export default function ActiveWalkScreen() {
                 answers: newAnswers,
                 score: newScore,
                 total: walk.questions.length,
+                steps,
               });
             }
           }, 500);
@@ -470,6 +491,11 @@ export default function ActiveWalkScreen() {
             {t("active.progressOf", { progress, total })}
           </Text>
           <Text style={styles.progressLabel}>{t("active.controlsLabel")}</Text>
+          {stepsAvailable && typeof steps === "number" && (
+            <Text style={styles.stepsLabel}>
+              {t("active.stepsLabel", { count: steps })}
+            </Text>
+          )}
         </View>
         <View style={styles.progressBarContainer}>
           <View style={styles.progressBar}>
@@ -822,6 +848,12 @@ const styles = StyleSheet.create({
   progressLabel: {
     color: "rgba(250,250,248,0.6)",
     fontSize: 14,
+  },
+  stepsLabel: {
+    color: "rgba(250,250,248,0.85)",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 4,
   },
   progressBarContainer: {
     marginBottom: 10,

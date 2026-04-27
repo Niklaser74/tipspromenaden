@@ -107,6 +107,8 @@ export interface WalkInsights {
   completedParticipants: number;
   /** Snittpoäng (av completedParticipants) som procent av antal frågor. 0 om inga klara. */
   averageScorePct: number;
+  /** Snittsteg (av completedParticipants som rapporterat steg). `null` om ingen rapporterat. */
+  averageSteps: number | null;
   questionStats: Array<{
     questionId: string;
     questionText: string;
@@ -171,12 +173,24 @@ export async function getWalkInsights(walkId: string): Promise<WalkInsights | nu
             100
         );
 
+  // Snittsteg — bara över de completed som faktiskt rapporterat steg.
+  // Äldre klienter saknar fältet helt och ska inte påverka snittet.
+  const completedWithSteps = completed.filter((p) => typeof p.steps === "number");
+  const averageSteps =
+    completedWithSteps.length === 0
+      ? null
+      : Math.round(
+          completedWithSteps.reduce((sum, p) => sum + (p.steps ?? 0), 0) /
+            completedWithSteps.length
+        );
+
   return {
     walk,
     totalSessions: sessions.length,
     totalParticipants: allParticipants.length,
     completedParticipants: completed.length,
     averageScorePct,
+    averageSteps,
     questionStats,
   };
 }

@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.1.0",
+    version: "1.2.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -70,6 +70,11 @@ module.exports = () => ({
         "ACCESS_COARSE_LOCATION",
         "CAMERA",
         "android.permission.CAMERA",
+        // ACTIVITY_RECOGNITION krävs för Pedometer (stegräknare) på
+        // Android 10+. På äldre versioner används STEP_COUNTER-sensorn
+        // utan extra permission. Vi vill veta hur många steg deltagaren
+        // tagit under en aktiv promenad — sparas i Participant.steps.
+        "android.permission.ACTIVITY_RECOGNITION",
       ],
       config: {
         googleMaps: {

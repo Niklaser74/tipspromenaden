@@ -126,6 +126,13 @@ export interface Participant {
   completedAt?: number;
   /** Deltagarens poäng (antal korrekta svar). */
   score: number;
+  /**
+   * Antal steg under promenaden, från hårdvaru-stegräknaren via Pedometer.
+   * Saknas om enheten inte har sensor, användaren nekade behörigheten,
+   * eller om klienten är äldre än 1.2.0. Visas som extra-statistik
+   * bredvid score — påverkar inte rangordningen i topplistan.
+   */
+  steps?: number;
 }
 
 /**

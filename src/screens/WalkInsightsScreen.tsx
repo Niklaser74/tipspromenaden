@@ -121,6 +121,14 @@ export default function WalkInsightsScreen() {
               accent
             />
           </View>
+          {insights.averageSteps !== null && (
+            <View style={styles.cardRow}>
+              <SummaryCard
+                value={`👣 ${insights.averageSteps}`}
+                label={t("insights.avgSteps")}
+              />
+            </View>
+          )}
 
           <Text style={styles.sectionTitle}>{t("insights.perQuestion")}</Text>
           {insights.questionStats.map((q, idx) => {

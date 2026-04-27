@@ -261,6 +261,9 @@ export default function LeaderboardScreen() {
                 {item.completedAt ? (
                   <Text style={styles.rowDetail}>
                     {t("leaderboard.correctCount", { score: item.score, total: totalQuestions, percentage })}
+                    {typeof item.steps === "number" && item.steps > 0
+                      ? `  ·  ${t("leaderboard.stepsSuffix", { count: item.steps })}`
+                      : ""}
                   </Text>
                 ) : (
                   <View style={styles.progressRow}>

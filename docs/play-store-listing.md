@@ -108,6 +108,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### v1.2.0 — Stegräkning (april 2026)
+
+**Svenska (sv-SE):**
+```
+• Stegräknare: appen räknar nu hur många steg du tar under en promenad och visar det i resultaten och topplistan.
+• Som skapare ser du även snittsteg per klar deltagare i statistikvyn.
+• Kräver behörigheten "Fysisk aktivitet" första gången du startar en promenad.
+```
+
+**English (en-US):**
+```
+• Step counter: the app now tracks how many steps you take during a walk and shows it on the results and leaderboard.
+• Creators also see average steps per finisher in the insights view.
+• Requires the "Physical activity" permission the first time you start a walk.
+```
+
+---
+
 ### v1.1.0 — Surfplatte-läge (april 2026)
 
 **Svenska (sv-SE):**
