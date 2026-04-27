@@ -257,56 +257,58 @@ function drawInsideRight(x) {
      .text("Tre vyer från appen", x + PAD, y, {
        width: PANEL_W - 2 * PAD, align: "left",
      });
-  y += 30;
+  y += 32;
 
-  // Lägg ut skärmdumparna i en vertikal rad: tre porträtt-bilder
+  // Tre skärmdumpar bredvid varandra — porträtt-format ~9:19.5 = moderna
+  // Android-mobilskärmar. Lås bbox 36×80 mm; pdfkit fit:[] bevarar aspect.
   const shots = [
     {
       file: "Screenshot_20260421_191742_tipspromenaden-app.jpg",
-      caption: "Karta med kontroller — gå dit punkten är, så öppnas frågan.",
-    },
-    {
-      file: "Screenshot_20260421_191823_tipspromenaden-app.jpg",
-      caption: "Frågan visas när du är framme. Tre alternativ, ett rätt.",
+      caption: "Hemskärmen — skapa egna promenader eller scanna en QR-kod.",
     },
     {
       file: "Screenshot_20260421_191854_tipspromenaden-app.jpg",
-      caption: "Topplistan i realtid — alla i samma session syns här.",
+      caption: "Gå med — välj namn och starta promenaden.",
+    },
+    {
+      file: "Screenshot_20260421_191823_tipspromenaden-app.jpg",
+      caption: "Aktiv promenad — kartan visar var nästa kontroll finns.",
     },
   ];
 
-  // Tre rader: bild | text. Bilden 32mm hög, texten till höger.
-  const rowH = 36 * PT_PER_MM;
-  const imgH = 30 * PT_PER_MM;
-  // Anta porträtt-skärmdump 9:16, bredd ~ imgH * 9/16
-  const imgW = imgH * 9 / 16;
+  const imgW = 36 * PT_PER_MM;
+  const imgH = 80 * PT_PER_MM;
+  const gap = 6 * PT_PER_MM;
+  const totalW = imgW * 3 + gap * 2;
+  const startX = x + (PANEL_W - totalW) / 2;
 
-  for (const s of shots) {
-    const imgPath = path.join(ROOT, "assets", s.file);
+  // Rad med bilder
+  for (let i = 0; i < shots.length; i++) {
+    const ix = startX + i * (imgW + gap);
+    const imgPath = path.join(ROOT, "assets", shots[i].file);
     if (fs.existsSync(imgPath)) {
-      // Rundad mask via clip-rect
       doc.save();
-      doc.roundedRect(x + PAD, y, imgW, imgH, 6).clip();
-      doc.image(imgPath, x + PAD, y, {
+      doc.roundedRect(ix, y, imgW, imgH, 8).clip();
+      doc.image(imgPath, ix, y, {
         fit: [imgW, imgH], align: "center", valign: "center",
       });
       doc.restore();
-      // Tunn ram
-      doc.roundedRect(x + PAD, y, imgW, imgH, 6)
+      doc.roundedRect(ix, y, imgW, imgH, 8)
          .strokeColor(C.rule).lineWidth(0.5).stroke();
     }
+  }
+  const captionsY = y + imgH + 10;
 
-    // Caption till höger
-    const capX = x + PAD + imgW + 12;
-    const capW = PANEL_W - PAD - capX;
-    const capOpts = { width: capW, align: "left", lineGap: 2 };
-    doc.font("sans").fontSize(10).fillColor(C.text)
-       .text(s.caption, capX, y + 4, capOpts);
-
-    y += rowH;
+  // Captions under varje bild
+  for (let i = 0; i < shots.length; i++) {
+    const ix = startX + i * (imgW + gap);
+    doc.font("sans").fontSize(8.5).fillColor(C.text)
+       .text(shots[i].caption, ix, captionsY, {
+         width: imgW, align: "center", lineGap: 2,
+       });
   }
 
-  // Bottenstreck + uppmaning att vända till baksidan
+  // Bottenstreck — uppmaning att vända till baksidan
   doc.font("sans-it").fontSize(9).fillColor(C.sage)
      .text("→  Vänd för att bli testpilot", x + PAD, PANEL_H - 16 * PT_PER_MM, {
        width: PANEL_W - 2 * PAD, align: "right",
