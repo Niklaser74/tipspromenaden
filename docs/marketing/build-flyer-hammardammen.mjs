@@ -36,7 +36,8 @@ const MARGIN = 14 * PT_PER_MM;
 const CONTENT_W = W - 2 * MARGIN;
 
 const ICON_PATH = path.join(ROOT, "assets", "icon.png");
-const QR_PATH = path.join(__dirname, "qr-hammardammen.png");
+const QR_WALK = path.join(__dirname, "qr-hammardammen.png");
+const QR_MAIL = path.join(__dirname, "qr-bli-testare.png");
 const PDF_PATH = path.join(__dirname, "flygblad-hammardammen.pdf");
 const PNG_PATH = path.join(__dirname, "flygblad-hammardammen.png");
 const PDF_2UP = path.join(__dirname, "flygblad-hammardammen-2up.pdf");
@@ -89,41 +90,72 @@ doc.font("serif-it").fontSize(15).fillColor(C.green)
    });
 y += 32;
 
-// Intro
+// Intro — kortare för att ge plats åt två QR
 const intro =
-  "En tipspromenad du gör på egen hand. Kontrollerna ligger längs " +
-  "en lugn slinga runt dammen — perfekt för en stund för dig själv " +
-  "medan barnen är i dojon. Frågorna öppnas automatiskt när du kommer " +
-  "fram till varje punkt.";
+  "En tipspromenad du gör på egen hand längs en lugn slinga runt " +
+  "dammen — perfekt för en stund för dig själv medan barnen är i dojon.";
 const introOpts = { width: CONTENT_W, align: "center", lineGap: 3 };
 doc.font("sans").fontSize(10.5).fillColor(C.text)
    .text(intro, MARGIN, y, introOpts);
-y += doc.heightOfString(intro, introOpts) + 16;
+y += doc.heightOfString(intro, introOpts) + 14;
 
 // Spec-line
-doc.font("sans-bold").fontSize(9).fillColor(C.sage)
-   .text("15 kontroller  ·  ca 35 minuter  ·  gratis", MARGIN, y, {
-     width: CONTENT_W, align: "center", characterSpacing: 1.2,
+doc.font("sans-bold").fontSize(8.5).fillColor(C.sage)
+   .text("15 KONTROLLER  ·  CA 35 MINUTER  ·  GRATIS", MARGIN, y, {
+     width: CONTENT_W, align: "center", characterSpacing: 1.5,
    });
 y += 22;
 
-// QR card
-const qrSize = 150;
-const qrX = W/2 - qrSize/2;
-doc.roundedRect(qrX - 10, y - 10, qrSize + 20, qrSize + 20, 10)
-   .fill(C.white);
-doc.image(QR_PATH, qrX, y, { width: qrSize, height: qrSize });
-y += qrSize + 22;
+// Två steg: bli testare → starta promenaden
+// Appen är inte släppt i Play Store än, så STEG 1 (mejl-QR) måste göras
+// först. STEG 2 (walk-QR) kan bara användas av redan-godkända testare.
+const qrSize = 96;
+const colGap = 14;
+const colW = (CONTENT_W - colGap) / 2;
+const leftX = MARGIN;
+const rightX = MARGIN + colW + colGap;
+const stepY = y;
 
-// Caption under QR
-doc.font("sans-it").fontSize(10).fillColor(C.text)
-   .text("Skanna med kameran så öppnas promenaden i appen.", MARGIN, y, {
-     width: CONTENT_W, align: "center",
-   });
-y += 16;
-doc.font("sans").fontSize(9).fillColor(C.sage)
-   .text("Har du inte appen? Sök \"Tipspromenaden\" i Play Store.",
-     MARGIN, y, { width: CONTENT_W, align: "center" });
+function drawStep(colX, num, title, qrPath, caption) {
+  // Step number + title
+  doc.font("sans-bold").fontSize(7.5).fillColor(C.green)
+     .text(`STEG ${num}`, colX, stepY, {
+       width: colW, align: "center", characterSpacing: 1.5,
+     });
+  doc.font("serif").fontSize(13).fillColor(C.greenDark)
+     .text(title, colX, stepY + 14, {
+       width: colW, align: "center",
+     });
+
+  // QR card centered in column
+  const qrX = colX + (colW - qrSize) / 2;
+  const qrY = stepY + 38;
+  doc.roundedRect(qrX - 6, qrY - 6, qrSize + 12, qrSize + 12, 8)
+     .fill(C.white);
+  doc.image(qrPath, qrX, qrY, { width: qrSize, height: qrSize });
+
+  // Caption under QR
+  doc.font("sans").fontSize(8.5).fillColor(C.text)
+     .text(caption, colX, qrY + qrSize + 10, {
+       width: colW, align: "center", lineGap: 2,
+     });
+}
+
+drawStep(leftX, "1", "Bli testare", QR_MAIL,
+  "Skannar ett färdigt mejl. Tryck Skicka — så bjuder jag in dig till testgruppen.");
+drawStep(rightX, "2", "Starta promenaden", QR_WALK,
+  "Skanna när du har fått appen installerad — promenaden öppnas direkt.");
+
+y = stepY + 38 + qrSize + 36;
+
+// Liten förklaring längst ner
+doc.font("sans-it").fontSize(9).fillColor(C.sage)
+   .text(
+     "Appen är i sluten testning — den finns inte i Play Store ännu. " +
+     "Skanna QR 1 så fixar jag inbjudan.",
+     MARGIN, y,
+     { width: CONTENT_W, align: "center", lineGap: 2 }
+   );
 
 // Footer
 doc.font("sans-it").fontSize(9).fillColor(C.sage)
@@ -216,15 +248,13 @@ for (let i = 0; i < introLines.length; i++) {
 cy += px(10) + introLines.length * introLH + px(10);
 
 ctx.fillStyle = C.sage;
-ctx.font = `${px(9)}px InstSansBold`;
+ctx.font = `${px(8.5)}px InstSansBold`;
 let spec = "";
-for (const ch of "15 kontroller  ·  ca 35 minuter  ·  gratis") spec += ch + " ";
-ctx.fillText(spec, PW/2, cy + px(9));
+for (const ch of "15 KONTROLLER  ·  CA 35 MINUTER  ·  GRATIS") spec += ch + " ";
+ctx.fillText(spec, PW/2, cy + px(8.5));
 cy += px(22);
 
-// QR card
-const qrSizePx = px(150);
-const qrXpx = PW/2 - qrSizePx/2;
+// Två-stegs-block — samma layout som PDF:en
 function roundRect(x, y, w, h, r) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -238,21 +268,62 @@ function roundRect(x, y, w, h, r) {
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
 }
-ctx.fillStyle = C.white;
-roundRect(qrXpx - px(10), cy - px(10), qrSizePx + px(20), qrSizePx + px(20), px(10));
-ctx.fill();
-const qrImg = await loadImage(QR_PATH);
-ctx.drawImage(qrImg, qrXpx, cy, qrSizePx, qrSizePx);
-cy += qrSizePx + px(22);
 
-ctx.fillStyle = C.text;
-ctx.font = `${px(10)}px InstSansIt`;
-ctx.fillText("Skanna med kameran så öppnas promenaden i appen.", PW/2, cy + px(9));
-cy += px(16);
+const qrSizePx = px(96);
+const colGapPx = px(14);
+const colWPx = (CW - colGapPx) / 2;
+const stepYpx = cy;
+
+const qrMailImg = await loadImage(QR_MAIL);
+const qrWalkImg = await loadImage(QR_WALK);
+
+async function drawStepPng(colXpx, num, title, qrImg, caption) {
+  ctx.fillStyle = C.green;
+  ctx.font = `${px(7.5)}px InstSansBold`;
+  ctx.textAlign = "center";
+  let lab = "";
+  for (const ch of `STEG ${num}`) lab += ch + " ";
+  ctx.fillText(lab, colXpx + colWPx / 2, stepYpx + px(7));
+
+  ctx.fillStyle = C.greenDark;
+  ctx.font = `${px(13)}px LoraBold`;
+  ctx.fillText(title, colXpx + colWPx / 2, stepYpx + px(14) + px(11));
+
+  const qrXpx = colXpx + (colWPx - qrSizePx) / 2;
+  const qrYpx = stepYpx + px(38);
+  ctx.fillStyle = C.white;
+  roundRect(qrXpx - px(6), qrYpx - px(6), qrSizePx + px(12), qrSizePx + px(12), px(8));
+  ctx.fill();
+  ctx.drawImage(qrImg, qrXpx, qrYpx, qrSizePx, qrSizePx);
+
+  ctx.fillStyle = C.text;
+  ctx.font = `${px(8.5)}px InstSans`;
+  const capLines = wrap(caption, colWPx);
+  const capLH = px(11);
+  for (let i = 0; i < capLines.length; i++) {
+    ctx.fillText(capLines[i], colXpx + colWPx / 2,
+      qrYpx + qrSizePx + px(10) + px(8.5) + i * capLH);
+  }
+}
+
+await drawStepPng(M, "1", "Bli testare", qrMailImg,
+  "Skannar ett färdigt mejl. Tryck Skicka — så bjuder jag in dig till testgruppen.");
+await drawStepPng(M + colWPx + colGapPx, "2", "Starta promenaden", qrWalkImg,
+  "Skanna när du har fått appen installerad — promenaden öppnas direkt.");
+
+cy = stepYpx + px(38) + qrSizePx + px(36);
+
+// Förklaring längst ner
 ctx.fillStyle = C.sage;
-ctx.font = `${px(9)}px InstSans`;
-ctx.fillText("Har du inte appen? Sök \"Tipspromenaden\" i Play Store.",
-  PW/2, cy + px(8));
+ctx.font = `${px(9)}px InstSansIt`;
+const expl =
+  "Appen är i sluten testning — den finns inte i Play Store ännu. " +
+  "Skanna QR 1 så fixar jag inbjudan.";
+const explLines = wrap(expl, CW);
+const explLH = px(11.5);
+for (let i = 0; i < explLines.length; i++) {
+  ctx.fillText(explLines[i], PW/2, cy + px(8) + i * explLH);
+}
 
 ctx.fillStyle = C.sage;
 ctx.font = `${px(9)}px InstSansIt`;
