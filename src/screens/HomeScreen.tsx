@@ -20,6 +20,7 @@ import { findActiveSession, deleteWalkCompletely } from "../services/firestore";
 import { signOut } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { SavedWalk, Walk } from "../types";
+import WalkActionsMenu from "../components/WalkActionsMenu";
 import { syncPendingData } from "../services/offlineSync";
 import { refreshAllSavedWalks } from "../services/walkRefresh";
 import {
@@ -69,6 +70,10 @@ export default function HomeScreen() {
 
   // Tagg-redigeringsmodal. walkId=null betyder stängd.
   const [editTagsFor, setEditTagsFor] = useState<SavedWalk | null>(null);
+  // Bottom-sheet med sekundära åtgärder för en walk-rad. Hålls här istället
+  // för i kortet eftersom Modal:n bör live:a på toppnivå (annars kan
+  // animation/scroll gå snett vid många kort).
+  const [actionsMenuFor, setActionsMenuFor] = useState<SavedWalk | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -652,27 +657,11 @@ export default function HomeScreen() {
                   </View>
 
                   {/* Undre rad: alla åtgärdsknappar höger-justerade */}
+                  {/* Primära åtgärder synliga, sekundära bakom ⋯-meny.
+                      Tidigare 5-8 ikon-knappar per rad blev visuellt rörigt
+                      och dåligt skalbart — bottom-sheet skalar bättre när vi
+                      lägger till nya funktioner. */}
                   <View style={styles.walkCardActions}>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() => handleShowLeaderboard(item.walk)}
-                      activeOpacity={0.6}
-                      accessibilityLabel={t("home.leaderboard")}
-                    >
-                      <Text style={styles.editButtonText}>📊</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() => setEditTagsFor(item)}
-                      activeOpacity={0.6}
-                      accessibilityLabel={t("home.tagsEditButton")}
-                    >
-                      <MaterialCommunityIcons
-                        name="tag-outline"
-                        size={20}
-                        color="#2C3E2D"
-                      />
-                    </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.editButton}
                       onPress={() => shareWalk(item.walk, t)}
@@ -685,36 +674,8 @@ export default function HomeScreen() {
                         color="#2C3E2D"
                       />
                     </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.editButton}
-                      onPress={() => openRename(item)}
-                      activeOpacity={0.6}
-                      accessibilityLabel={t("home.rename")}
-                    >
-                      <MaterialCommunityIcons
-                        name="rename-box"
-                        size={20}
-                        color="#2C3E2D"
-                      />
-                    </TouchableOpacity>
                     {isCreator && (
                       <>
-                        <TouchableOpacity
-                          style={styles.editButton}
-                          onPress={() =>
-                            navigation.navigate("WalkInsights", {
-                              walkId: item.walk.id,
-                            })
-                          }
-                          activeOpacity={0.6}
-                          accessibilityLabel={t("home.insights")}
-                        >
-                          <MaterialCommunityIcons
-                            name="chart-bar"
-                            size={20}
-                            color="#2C3E2D"
-                          />
-                        </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.editButton}
                           onPress={() =>
@@ -723,6 +684,7 @@ export default function HomeScreen() {
                             })
                           }
                           activeOpacity={0.6}
+                          accessibilityLabel={t("home.editWalk")}
                         >
                           <Text style={styles.editButtonText}>✏️</Text>
                         </TouchableOpacity>
@@ -735,6 +697,7 @@ export default function HomeScreen() {
                             })
                           }
                           activeOpacity={0.6}
+                          accessibilityLabel={t("nav.showQR")}
                         >
                           <MaterialCommunityIcons
                             name="qrcode"
@@ -745,16 +708,16 @@ export default function HomeScreen() {
                       </>
                     )}
                     <TouchableOpacity
-                      style={styles.deleteButton}
-                      onPress={() => handleDeleteWalk(item.walk, !!isCreator)}
+                      style={styles.editButton}
+                      onPress={() => setActionsMenuFor(item)}
                       activeOpacity={0.6}
-                      accessibilityLabel={
-                        isCreator
-                          ? t("home.deleteWalkTitle")
-                          : t("home.removeSavedTitle")
-                      }
+                      accessibilityLabel={t("home.moreActions")}
                     >
-                      <Text style={styles.deleteButtonText}>🗑️</Text>
+                      <MaterialCommunityIcons
+                        name="dots-horizontal"
+                        size={22}
+                        color="#2C3E2D"
+                      />
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -910,6 +873,34 @@ export default function HomeScreen() {
           editTagsFor ? tagsByWalk[editTagsFor.walk.id] || [] : []
         }
         onClose={onEditTagsSaved}
+      />
+
+      {/* Sekundära åtgärder för en walk-rad. Dela / Redigera / QR ligger
+          fortfarande direkt i kortet — resten samlas här för att inte
+          spreda 5+ ikon-knappar per rad. */}
+      <WalkActionsMenu
+        walk={actionsMenuFor}
+        isCreator={
+          !!user && actionsMenuFor?.walk.createdBy === user.uid
+        }
+        onClose={() => setActionsMenuFor(null)}
+        onLeaderboard={() => actionsMenuFor && handleShowLeaderboard(actionsMenuFor.walk)}
+        onTags={() => actionsMenuFor && setEditTagsFor(actionsMenuFor)}
+        onRename={() => actionsMenuFor && openRename(actionsMenuFor)}
+        onInsights={() =>
+          actionsMenuFor &&
+          navigation.navigate("WalkInsights" as never, {
+            walkId: actionsMenuFor.walk.id,
+          } as never)
+        }
+        onDelete={() =>
+          actionsMenuFor &&
+          handleDeleteWalk(
+            actionsMenuFor.walk,
+            !!user && actionsMenuFor.walk.createdBy === user.uid
+          )
+        }
+        t={t}
       />
     </View>
   );
