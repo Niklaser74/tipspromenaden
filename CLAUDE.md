@@ -22,6 +22,8 @@ Marknad: Sverige först (svensk UI-default, `sv-SE` i Play Console). App-ID
 - **EAS Update** för OTA-patchar (appVersion-policy; native-ändringar kräver manuell `version`-bump)
 - Kartor: `react-native-maps` på native, Leaflet via WebView på web
 - i18n: `expo-localization` + egen hook i `src/i18n/`, locales i `src/locales/{sv,en}.json`
+- Sensorer: `expo-sensors` (Pedometer för stegräkning),
+  `expo-screen-orientation` (telefon låst portrait, surfplatta fri rotation)
 
 ## Arkitektur i korthet
 
@@ -38,11 +40,19 @@ src/
 ├── i18n/                       # useTranslation(), setLanguage(), useLanguageChoice()
 ├── locales/                    # sv.json (primär), en.json
 ├── constants/                  # languages, deepLinks (APP_SCHEME + buildWalkLink)
-├── hooks/useMapType.ts         # Toggle standard/hybrid/terrain, persistas i AsyncStorage
+├── hooks/
+│   ├── useMapType.ts           # Toggle standard/hybrid/terrain, persistas i AsyncStorage
+│   └── usePedometer.ts         # Pedometer-wrap: tillgänglighet + permission + steps
 ├── utils/                      # location, qr, date, shareWalk
-├── components/                 # MapViewWeb (Leaflet), MapTypeToggle, DateField, ErrorBoundary
+├── components/                 # MapViewWeb (Leaflet), MapTypeToggle, DateField,
+│                               # ErrorBoundary, WalkActionsMenu (bottom-sheet
+│                               # för sekundära walk-actions i HomeScreen)
 ├── services/                   # All extern I/O — inga React-beroenden här
 └── screens/                    # En fil per skärm, useNavigation() för routing
+                                # WalkInsightsScreen = skaparens statistik per walk
+                                #   (sessions, deltagare, snittpoäng, snittsteg,
+                                #   per-fråga svarsfördelning)
+                                # StatsScreen = användarens egna lokala statistik
 
 scripts/                        # Node/PS-helpers utanför app-bundlet
 ├── update-all.mjs              # `npm run update:all` — OTA till båda branches
@@ -69,7 +79,14 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
   Firestore avvisar `undefined`-värden ("Unsupported field value: undefined")
   och optional-fält som `Question.imageUrl` lätt blir explicit `undefined`
   via spread/import. Lägg motsvarande scrub i nya save-funktioner.
-- `storage.ts` — AsyncStorage: `SavedWalk[]` + offline-kö
+  Innehåller också `getWalkInsights(walkId)` som aggregerar alla sessioner +
+  deltagare till en `WalkInsights`-payload (totals, snittpoäng, snittsteg,
+  per-fråga svarsfördelning). Driver `WalkInsightsScreen`.
+- `storage.ts` — AsyncStorage: `SavedWalk[]` + offline-kö (`PendingSyncData`,
+  som även bär `steps?` så stegräknarvärden överlever offline-tillstånd)
+- `walkDraft.ts` — Autospar för pågående walk-redigering. Debouncad save
+  (1 s) av draft till AsyncStorage `walk_draft_<walkId>`. CreateWalkScreen
+  läser vid mount och erbjuder restore/discard. Rensas efter lyckad save.
 - `walkSync.ts` — Hämtar egna walks från Firestore vid login, mergar in i lokal lista.
   Körs en gång per uid per app-körning från `AuthContext`. Viktigt efter
   Play Store-installation eftersom AsyncStorage då är tom.
@@ -97,7 +114,7 @@ sessions/{sessionId}                      # Publik läsning, signed-in kan creat
   id, walkId, status ∈ {waiting, active, completed}, createdAt
 
 sessions/{sessionId}/participants/{uid}   # Doc-id MÅSTE == auth.uid
-  id, name, score, answers[], completedAt?
+  id, name, score, answers[], completedAt?, steps?
 
 users/{uid}/meta/walkTags                 # Privat, endast ägaren
   catalog: Tag[], byWalk: Record<walkId, tagId[]>, updatedAt
@@ -143,6 +160,17 @@ serverside-bedömning av varje svar.
 - **Service-account-rotation** — `google-service-account.json` ligger i
   OneDrive-synkad mapp. Flytta ut och rotera nyckeln i GCP om det finns
   minsta tveksamhet om OneDrive-läckage.
+
+**Play Console-deklarationer som följer ACTIVITY_RECOGNITION:**
+Stegräkningen kräver `android.permission.ACTIVITY_RECOGNITION` (Android 10+).
+Det triggar i sin tur två Play Console-formulär som behöver fyllas i innan
+AAB:n kan publiceras:
+- **App-innehåll → Hälsoappar** ("Health features"). Ja, vi visar hälso-/
+  fitness-data (steg). Nej till medicinska påståenden / Health Connect-skriv.
+- **Permissions declaration / Datasäkerhet** kan be om kompletteringar i
+  samband med upload — Play Console-UI:t guidar dig då igenom dem. Manuell
+  upload via konsolen accepterar oftare än `eas submit`-API:n eftersom UI:t
+  prompar för kvarvarande svar i realtid.
 
 ## Konventioner
 
@@ -190,6 +218,37 @@ serverside-bedömning av varje svar.
   `deleteAccount()`-flödet i `services/auth.ts` som tar bort både Firebase-
   Auth-användaren och relaterad data. Tidigare låg knappen på Home — flyttad
   till Settings för att ge den mindre framträdande plats.
+- **Stegräkning** — `usePedometer(enabled)`-hooken i `ActiveWalkScreen`
+  prenumererar på enhetens hårdvaru-stegräknare när session är etablerad.
+  Steg sparas i `Participant.steps` vid varje answer-update och visas i
+  ActiveWalk (live), Results, Leaderboard och WalkInsights (snittsteg).
+  Saknas sensor eller ACTIVITY_RECOGNITION-permission → fältet utelämnas
+  tyst, inga UI-fel. Native-permission deklarerad i `app.config.js` +
+  Health Apps-deklaration i Play Console.
+- **Autospar i CreateWalk** — `services/walkDraft.ts` sparar utkast
+  (titel, frågor, event, språk) debouncat 1 s till AsyncStorage. Vid mount
+  erbjuder skärmen "Återställ / Börja om" om en draft finns för walkId.
+  Rensas efter lyckad `saveWalk`. Drafter äldre än cloud-`updatedAt` ses
+  som skräp och raderas tyst.
+- **Walk Insights** (skaparens statistik) — `WalkInsightsScreen` nås via
+  chart-bar-knappen på egna walks i HomeScreen. Visar sessioner, deltagare,
+  snittpoäng, snittsteg + per-fråga svarsfördelning med grön höjdpunkt på
+  rätt option. One-shot-fetch på focus, inte realtid (refresh via pull).
+- **Overflow-meny på walk-rader** — `components/WalkActionsMenu.tsx` är
+  ett bottom-sheet med sekundära actions (Insights, Topplista, Tags,
+  Byt namn, Ta bort). Synliga primära knappar i kortet är bara Dela +
+  Redigera/QR (för skapare) + ⋯. Tidigare 5–8 ikon-knappar per rad blev
+  visuellt rörigt — overflow-menyn skalar bättre när nya funktioner kommer.
+- **Surfplatte-landscape + splitvy** — `app.config.js` har `orientation:
+  "default"` och App.tsx låser portrait på telefoner (shortest-side <
+  600 dp) men låter surfplattor rotera fritt. CreateWalkScreen byter
+  layout till split (karta vänster + 380 px sidopanel höger) när
+  `useWindowDimensions().width >= 900`; fråge­listan auto-expanderas i det
+  läget. Andra skärmar är portrait-tunade men funktionellt OK i landscape.
+- **Swipe-down dismiss** — frågeredigerings-modalen i CreateWalkScreen
+  stängs genom att dra handle/header nedåt (>120 px eller snabb flick).
+  PanResponder triggar bara på tydligt vertikal nedåt-gest så form-fält
+  förblir interaktiva.
 
 ## Byggflöde
 
@@ -314,16 +373,25 @@ plocka det som passar när tillfälle ges.
   web-deployment — reCAPTCHA-provider är inte relevant just nu.)
 - `assetlinks.json` på `tipspromenaden.se` när domänen registrerats, så att
   deep-links verifieras av Android och intent-hijacking stängs ner.
-- Statistik-vy för skaparen: antal deltagare per session, genomsnittlig poäng,
-  svarsfördelning per fråga. Data finns redan i `sessions/*/participants`.
 - Exportera resultat som CSV/PDF efter avslutad session.
+- Per-skärm landscape-finputs (Active/Results/Leaderboard) — orientation är
+  redan unlock:ad, layouterna är funktionellt OK i landscape men inte tunade.
 
 **Distribution / drift:**
 - Få 12+ testare i stängt test i 14 dagar → öppnar prod-track för API-push.
+  Testare onboardas via Google Group `tipspromenaden-testers` — se
+  `docs/testpiloter-google-group.md`. Ett klick per godkännande, gruppen
+  funkar också som distributionslista för uppdateringar.
 - Registrera `tipspromenaden.se` + peka DNS mot en enkel landningssida med
   app-länkar och `assetlinks.json`.
 - Flytta projektet ut ur OneDrive permanent (eller konfigurera OneDrive att
   exkludera repo-mappen) så `eas build` kan köras direkt utan `/c/dev/`-kopian.
+
+**Marknadsföring:**
+- `docs/marketing/` innehåller printbara flygblad i flera varianter
+  (single A5, 2-up A4, bifold A4, plus en lokal Hammardammen-variant
+  med två-stegs-QR-flöde: bli testare → starta promenaden). Bygg om
+  via `node build-flyer.mjs` etc. Designfilosofi: "Friluft Folio".
 
 ## Kända begränsningar / icke-blockerare
 
@@ -344,3 +412,5 @@ roadmappen ovan, men ingen blockerar v1.)
 3. `src/context/AuthContext.tsx` — auth-flödet och walk-syncen
 4. `src/services/firestore.ts` — all datatrafik
 5. `app.config.js` + `eas.json` — bygg- och miljökonfiguration
+6. `docs/play-store-listing.md` — store-metadata + bilingual release-notes
+7. `docs/testpiloter-google-group.md` — testpilot-onboarding (Google Group → Play)
