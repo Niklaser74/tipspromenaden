@@ -110,13 +110,15 @@ function drawFront(x) {
      });
   y += 32;
 
-  // Single-line tagline
-  doc.font("sans").fontSize(11).fillColor(C.text)
+  // Längre beskrivning av appen (flyttad från insida-vänster)
+  doc.font("sans").fontSize(10.5).fillColor(C.text)
      .text(
-       "GPS visar var nästa kontroll finns. Frågan öppnas automatiskt " +
-       "när ni kommer fram. Familjeturen blir plötsligt en lagom-tävling.",
+       "Ladda ner appen, gå utomhus, och låt mobilen vara frågepappret. " +
+       "GPS:en känner igen varje kontroll — frågan dyker upp i samma stund " +
+       "som ni kommer fram. Inga lappar att tappa, ingen som behöver stå still " +
+       "och läsa. Bara en promenad där alla har en anledning att titta upp.",
        x + PAD, y,
-       { width: PANEL_W - 2 * PAD, align: "center", lineGap: 2.5 }
+       { width: PANEL_W - 2 * PAD, align: "center", lineGap: 3 }
      );
 
   // Bottom hint — "öppna och läs"
@@ -202,48 +204,65 @@ function drawBack(x) {
 
 function drawInsideLeft(x) {
   fillPanel(x);
-  let y = eyebrow(x, "VAD ÄR DET?");
+  let y = eyebrow(x, "VAD FÅR DU UT AV DET?");
   y += 18;
 
   doc.font("serif").fontSize(26).fillColor(C.greenDark)
-     .text("En tipspromenad", x + PAD, y, {
+     .text("Något för", x + PAD, y, {
        width: PANEL_W - 2 * PAD, align: "left",
      });
   y += 30;
-  doc.font("serif-it").fontSize(20).fillColor(C.green)
-     .text("som öppnar sig av sig själv.", x + PAD, y, {
+  doc.font("serif-it").fontSize(26).fillColor(C.green)
+     .text("hela familjen.", x + PAD, y, {
        width: PANEL_W - 2 * PAD, align: "left",
      });
-  y += 36;
+  y += 40;
 
-  const intro =
-    "Ladda ner appen, gå utomhus, och låt mobilen vara frågepappret. " +
-    "GPS:en känner igen varje kontroll — frågan dyker upp i samma stund " +
-    "som ni kommer fram. Inga lappar att tappa, ingen som behöver " +
-    "stå still och läsa. Bara en promenad där alla har en anledning att " +
-    "titta upp.";
-  const introOpts = { width: PANEL_W - 2 * PAD, align: "left", lineGap: 3 };
-  doc.font("sans").fontSize(10.5).fillColor(C.text)
-     .text(intro, x + PAD, y, introOpts);
-  y += doc.heightOfString(intro, introOpts) + 22;
+  // Tvåkolumns-bullets — kid-värden vänster, förälder-värden höger.
+  // Samma uppdelning som original-flyern men utan emoji för enhetlig stil.
+  const colGap = 10;
+  const colW = (PANEL_W - 2 * PAD - colGap) / 2;
 
-  // Bullets — en sammanslagen lista
-  const bullets = [
-    "Tävla på topplistan — eller kör utan press",
-    "Bygg din egen promenad med dina egna frågor",
-    "GPS låser upp varje fråga när ni är på plats",
-    "Appen kan läsa frågorna högt om man vill",
-    "Färdiga frågebatterier att importera (.tipspack)",
-    "Svenska och engelska, gratis under testperioden",
-  ];
-  doc.font("sans").fontSize(10).fillColor(C.text);
-  for (const b of bullets) {
-    diamond(x + PAD + 2, y + 5);
-    const itemOpts = { width: PANEL_W - 2 * PAD - 14, lineGap: 1.5 };
-    doc.font("sans").fontSize(10).fillColor(C.text)
-       .text(b, x + PAD + 14, y, itemOpts);
-    y += doc.heightOfString(b, itemOpts) + 8;
+  function drawCol(cx, label, items) {
+    let cy = y;
+    doc.font("sans-bold").fontSize(7.5).fillColor(C.green)
+       .text(label, cx, cy, {
+         width: colW, align: "left", characterSpacing: 1.5,
+       });
+    cy += 18;
+    for (const item of items) {
+      diamond(cx + 2, cy + 5);
+      const itemOpts = { width: colW - 14, lineGap: 1.5 };
+      doc.font("sans").fontSize(10).fillColor(C.text)
+         .text(item, cx + 14, cy, itemOpts);
+      cy += doc.heightOfString(item, itemOpts) + 8;
+    }
+    return cy;
   }
+
+  const lEnd = drawCol(x + PAD, "FÖR DIG SOM ÄR BARN", [
+    "Tävla på topplistan",
+    "Bygg din egen tipspromenad",
+    "Gör quiz om det du gillar",
+    "GPS låser upp varje fråga",
+    "Appen läser frågorna högt",
+  ]);
+  const rEnd = drawCol(x + PAD + colW + colGap, "FÖR DIG SOM ÄR FÖRÄLDER", [
+    "Skärmtid blir frisk luft",
+    "Hela familjen samma aktivitet",
+    "Gratis under testperioden",
+    "Inga annonser, inga köp",
+    "Svenska och engelska",
+  ]);
+  y = Math.max(lEnd, rEnd);
+
+  // Avslutande citat-formad rad längst ner — drar ihop sidans budskap
+  doc.font("serif-it").fontSize(13).fillColor(C.green)
+     .text(
+       "“Familjeturen blir plötsligt en lagom-tävling.”",
+       x + PAD, PANEL_H - 30 * PT_PER_MM,
+       { width: PANEL_W - 2 * PAD, align: "center" }
+     );
 }
 
 // ── Panel D: INSIDA-HÖGER — Skärmdumpar ────────────────────────────
