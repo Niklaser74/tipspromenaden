@@ -156,7 +156,8 @@ doc.font("serif").fontSize(18).fillColor(COLORS.cream)
 doc.font("sans").fontSize(9.5).fillColor("#E8E8DC")
    .text(
      "Appen är på Android i sluten testning just nu — vi behöver fler " +
-     "testpiloter. Skanna QR-koden så öppnas ett färdigt mejl till mig.",
+     "testpiloter. Skanna QR-koden, tryck \"Ask to join\" och vänta på " +
+     "godkännande från mig.",
      ctaTextX, y + ctaPad + 26,
      { width: ctaTextW, lineGap: 2 }
    );

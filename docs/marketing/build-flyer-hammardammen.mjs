@@ -142,7 +142,7 @@ function drawStep(colX, num, title, qrPath, caption) {
 }
 
 drawStep(leftX, "1", "Bli testare", QR_MAIL,
-  "Skannar ett färdigt mejl. Tryck Skicka — så bjuder jag in dig till testgruppen.");
+  "Öppnar testpilot-gruppen. Tryck \"Ask to join\" — jag godkänner och du får appen.");
 drawStep(rightX, "2", "Starta promenaden", QR_WALK,
   "Skanna när du har fått appen installerad — promenaden öppnas direkt.");
 
@@ -152,7 +152,7 @@ y = stepY + 38 + qrSize + 36;
 doc.font("sans-it").fontSize(9).fillColor(C.sage)
    .text(
      "Appen är i sluten testning — den finns inte i Play Store ännu. " +
-     "Skanna QR 1 så fixar jag inbjudan.",
+     "Skanna QR 1 så ordnar jag inbjudan inom kort.",
      MARGIN, y,
      { width: CONTENT_W, align: "center", lineGap: 2 }
    );
@@ -307,7 +307,7 @@ async function drawStepPng(colXpx, num, title, qrImg, caption) {
 }
 
 await drawStepPng(M, "1", "Bli testare", qrMailImg,
-  "Skannar ett färdigt mejl. Tryck Skicka — så bjuder jag in dig till testgruppen.");
+  "Öppnar testpilot-gruppen. Tryck \"Ask to join\" — jag godkänner och du får appen.");
 await drawStepPng(M + colWPx + colGapPx, "2", "Starta promenaden", qrWalkImg,
   "Skanna när du har fått appen installerad — promenaden öppnas direkt.");
 
