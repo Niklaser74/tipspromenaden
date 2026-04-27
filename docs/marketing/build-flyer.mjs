@@ -170,7 +170,7 @@ y += ctaH + 12;
 
 // Footer — signature + email
 doc.font("sans-it").fontSize(9).fillColor(COLORS.sage)
-   .text("— Niklas, karate-tränare för barn & ungdom", MARGIN, y, {
+   .text("— Niklas Eriksson", MARGIN, y, {
      width: CONTENT_W, align: "center"
    });
 y += 14;
@@ -384,7 +384,7 @@ cy += ctaHpx + px(12);
 ctx.fillStyle = COLORS.sage;
 ctx.font = `${px(9)}px InstSansItalic`;
 ctx.textAlign = "center";
-ctx.fillText("— Niklas, karate-tränare för barn & ungdom", PW / 2, cy + px(8));
+ctx.fillText("— Niklas Eriksson", PW / 2, cy + px(8));
 cy += px(14);
 ctx.fillStyle = COLORS.green;
 ctx.font = `${px(9)}px InstSansBold`;
