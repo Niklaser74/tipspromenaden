@@ -83,16 +83,16 @@ doc.font("serif-it").fontSize(15).fillColor(COLORS.green)
    .text("En quizpromenad i fickan", MARGIN, y, { width: CONTENT_W, align: "center" });
 y += 28;
 
-// Intro
+// Intro — använd faktisk renderad höjd istället för hårdkodad offset, annars
+// hamnar dividerregeln nedanför ovanpå sista textraden vid 4-radig wrap.
+const introText =
+  "En app där ni går en tipspromenad utomhus med mobilen som frågepapper. " +
+  "GPS visar var nästa kontroll finns och frågan öppnas automatiskt när " +
+  "ni kommer fram. Familjeturen blir plötsligt en lagom-tävling.";
+const introOpts = { width: CONTENT_W, align: "center", lineGap: 2 };
 doc.font("sans").fontSize(10.5).fillColor(COLORS.text)
-   .text(
-     "En app där ni går en tipspromenad utomhus med mobilen som frågepapper. " +
-     "GPS visar var nästa kontroll finns och frågan öppnas automatiskt när " +
-     "ni kommer fram. Familjeturen blir plötsligt en lagom-tävling.",
-     MARGIN, y,
-     { width: CONTENT_W, align: "center", lineGap: 2 }
-   );
-y += 50;
+   .text(introText, MARGIN, y, introOpts);
+y += doc.heightOfString(introText, introOpts) + 14;
 
 // Hairline divider
 doc.moveTo(MARGIN + 60, y).lineTo(W - MARGIN - 60, y)
@@ -277,7 +277,7 @@ const introLH = px(13);
 for (let i = 0; i < introLines.length; i++) {
   ctx.fillText(introLines[i], PW / 2, cy + px(10) + i * introLH);
 }
-cy += introLines.length * introLH + px(8);
+cy += px(10) + introLines.length * introLH + px(8);
 
 // Divider
 ctx.strokeStyle = COLORS.rule;
