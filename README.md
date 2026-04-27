@@ -36,6 +36,10 @@ Appen ar byggd med React Native/Expo och fungerar bade som nativapp (iOS/Android
 | **expo-file-system** | ~55.0 | Lasa/skriva filer (legacy-API i SDK 55) |
 | **expo-sharing** | ~55.0 | Dela genererade QR-koder |
 | **expo-localization** | ~55.0 | Sprakdetektering for i18n |
+| **expo-sensors** | ~55.0 | Pedometer for stegrakning under aktiv promenad |
+| **expo-screen-orientation** | ~55.0 | Portrait-las pa telefon, fri rotation pa surfplatta |
+| **expo-crypto** | ~15.0 | Kryptografiskt sakra ID:n (generateId) |
+| **expo-speech** | ~14.0 | TTS-upplasning av fragetexter |
 | **react-native-qrcode-svg** | ^6.3 | QR-kodsgenerering |
 | **AsyncStorage** | 2.2 | Lokal lagring (offline-stod) |
 | **React Navigation** | ^7 | Navigering mellan skarmar |
@@ -160,11 +164,13 @@ Varje dokument representerar en promenad skapad av en inloggad anvandare.
 
 ```
 walks/{walkId}
-  id:          string        -- Unikt ID (base-36 tidsstampel + slump)
+  id:          string        -- Unikt ID (base-36 tidsstampel + crypto-bytes)
   title:       string        -- Promenadtiteln
   description: string?       -- Valfri beskrivning
+  language:    string?       -- ISO 639-1 (sv, en) - visas som flagg-emoji
   createdBy:   string        -- Firebase UID for skaparen
   createdAt:   number        -- Unix-tidsstampel (ms)
+  updatedAt:   number?       -- Unix-tidsstampel (ms) for senaste edit
   event: {                   -- Valfritt eventlage
     startDate: string        -- ISO-datum, t.ex. "2025-06-01"
     endDate:   string
@@ -179,7 +185,8 @@ walks/{walkId}
         latitude:  number
         longitude: number
       }
-      order: number  -- Ordningsnummer (1, 2, 3...)
+      order:    number    -- Ordningsnummer (1, 2, 3...)
+      imageUrl: string?   -- Valfri bild i Firebase Storage
     }
   ]
 ```
@@ -199,9 +206,10 @@ sessions/{sessionId}
 
 sessions/{sessionId}/participants/{participantId}
   id:          string              -- Maste matcha auth.uid (Firestore-regel)
-  name:        string              -- Deltagarens valda namn
+  name:        string              -- Deltagarens valda namn (regex blockerar HTML-tecken)
   score:       number              -- Antal ratta svar (cap: <= answers.length)
   completedAt: number?             -- Unix-tidsstampel nar klar
+  steps:       number?             -- Antal steg fran enhetens hardvaru-stegraknare
   answers: [
     {
       questionId:          string
@@ -210,6 +218,17 @@ sessions/{sessionId}/participants/{participantId}
       answeredAt:          number
     }
   ]
+```
+
+### Privat: `users/{uid}/meta/walkTags`
+
+Anvandarens egna walk-taggar. Sparas privat och syns bara for agaren.
+
+```
+users/{uid}/meta/walkTags
+  catalog:  Tag[]                   -- Alla skapade taggar (id + namn + farg)
+  byWalk:   Record<walkId, tagId[]> -- Vilka taggar varje walk har
+  updatedAt: number                 -- Sist andrad (last-write-wins-konflikt)
 ```
 
 Realtidssubscribe sker via `subscribeToSession()` i `src/services/firestore.ts`,
@@ -225,35 +244,43 @@ Reglerna committas i [`firestore.rules`](./firestore.rules) och
 [`storage.rules`](./storage.rules). Principerna:
 
 - **Walks**: skapas endast av Google-inloggade (icke-anonyma). Bara agaren
-  kan uppdatera/radera. `hasValidWalkShape` begransar titel till 200 tecken
-  och max 200 fragor.
+  kan uppdatera/radera. `hasValidWalkShape` capar titel <= 200,
+  questions <= 200, description <= 2000.
 - **Sessions**: vem som helst inloggad (inkl. anonyma deltagare) kan skapa
   en session, men `walkId` maste peka pa en faktisk walk
   (`exists()`-check). Statusuppdateringar ar **framatriktade bara**
   (`waiting -> active -> completed`), sa en avslutad session kan inte
   aterupplivas eller rullas tillbaka.
-- **Participants**: dokumentets ID maste matcha `auth.uid` — sa ingen kan
-  skriva nagon annans deltagardokument. Score ar cappad till
-  `answers.length` (trivialt fusk-skydd; full svarsvalidering kraver
-  Cloud Functions och ar inte implementerat i v1).
+- **Participants**: dokumentets ID maste matcha `auth.uid`. Score <=
+  `answers.size()` och `answers.size()` <= 300 — taket hindrar att
+  svarslistan inflateras godtyckligt. Namn-regex blockerar HTML-tecken
+  (`<>"'`) som skydd mot framtida XSS-yta. **Sessionen far inte vara
+  `completed`** — efter avslutat spel ar topplistan fryst.
 - **Storage**: endast icke-anonyma anvandare kan ladda upp fragebilder,
-  max 2 MB, bara `image/*`-typer.
+  max 2 MB, bara `image/*`-typer. Och `walks/{walkId}.createdBy` maste
+  matcha skribentens uid (kollas via `firestore.get` i storage.rules) —
+  utan denna check kan vem som helst Google-inloggad skriva over andras
+  fragebilder eftersom path:en ar publikt kand fran `imageUrl`-faltet.
 
 Klientside finns komplementara begransningar:
 
 - `CreateWalkScreen` capar input med `maxLength`: titel 200, frageText 500,
   alternativ 200 — matchar Firestore-reglernas installningar.
+- `generateId()` anvander `expo-crypto.getRandomBytes(12)` — 96 bitars
+  entropi. Byttes fran `Math.random()` for att fa kryptografiskt sakra
+  ID:n som inte gar att gissa.
 - Maps API-nyckeln ar restriktionsbunden till Android-paketet
   `com.tipspromenaden.app` + SHA-1 i Google Cloud Console.
 
 Kanda begransningar som inte ar blockerare:
 
-- Score beraknas klientside och kan inflateras upp till antal svar.
-- `generateId()` anvander `Math.random()` (~48 bits); OK idag men byt till
-  `expo-crypto` vid tillfalle.
-- Deep-link-prefixet `https://tipspromenaden.se` saknar `assetlinks.json`
-  pa domanen — intent-hijacking ar teoretiskt mojligt men domanen ar
-  inte publik idag.
+- Score beraknas klientside och kan inflateras upp till `min(answers.size(),
+  300)`. Full motatgard kraver Cloud Functions (roadmap).
+- Deep-link-prefixet `tipspromenaden://` ar custom-scheme; auto-lankas
+  inte i Messenger/SMS. `assetlinks.json` pa `tipspromenaden.se` loser
+  detta nar domanen ar registrerad.
+- App Check ar inte aktiverat an — kraver `@react-native-firebase/app-check`
+  som native dep och en ny AAB-build.
 
 ---
 

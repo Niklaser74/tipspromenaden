@@ -4,7 +4,7 @@ title: Integritetspolicy
 
 # Integritetspolicy — Tipspromenaden
 
-**Senast uppdaterad:** 2026-04-17
+**Senast uppdaterad:** 2026-04-27
 
 Play Store kräver att integritetspolicyn är tillgänglig på en **offentlig URL**.
 Enklast: publicera denna fil via **GitHub Pages** på projekt-repot eller lägg
@@ -51,6 +51,23 @@ svarsalternativ) sparas i Firestore kopplat till ditt konto.
 
 När du deltar i en promenad sparas dina svar, poäng och tidsstämplar så att
 topplistan fungerar.
+
+### 2.6 Stegräkning (från och med version 1.2.0)
+
+Om din enhet har en hårdvaru-stegräknare och du ger appen behörigheten
+**Fysisk aktivitet** läses antalet steg du tar **under en pågående
+promenad**. Värdet:
+
+- Sparas tillsammans med dina övriga deltagaruppgifter (samma plats som
+  poäng och svar) och visas i resultatet och topplistan för den
+  promenaden.
+- **Räknas bara mellan när du startar och avslutar en promenad** — inte
+  hela dagen, inte i bakgrunden, inte mellan promenader.
+- **Delas inte** med tredje part, kopplas inte till några hälsotjänster
+  (Google Fit, Health Connect, Apple Health) och används inte för någon
+  form av medicinsk eller diagnostisk slutsats.
+- Är **valfritt** — du kan neka behörigheten utan att appens kärna slutar
+  fungera. Stegfältet utelämnas då helt.
 
 ## 3. Vi samlar INTE in
 
