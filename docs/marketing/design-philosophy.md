@@ -1,0 +1,15 @@
+# Friluft Folio
+
+**Philosophy:** Warm Nordic restraint — communication through breathing room and earned attention.
+
+The composition draws from the visual language of contemporary Scandinavian friluftsliv publications: cream paper that asks to be touched, ink-soft greens borrowed from a forest floor in late summer, and typography that speaks at conversational volume rather than shouting. The page should feel like an artifact someone meticulously hand-laid, every line break and gutter measured against the larger silence of the page.
+
+**Form and space:** Generous outer margins establish that the page is unhurried. Content lives in clearly defined zones with deliberate empty corridors between them — never crowding, never decorative for its own sake. A single hairline rule or a soft tonal block can do the work of a whole frame. The two-column structure for the audience hooks is the page's spatial heartbeat: parallel, balanced, an unstated invitation to read either side first.
+
+**Color and material:** A warm cream ground (#F5F0E8) carries everything, behaving like uncoated paper. Forest green (#1B6B35) is the singular weighted ink — used for the headline, for the call-to-action block, and nowhere else for emphasis without earned reason. Soft sage and warm dark text fill the secondary roles, with a single grain of warm yellow as a quiet visual accent. The palette is restricted on purpose; restraint is what gives the green its authority.
+
+**Typography:** A serif-led headline pairs with a clean sans-serif body — the serif carries Nordic editorial heritage, the sans gives the practical content room to breathe. Section labels are set small in tracked uppercase sans, as if labelled by hand. No font does more than one job. Type sizes are derived from a clear hierarchy with measurable proportional steps; no element sits between two roles. Every letterform is chosen with the patience of a master craftsman who knows the page will be held in hand and read at arm's length.
+
+**Composition and rhythm:** The flyer reads as a vertical journey: identity → invitation → two parallel offers → quiet call to action → human signature. The QR code anchors the bottom with the gravity of a wax seal. Each section is separated by space, not by ornament. A reader scanning from across a room sees only the silhouette of the green headline and the geometric weight of the QR; a reader holding the page sees a small, well-edited document. This dual-distance legibility is the test the design must pass.
+
+**Craftsmanship:** Every choice — kerning, whitespace, the exact shade of green, the way a column rule terminates short of the column edge — must read as the labour of someone at the top of their craft, the kind of work that took countless quiet hours and tasteful revisions to arrive at apparent simplicity. Nothing in the composition should feel templated or generic. The result is a printed object that earns its place on a parent's fridge or in a child's school folder, not because it shouts, but because it whispers with absolute confidence.
