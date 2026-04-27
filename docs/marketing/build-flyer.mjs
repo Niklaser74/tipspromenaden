@@ -53,7 +53,7 @@ doc.rect(0, 0, W, H).fill(COLORS.cream);
 
 const MARGIN = 14 * PT_PER_MM;
 const CONTENT_W = W - 2 * MARGIN;
-let y = 12 * PT_PER_MM;
+let y = 9 * PT_PER_MM;
 
 // Top eyebrow rule + label
 doc.font("sans-bold").fontSize(7).fillColor(COLORS.sage)
@@ -68,9 +68,9 @@ y += 18;
 // App icon centered above headline (small — restraint)
 const iconPath = path.join(ROOT, "assets", "icon.png");
 if (fs.existsSync(iconPath)) {
-  const iconSize = 56;
+  const iconSize = 48;
   doc.image(iconPath, W/2 - iconSize/2, y, { width: iconSize, height: iconSize });
-  y += iconSize + 14;
+  y += iconSize + 12;
 }
 
 // Headline
@@ -155,8 +155,8 @@ doc.font("serif").fontSize(18).fillColor(COLORS.cream)
    .text("Vill du prova?", ctaTextX, y + ctaPad, { width: ctaTextW });
 doc.font("sans").fontSize(9.5).fillColor("#E8E8DC")
    .text(
-     "Appen är i sluten testning just nu och vi behöver fler testpiloter. " +
-     "Skanna QR-koden så öppnas ett färdigt mejl till mig — tryck bara Skicka.",
+     "Appen är på Android i sluten testning just nu — vi behöver fler " +
+     "testpiloter. Skanna QR-koden så öppnas ett färdigt mejl till mig.",
      ctaTextX, y + ctaPad + 26,
      { width: ctaTextW, lineGap: 2 }
    );
@@ -209,7 +209,7 @@ const px = (pt) => pt * SCALE;
 const M = px(MARGIN);
 const CW = PW - 2 * M;
 
-let cy = px(12 * PT_PER_MM);
+let cy = px(9 * PT_PER_MM);
 
 // Eyebrow
 ctx.fillStyle = COLORS.sage;
@@ -232,9 +232,9 @@ cy += px(18);
 
 // Icon
 const iconImg = await loadImage(iconPath);
-const iconSizePx = px(56);
+const iconSizePx = px(48);
 ctx.drawImage(iconImg, PW / 2 - iconSizePx / 2, cy, iconSizePx, iconSizePx);
-cy += iconSizePx + px(14);
+cy += iconSizePx + px(12);
 
 // Headline
 ctx.fillStyle = COLORS.greenDark;
@@ -363,8 +363,8 @@ ctx.fillText("Vill du prova?", ctaTextXpx, cy + ctaPadPx + px(15));
 ctx.fillStyle = "#E8E8DC";
 ctx.font = `${px(9.5)}px InstSans`;
 const ctaBody =
-  "Appen är i sluten testning just nu och vi behöver fler testpiloter. " +
-  "Skanna QR-koden så öppnas ett färdigt mejl till mig — tryck bara Skicka.";
+  "Appen är på Android i sluten testning just nu — vi behöver fler " +
+  "testpiloter. Skanna QR-koden så öppnas ett färdigt mejl till mig.";
 const ctaLines = wrapText(ctaBody, ctaTextWpx);
 const ctaLH = px(13);
 for (let i = 0; i < ctaLines.length; i++) {
