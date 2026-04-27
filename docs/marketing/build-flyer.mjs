@@ -76,7 +76,7 @@ if (fs.existsSync(iconPath)) {
 // Headline
 doc.font("serif").fontSize(40).fillColor(COLORS.greenDark)
    .text("Tipspromenaden", MARGIN, y, { width: CONTENT_W, align: "center" });
-y += 44;
+y += 56;
 
 // Sub-headline
 doc.font("serif-it").fontSize(15).fillColor(COLORS.green)
@@ -240,7 +240,7 @@ cy += iconSizePx + px(14);
 ctx.fillStyle = COLORS.greenDark;
 ctx.font = `${px(40)}px LoraBold`;
 ctx.fillText("Tipspromenaden", PW / 2, cy + px(34));
-cy += px(44);
+cy += px(56);
 
 // Sub
 ctx.fillStyle = COLORS.green;
