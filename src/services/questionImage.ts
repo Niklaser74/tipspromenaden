@@ -15,10 +15,9 @@
 
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as FileSystem from "expo-file-system/legacy";
 import {
   ref,
-  uploadString,
+  uploadBytes,
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
@@ -70,22 +69,30 @@ export async function pickAndUploadQuestionImage(
     { compress: COMPRESS_QUALITY, format: ImageManipulator.SaveFormat.JPEG }
   );
 
-  // 4. Läs filen som base64 via expo-file-system. Vi gick från
-  //    `fetch(file://...)` + `uploadBytes(blob)` eftersom det kastar
-  //    "Network request failed" intermittent på vissa Android-versioner
-  //    (känd RN-bug — fetch:s file://-stöd är opålitligt mellan
-  //    Hermes-versioner). Base64-vägen via FileSystem är robust och
-  //    går genom samma Firebase-uppladdning utan blob-mellansteget.
-  const base64 = await FileSystem.readAsStringAsync(manipulated.uri, {
-    encoding: FileSystem.EncodingType.Base64,
+  // 4. Läs filen via XMLHttpRequest istället för fetch().
+  //    Två RN-buggar att navigera runt:
+  //     a) `fetch(file://...)` kastar intermittent "Network request failed"
+  //        på vissa Android-versioner — känd Hermes/RN-bug.
+  //     b) `uploadString(..., "base64")` failar med "Creating blobs from
+  //        'ArrayBuffer' and 'ArrayBufferView' are not supported"
+  //        eftersom Firebase JS SDK internt bygger Blob från Uint8Array,
+  //        vilket RN:s Blob-polyfill inte stödjer.
+  //    XHR-vägen ger en native Blob som Firebase kan ladda upp direkt,
+  //    så ingen ArrayBuffer-konvertering sker. Standardlösning enligt
+  //    Expo + Firebase-dokumentation.
+  const blob: Blob = await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => resolve(xhr.response);
+    xhr.onerror = () => reject(new Error("Kunde inte läsa bildfilen"));
+    xhr.responseType = "blob";
+    xhr.open("GET", manipulated.uri, true);
+    xhr.send(null);
   });
 
-  // 5. Ladda upp till Storage som base64-sträng.
+  // 5. Ladda upp till Storage.
   const path = `walks/${walkId}/questions/${questionId}.jpg`;
   const storageRef = ref(storage, path);
-  await uploadString(storageRef, base64, "base64", {
-    contentType: "image/jpeg",
-  });
+  await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
 
   // 6. Hämta publik URL (signerad med Firebase-token — funkar även när
   // bucket:en inte är publikt listbar).
