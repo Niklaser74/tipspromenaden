@@ -10,9 +10,13 @@ rules_version = '2';
 // Begränsningar:
 //   - max 2 MB per fil
 //   - endast image/*
-//   - skribent måste matcha walks/{walkId}.createdBy i Firestore
-//     (utan denna check kan vem som helst Google-inloggad skriva
-//     över andras frågebilder eftersom path:en är publikt känd).
+//   - skribent måste matcha walks/{walkId}.createdBy i Firestore om
+//     dokumentet finns. Om dokumentet INTE finns än (vanligt under
+//     create-flödet eftersom walken sparas först när användaren
+//     trycker "Spara") tillåts vilken signed-in icke-anonym
+//     användare som helst — walkId är 96-bit crypto-random så
+//     ID-kollisioner är försumbara, och bilden blir ändå "föräldralös"
+//     om walken aldrig sparas (eller sparas av annan användare).
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -23,11 +27,17 @@ service firebase.storage {
                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
                    && request.resource.size < 2 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*')
-                   && firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid;
+                   && (
+                        !firestore.exists(/databases/(default)/documents/walks/$(walkId))
+                        || firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid
+                      );
 
       allow delete: if request.auth != null
                     && request.auth.token.firebase.sign_in_provider != 'anonymous'
-                    && firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid;
+                    && (
+                         !firestore.exists(/databases/(default)/documents/walks/$(walkId))
+                         || firestore.get(/databases/(default)/documents/walks/$(walkId)).data.createdBy == request.auth.uid
+                       );
     }
   }
 }

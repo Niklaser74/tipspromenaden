@@ -15,7 +15,13 @@
 
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import * as FileSystem from "expo-file-system/legacy";
+import {
+  ref,
+  uploadString,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 import { storage } from "../config/firebase";
 
 /** Max bredd i pixlar efter komprimering. Höjd skalas proportionellt. */
@@ -64,14 +70,22 @@ export async function pickAndUploadQuestionImage(
     { compress: COMPRESS_QUALITY, format: ImageManipulator.SaveFormat.JPEG }
   );
 
-  // 4. Läs filen som blob.
-  const response = await fetch(manipulated.uri);
-  const blob = await response.blob();
+  // 4. Läs filen som base64 via expo-file-system. Vi gick från
+  //    `fetch(file://...)` + `uploadBytes(blob)` eftersom det kastar
+  //    "Network request failed" intermittent på vissa Android-versioner
+  //    (känd RN-bug — fetch:s file://-stöd är opålitligt mellan
+  //    Hermes-versioner). Base64-vägen via FileSystem är robust och
+  //    går genom samma Firebase-uppladdning utan blob-mellansteget.
+  const base64 = await FileSystem.readAsStringAsync(manipulated.uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
 
-  // 5. Ladda upp till Storage.
+  // 5. Ladda upp till Storage som base64-sträng.
   const path = `walks/${walkId}/questions/${questionId}.jpg`;
   const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+  await uploadString(storageRef, base64, "base64", {
+    contentType: "image/jpeg",
+  });
 
   // 6. Hämta publik URL (signerad med Firebase-token — funkar även när
   // bucket:en inte är publikt listbar).
