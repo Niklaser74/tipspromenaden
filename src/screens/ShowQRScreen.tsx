@@ -24,6 +24,12 @@ export default function ShowQRScreen() {
   const { walk, qrData } = route.params as { walk: Walk; qrData: string };
   const qrRef = useRef<any>(null);
   const qrContainerRef = useRef<any>(null);
+  // Separat hög-res QR för export — visnings-QR:n är 220 px utan quiet
+  // zone (ser bra ut i kortet på skärm) men det räcker inte när bilden
+  // komprimeras i messenger/SMS och mottagaren zoomar in. Den här
+  // exporteras i 720 px med 4 moduler quiet zone så den behåller
+  // skanningsmarginalen även efter kompression.
+  const qrShareRef = useRef<any>(null);
 
   /**
    * Retrieves the QR code as a base64 PNG data URL from the react-native-qrcode-svg ref.
@@ -31,8 +37,11 @@ export default function ShowQRScreen() {
    */
   const getQRDataURL = useCallback((): Promise<string> => {
     return new Promise((resolve, reject) => {
-      if (qrRef.current) {
-        qrRef.current.toDataURL((dataURL: string) => {
+      // Föredra hög-res-versionen med quiet zone. Faller tillbaka på
+      // visnings-QR:n om den dolda av någon anledning inte är monterad.
+      const target = qrShareRef.current ?? qrRef.current;
+      if (target) {
+        target.toDataURL((dataURL: string) => {
           resolve(dataURL);
         });
       } else {
@@ -268,6 +277,27 @@ export default function ShowQRScreen() {
             getRef={(ref: any) => (qrRef.current = ref)}
           />
         </View>
+        {/* Dold hög-res-version för delning. Renderas utanför skärmen
+            (inte display:none — Hermes/Skia behöver att SVG:n faktiskt
+            mountas för att toDataURL ska få något att exportera).
+            720 px + quietZone 4 ger en skarp, skanningssäker bild som
+            överlever messenger-kompression. */}
+        <View
+          style={styles.qrShareOffscreen}
+          pointerEvents="none"
+          accessible={false}
+          accessibilityElementsHidden={true}
+          importantForAccessibility="no-hide-descendants"
+        >
+          <QRCode
+            value={qrData}
+            size={720}
+            quietZone={20}
+            backgroundColor="#FFFFFF"
+            color="#1B6B35"
+            getRef={(ref: any) => (qrShareRef.current = ref)}
+          />
+        </View>
         <Text style={styles.qrHint}>{t("showQR.hint")}</Text>
       </View>
 
@@ -390,6 +420,15 @@ const styles = StyleSheet.create({
   qrCard: {
     alignItems: "center",
     marginBottom: 32,
+  },
+  qrShareOffscreen: {
+    // Renderas utanför skärmen — vi vill att SVG:n mountas för att
+    // toDataURL ska kunna exportera den, men den får inte synas i
+    // layouten eller ta upp plats.
+    position: "absolute",
+    left: -10000,
+    top: -10000,
+    opacity: 0,
   },
   qrInner: {
     backgroundColor: "#FFFFFF",
