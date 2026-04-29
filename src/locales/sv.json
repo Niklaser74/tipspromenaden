@@ -382,7 +382,7 @@
     "gpsError": "GPS-fel"
   },
   "share": {
-    "walkMessage": "Kolla in min tipspromenad: {{title}} 🌳\n\nÖppna i appen: {{link}}\n\nFungerar inte länken? Kopiera id:t och klistra in via Scanna QR → Klistra in länk:\n{{walkId}}\n\nHar du inte appen?\n{{playStore}}",
+    "walkMessage": "Kolla in min tipspromenad: {{title}} 🌳\n\n{{link}}",
     "walkButton": "Dela"
   },
   "insights": {

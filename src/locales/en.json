@@ -382,7 +382,7 @@
     "gpsError": "GPS error"
   },
   "share": {
-    "walkMessage": "Check out my quiz walk: {{title}} 🌳\n\nOpen in app: {{link}}\n\nLink not clickable? Copy the id and paste it via Scan QR → Paste link:\n{{walkId}}\n\nDon't have the app?\n{{playStore}}",
+    "walkMessage": "Check out my quiz walk: {{title}} 🌳\n\n{{link}}",
     "walkButton": "Share"
   },
   "insights": {
