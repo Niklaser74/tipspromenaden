@@ -1,172 +1,170 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-04-17
-> Status: Planeringsdokument — vägkartan kan justeras allt eftersom vi lär oss
+> Senast uppdaterad: 2026-04-29
+> Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
+> inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
+> ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
+> *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 
 ---
 
 ## Vision
 
-Tipspromenaden är en marknadsplats för **geo-baserade upplevelser**: tipspromenader, cykelturer, naturupplevelser och guidade vandringar. Skapare laddar upp eget innehåll, deltagare köper eller går gratis, och plattformen tar en provision.
+Tipspromenaden är ett **GPS-baserat quiz-promenadverktyg** för Sverige —
+gratis att använda, lätt att skapa egna promenader, lätt att hitta promenader
+andra delat. Fokus ligger på **hantverk och kvalitet** snarare än marknadsplats
+och provision. Vi bygger för oss själva, för familj och vänner, och för
+människor som råkar tycka att det är kul.
 
-På sikt positioneras appen som en **friskvårdstjänst** så företag kan låta anställda använda friskvårdsbidraget hos oss.
+På längre sikt: möjlighet att också rikta sig till friskvårds-/B2B-segmentet
+om värdet växer organiskt — men det är inte vad som styr roadmappen.
 
 ---
 
-## Affärsmodell — tre lager
+## Konkurrenter (april 2026)
+
+Marknaden har redan etablerade aktörer. Vi konkurrerar därför inte head-on
+utan fokuserar på **hantverk + nischfunktioner** där vi kan vara klart
+bättre än alternativen.
+
+| App | Modell | Skala | Differentierar mot oss |
+|---|---|---|---|
+| **Tipsrundan** ([tipsrundan.se](https://tipsrundan.se)) | Helt gratis | 4.6★, 6 200+ reviews | Etablerad, bredare feature-set inkl. video-frågor + fritext-svar |
+| **Korpen Tipspromenader** | Föreningsbunden | 60-årig institutionell relation | Friskvårdsbidrags-rätten genom Korpen |
+| **Quiz-walk** ([quiz-walk.se](https://www.quiz-walk.se)) | Oklart, troligen B2C | Mindre, finns | Skola/utbildning |
+| **Xrundan** ([xrundan.com](https://www.xrundan.com)) | Nationella quiz | Mindre nisch | Tävlings-/eventfokus |
+
+**Var vi vill vara klart bättre** (ordnat efter "hög effekt × byggbart"):
+
+1. **Cykelläge** — längre tröskel för kontroller, audio-frågor (TTS),
+   notifiering "närmar dig" 200 m innan, längre rutter (5–30 km). Tipsrundan
+   är gång-fokuserad. Här finns en lucka.
+2. **Audio-first / hands-free** — TTS-uppläsning är redan implementerad;
+   vidareutveckla mot riktig hands-free med BT-headset, ev. röststyrt svar.
+3. **Tablet/landscape-layout** — split-vy karta + sidopanel vid skapande.
+   Ingen konkurrent har detta.
+4. **Skapar-insights** — per-fråga svarsfördelning, snittsteg, snittpoäng.
+   Tipsrundan har tracking i realtid men inte fördröjd analys.
+5. **Offline-kvalitet** — tipspromenader sker i naturen där täckning är
+   variabel. Bli klart bäst på offline-flöde.
+6. **Stegräkning** — redan implementerad. Ger appen en hälsovinkel som
+   alternativen saknar.
+
+---
+
+## Affärsmodell — *lagrat (ej aktivt)*
+
+Tabellen nedan är historisk planering. Inga av dessa lager är aktivt under
+utveckling så länge projektet är hobbyläge. Kvar som referens om det skulle
+visa sig finnas en lucka i framtiden.
 
 | Lager | Produkt | Pris (riktvärde) | Marginal |
 |-------|---------|------------------|----------|
 | **Gratis** | Skapa egna frågor & promenader manuellt | 0 kr | — |
-| **Köp av innehåll** | Frågebatterier + färdiga promenader | 49–149 kr/styck | 80% till skapare, 20% till plattformen |
-| **Pro-konto** | Skapa & sälja eget innehåll, obegränsade promenader | ~99 kr/mån | 100% |
-| **B2B-friskvård** | Företagslicens via Benify/Epassi/Actiway | 50–200 kr/anställd/år | 100% |
+| **~~Köp av innehåll~~** | ~~Frågebatterier + färdiga promenader~~ | ~~49–149 kr/styck~~ | ~~80/20~~ |
+| **~~Pro-konto~~** | ~~Skapa & sälja eget innehåll~~ | ~~~99 kr/mån~~ | ~~100%~~ |
+| **B2B-friskvård** | Företagslicens via Benify/Epassi/Actiway | 50–200 kr/anställd/år | 100% (om det blir aktuellt) |
+
+Strykningarna ovan reflekterar att Tipsrundan redan ger bort skapelseverktyget
+gratis — köp-av-innehåll och pro-konto är inte realistiska intäktslager när
+basverktyget är gratis och etablerat hos konkurrenten. B2B-friskvård lämnas
+öppen som "kanske, om ett företag knackar på" snarare än aktiv strategi.
 
 ---
 
-## Strategiska principer
+## Strategiska principer (omformulerat för hobbyläge)
 
-1. **Sälj utanför app-butiken.** Apple/Google tar 30% av in-app-köp. Vi länkar till webb (Stripe Checkout) — fullt tillåtet enligt 2024 års EU-lagstiftning. Nettar ~100% istället för 70%.
-2. **Friskvårdsbidragsvinkel = stor moat.** Sverige har ~20 mdr kr/år i friskvårdsbidrag. Få konkurrenter har certifiering. Värt mycket att tidigt jobba mot Skatteverket-kategorisering och förmånsplattformarna.
-3. **Marknadsplatsen är värdet — inte enskilda promenader.** Bygg för skapare först, deltagare följer.
-4. **Kvalitet före kvantitet.** Bättre att ha 50 superbra upplevelser än 5000 medelmåttiga.
+1. **Hantverket först.** Bygg för att det är roligt och för att göra något bra,
+   inte för att monetära. Om det leder till intäkter en dag är det bonus.
+2. **Differentiera där alternativen är svaga.** Cykel, audio, tablet,
+   offline, insights — inte head-on mot Tipsrundans gång-fokus.
+3. **Kvalitet före kvantitet.** Bättre att ha 50 superbra promenader än
+   5000 medelmåttiga.
+4. **Frihet från "monetär logik".** Vi kan bygga konstiga features bara för
+   att de är roliga, utan att fråga "går den att monetära?"
 
 ---
 
 ## Fasplan
 
-### Fas 1 — Frågebatterier (~1 vecka kod)
-**Mål:** Bevisa att folk vill betala för innehåll.
+Faserna nedan är den ungefärliga ordningen vi bygger features i, **inte**
+deadlines. Vi plockar det som passar humöret, och success-kriterier är
+användar-orienterade ("kul att använda?") snarare än kommersiella.
+
+### Fas 1 — `.tipspack`-import ✅ delvis klart
+**Mål:** Skapare kan importera ett färdigt frågebatteri (JSON) och
+placera frågorna på kartan. Underlättar att skapa nya promenader när man
+har en fråge-uppsättning, inklusive paket genererade via `create-tipspack`-
+skill.
 
 **Funktioner:**
-- Importera `.tipspack`-fil (JSON) i CreateWalkScreen
-- Skaparen placerar varje fråga genom att trycka på kartan
-- Sparas som vanlig promenad efter import
+- Importera `.tipspack`-fil (JSON) i CreateWalkScreen ✅
+- Skaparen placerar varje fråga genom att trycka på kartan ✅
+- "Återanvänd positioner"-knapp för att kopiera koordinater från befintlig walk ✅
+- Sparas som vanlig promenad efter import ✅
 
-**Försäljning (utanför appen):**
-- Sälj 2–3 färdiga frågebatterier via Gumroad eller Stripe-länk
-- Köpare laddar ner `.tipspack`-fil → öppnar den i appen
-- T.ex. "Stockholms gamla stan – 30 frågor" — 49 kr
-
-**Produkter att skapa själv för Fas 1:**
+**Användbart att producera:**
 - Stockholms gamla stan (historia)
 - Naturbingo för barn
 - En storstad till (Göteborg eller Malmö)
-
-**Success-kriterium:** ≥10 sålda batterier på 4 veckor.
+- Fritids-/familjepaket — som det Karatekids-pack vi redan har
 
 ---
 
-### Fas 2 — Färdiga promenader + cykelturer (~2 veckor kod)
-**Mål:** Sänk tröskeln helt — köparen behöver inte själv placera frågor.
+### Fas 2 — Cykelläge + längre rutter (~2 veckor kod)
+**Mål:** Stötta cykling som separat aktivitetsläge — där Tipsrundan är
+svagast och vi kan vara klart bättre.
 
 **Funktioner:**
-- Nytt filformat `.tipswalk` med både frågor OCH koordinater
-- Stöd för **cykling** som separat aktivitetsläge:
+- Aktivitetstyp som metadata: `walk` / `bike` / `run`
+- **Cykelläge-UX:**
   - Längre tröskel för "närhet till kontrollpunkt" (200–500 m istf 3 m)
   - Notifiering "närmar dig" 200 m innan
-  - Eventuellt audio-frågor (text-to-speech)
-- Aktivitetstyp som metadata: gång / cykel / löpning
+  - Större kartzoom default
+  - Pausläge (vid trafikljus etc)
+- ✅ Audio-frågor via TTS (`expo-speech`) — implementerat 2026-04-17
+- Eventuellt nytt filformat `.tipswalk` med både frågor OCH koordinater
+  (för att kunna dela färdiga rutter direkt utan placeringssteg)
+- Linje-ritning på karta — visa rutten som polyline mellan kontrollerna
 
-**Försäljning:**
-- Sälj färdiga upplevelser per stad/tema
-- Pris 79–149 kr (mer värde = högre pris)
-
-**Success-kriterium:** ≥30 sålda upplevelser/månad i slutet av fasen.
-
----
-
-### Fas 3 — Marknadsplatsen (~3 månader kod)
-**Mål:** Externalisera innehållsproduktion. Du blir plattform, inte skapare.
-
-**Funktioner:**
-- Premium-konto (Pro): 99 kr/mån för att kunna sälja innehåll
-- Skapare laddar upp via webb-dashboard (eller direkt i appen)
-- Identitetsverifiering (BankID via Stripe)
-- Stripe Connect för utbetalningar
-- Recensioner & betyg (1–5 stjärnor)
-- Sökning: stad, längd, svårighet, kategori, betyg
-- Rapportera olämpligt innehåll
-- Refund-policy (t.ex. "30 dagar nöjd-eller-pengarna-tillbaka" om 0% av frågorna besvarats)
-
-**Provisionssatser:**
-- Start: **20% till plattformen** (kompetitivt vs Etsy 6–12%, App Store 15–30%)
-- Justeras baserat på volym och konkurrenssituation
-
-**Success-kriterium:** ≥50 aktiva betalande Pro-skapare.
+**Success-kriterium:** Vi själva tycker det är roligare att göra en
+cykel-quiz än att gå en gång-quiz. Familjen testar och ger feedback.
 
 ---
 
-### Fas 3.5 — Tokensystem (efter Fas 1 är validerad)
+### Fas 3 — Fritt bibliotek (publika promenader)
+**Mål:** Discovery — låt användare frivilligt dela sina promenader så
+andra kan hitta och köra dem. **Inget kommersiellt lager**, inga
+köp/utbetalningar/Pro-konton — bara opt-in publicering och bra
+filtrering. Detaljerad spec i sektionen "Bibliotek (publika promenader)"
+nedan.
 
-**Förutsättning:** ≥10 sålda tipspacks så att vi vet vad folk är villiga att
-betala. Innan dess är ekonomin omöjlig att kalibrera — för generösa tokens
-kannibaliserar Fas 1-försäljningen, för stingy genererar de inget engagemang.
+**Kärna:**
+- `public?: boolean` på Walk — skaparen opt-in:ar
+- Filtrering: fritext / kategori / avstånd / sortering
+- Kvalitetssignaler:
+  - **V1** (ingen extra data — finns redan): completion-count, avg-poäng
+  - **V2** (1 helg): ❤️-knapp för "den här var bra"
+  - V3 (5★ + reviews): **uttryckligen utelämnad** — för låg volym för att
+    fungera bra, för dyr i moderation, demotiverande för skapare
+- Ingen identitetsverifiering, ingen BankID, ingen Stripe Connect
 
-**Mål:** Belöna engagemang utan att underminera betald försäljning. Skapa
-en valuta som B2B-kunder kan ladda upp till sina anställda.
-
-#### Intjäning
-
-| Aktivitet | Tokens | Anti-fusk |
-|---|---|---|
-| Slutföra ny promenad (unik walkId) | 50 | En gång per promenad/användare |
-| 100% rätt-bonus | +25 | Per promenad |
-| Skapa promenad (≥10 frågor) | 100 | Utbetalas först när 3 unika deltagare gått den (förhindrar fake-walks) |
-| Andra går din promenad | 5 per deltagare | Cap 50/promenad/månad |
-| Daglig streak | 10/dag, max 70/vecka | Server-tid, inte enhetstid |
-| Bjuda in vän som registrerar sig | 100 | Per ny användare |
-
-#### Utgifter
-
-| Vara | Tokens | Motsvarar krpris |
-|---|---|---|
-| Tipspack | 500 | 49 kr |
-| Tipswalk standard | 1000 | 99 kr |
-| Tipswalk premium | 1500 | 149 kr |
-
-Med dessa siffror behöver en aktiv deltagare ~10 slutförda promenader för
-att tjäna ihop ett gratis tipspack. Premium-innehåll förblir till största
-delen betalmodell.
-
-#### Tekniska krav
-
-- **Cloud Function** för tilldelning (klienten kan inte tilldela själv)
-- **Token-saldo + transaktionslogg** i Firestore
-  (`users/{uid}/tokens` + `users/{uid}/tokenLog/{txId}`)
-- **Utgångsdatum** på tokens (förslag: 6 mån) — undvik hamstring och
-  inflationsrisk om systemet senare justeras
-- **Daglig cap** för att stoppa exploit-bots
-- **Inte överförbar** mellan konton (hindrar svartmarknad)
-
-#### Smart kombination med Pro-kontot
-
-Pro-konto inkluderar 1500 tokens/månad — gör Pro mer attraktivt och
-ger en transparent växelkurs som visar att tokens har monetärt värde.
-
-#### B2B/friskvårdsvinkel — det starkaste argumentet
-
-Företag köper "wellness-krediter" och delar ut till anställda. Anställd får
-X tokens/månad att handla för. Det här är faktiskt huvudskälet att bygga
-tokensystemet — företaget vill inte att anställda ska se varandras
-betalkort, och tokens är ett naturligt mellanlager. Förmånsplattformarna
-(Benify m.fl.) gillar också paketerade krediter snarare än lösa belopp.
+**Success-kriterium:** Familj och vänner hittar och kör promenader gjorda
+av andra utan att skaparen behövde dela en QR-kod.
 
 ---
 
-### Fas 4 — B2B & friskvård (parallellt med Fas 3)
-**Mål:** Företagsförsäljning som hävstång.
+### Fas 4 — B2B/friskvård *(om det blir aktuellt)*
 
-**Aktiviteter:**
-- Kontakta förmånsplattformar (Benify, Epassi, Actiway, Wellnet)
-- Få Skatteverket-godkännande som friskvårdstjänst
+Lämnas öppen som möjlighet snarare än aktiv plan. Om ett företag knackar
+på för walk-and-talks, kickoff-events eller friskvårdsbidrag — då
+aktiveras detta. Inget vi jagar proaktivt så länge projektet är hobby.
+
+**Om aktuellt — vad som behövs:**
+- Skatteverket-godkännande som friskvårdstjänst (~3–6 mån process)
+- Företagsadmin-dashboard för HR (anonymiserad aktivitet)
 - Säljmaterial och företagsdemo
-- Företagsadmin: dashboard för HR att se aktivitet (anonymiserad)
-- Företagsspecifika promenader (t.ex. "Walk-and-talks runt huvudkontoret")
-
-**Prismodell:**
-- 49 kr/anställd/år för obegränsad åtkomst till alla promenader
-- Eller "credits" — 5 promenader/anställd/år för 100 kr
+- Eventuell licensmodell — t.ex. 49 kr/anställd/år flat eller per-event
 
 ---
 
@@ -232,116 +230,54 @@ Cyklisten ska kunna svara handsfree. Två implementationsvägar som övervägs:
 
 ---
 
-## Innehållsskydd & betalning av `.tipspack` (framtida)
+## Innehållsskydd & betalning av `.tipspack` — *arkiverat (ej aktivt)*
 
-### Grundsanningar
+Hela detta avsnitt är historisk planering från när vi tänkte sälja
+`.tipspack`-filer kommersiellt. Sedan beslutet att gå hobby-läge är
+ingen DRM-strategi aktiv — `.tipspack`-filer är fria att dela mellan
+människor. Avsnittet finns kvar som referens om en monetärisering
+återkommer.
 
-1. **DRM går alltid att knäcka.** Målet är att göra okontrollerad spridning *obekväm*, inte omöjlig. Om inte Spotify och Kindle lyckas hindra 100% lär vi heller inte göra det.
-2. **Största skyddet är appens värde.** Innehåll utan kartan, GPS-triggers och topplista är halvt värde. Samma princip som varför ingen piratkopierar Duolingos ordlistor — appen *är* produkten.
-3. **UX-kostnad för DRM drabbar betalande kunder, inte pirater.** Lägg minimalt med DRM-lager för lägsta friktion.
-4. **Prisnivå 49–149 kr = impulsköp.** Casual sharing-beteendet är "visa kompisen så han ser vad det är", inte organiserad piratering.
+<details>
+<summary>Klicka för att läsa det arkiverade tankegodset</summary>
 
-### Distributionsmodeller — spektrum från naivt till tungt
+### Grundsanningar (lagrat)
 
-| Modell | Hur det funkar | Skydd | Offline? | Arbete | Lämplig för |
-|---|---|---|---|---|---|
-| **A. Öppen fil + hederssystem** | `.tipspack` skickas som-det-är | ⭐ | ✅ | 0 | Gratis-innehåll |
-| **B. Watermarkad fil** | Köparens mail inbäddad i filen | ⭐⭐ | ✅ | 1 dag | **MVP för betalning** |
-| **C. Cloud-levererat innehåll** | Inget filformat — content hämtas från Firestore efter köp | ⭐⭐⭐⭐ | 🟡* | ~1 vecka | När volym > 500 köp |
-| **D. Krypterat paket + licensserver** | Fil krypterad, nyckel efter köp-verifiering | ⭐⭐⭐⭐⭐ | ✅ | ~2 veckor | Förmodligen aldrig |
+1. DRM går alltid att knäcka. Målet är att göra okontrollerad spridning *obekväm*, inte omöjlig.
+2. Största skyddet är appens värde. Innehåll utan kartan, GPS-triggers och topplista är halvt värde.
+3. UX-kostnad för DRM drabbar betalande kunder, inte pirater.
+4. Prisnivå 49–149 kr = impulsköp. Casual sharing-beteendet är "visa kompisen", inte organiserad piratering.
 
-*Cloud-modellen cachar lokalt efter första nedladdning → offline funkar efter första användning.
+### Distributionsmodeller (lagrat)
 
-### Fas A — Watermarkad fil (rekommenderad start)
+| Modell | Hur det funkar | Skydd | Arbete | Lämplig för |
+|---|---|---|---|---|
+| **A. Öppen fil + hederssystem** | `.tipspack` skickas som-det-är | ⭐ | 0 | Gratis-innehåll (= där vi är nu) |
+| **B. Watermarkad fil** | Köparens mail inbäddad i filen | ⭐⭐ | 1 dag | MVP för betalning |
+| **C. Cloud-levererat innehåll** | Content hämtas från Firestore efter köp | ⭐⭐⭐⭐ | ~1 vecka | När volym > 500 köp |
+| **D. Krypterat paket + licensserver** | Fil krypterad, nyckel efter köp-verifiering | ⭐⭐⭐⭐⭐ | ~2 veckor | Förmodligen aldrig |
 
-Köp → Cloud Function genererar unik kopia → e-post till köpare.
+Modell A är vad vi de facto kör nu i hobby-läget. B/C/D är inte aktuella
+så länge vi inte säljer något.
 
-```json
-{
-  "format": "tipspack",
-  "version": "1.1",
-  "name": "Visby medeltid",
-  "license": {
-    "purchaseId": "ord_7a3f...",
-    "buyerEmail": "lisa@example.com",
-    "issuedAt": "2026-04-17T10:23:45Z",
-    "hash": "sha256:..."
-  },
-  "questions": [...]
-}
-```
+### Stripe Connect / utbetalningar (lagrat)
 
-**Viktigt:**
-- Mail visas synligt i JSON så köparen *vet* att det finns där → självbromsar spridning
-- Appen visar "Köpt av Lisa" i info-dialogen när filen öppnas
-- Socialt tryck > teknisk barriär
+Inte relevant tills monetärisering återkommer. Sparat:
+- `sales/{saleId}` med creator/buyer/amount/creatorCut
+- Stripe webhook → Cloud Function
+- Chargeback-flöde via webhook
 
-**Vad som behövs:**
-- Cloud Function (Blaze-plan, ~2 kr/mån för vår skala) som Gumroad/Stripe webhookar
-- Utöka `validateBattery()` — acceptera men inte kräv `license`-fältet (bakåtkompat)
-- Landningssida "Jag har köpt — ladda ner"
-
-**GDPR:** köparens mail i filen kräver transparent information i köpflödet ("Din mail bäddas in för att förhindra spridning"), legal basis = avtal (inte samtycke), möjlighet att begära ny fil med hashad identifierare.
-
-### Fas B — Cloud-levererat innehåll (när vi har volym)
-
-1. Köp → aktiveringskod via mail (eller djuplänk)
-2. Appen verifierar kod mot Cloud Function → får `walkId` + lästillstånd
-3. Firestore-regel: `allow read if exists(/purchases/{uid}_{walkId})`
-4. Firestore-cache → offline efter första användning
-
-**Fördelar:**
-- Exakt analytics — vem har spelat vad
-- Innehållsuppdateringar når alla köpare automatiskt
-- Kan erbjuda "30-dagars tillgång", abonnemang, etc.
-- Återkallelse vid chargeback är trivialt
-
-**Nackdelar:**
-- Ingen "ladda ner för offline" förrän appen öppnats minst en gång
-- Beroende av backend (mitigeras av befintligt Firestore-cache + offline-läge)
-
-### Fas C — Kryptering
-
-Rekommenderas inte. Android-appar kan dekompileras, nyckelmaterial extraheras, smärtan för legitima användare när något går fel är aldrig värt det.
-
-### Särskilda fall att planera för
-
-**1. Marknadsplats (skapare säljer)**
-- Stripe Connect för utbetalningar (månatlig payout > 200 kr)
-- `sales/{saleId}` i Firestore med `creatorId`, `buyerId`, `amount`, `creatorCut`
-- Cloud Function triggad på Stripe webhook
-
-**2. Gifting / presentkort**
-- Fas B-arkitekturen löser det naturligt: köparen får kod, skickar till mottagaren som aktiverar på egen telefon
-
-**3. Chargebacks**
-- Stripe webhook → Cloud Function raderar `purchases/{uid}_{walkId}` → tillgång försvinner (Fas B) eller loggas som blacklisted (Fas A)
-
-**4. Företagslicenser (friskvård)**
-- Group purchase: admin får X licenskoder, distribuerar internt
-- Admin-dashboard med aktiveringsstatistik per anställd
-
-### Rekommenderad fasordning
-
-1. **Fas 1 i affärsplanen + Fas A-DRM** — watermarkad fil + Gumroad/Stripe-länk. Testa säljbarhet.
-2. **När ≥500 betalda nedladdningar eller första pirat-incident** — migrera till Fas B (cloud-levererat).
-3. **Fas C övervägs bara om B-modellen misslyckas** — bör inte hända.
-
-### Milstolpar som triggar nästa steg
-
-| Händelse | Åtgärd |
-|---|---|
-| Första 10 köpen | Verifiera Fas A-flödet end-to-end |
-| 100 köpare | Lansera Stripe Connect för skapar-intäktsdelning |
-| 500 köpare eller pirat-incident | Börja migrera till Fas B |
-| Första företagslicens | Bygg admin-dashboard |
-| > 5000 köpare | Utvärdera behov av automatiserade chargeback-flöden |
+</details>
 
 ---
 
 ## Bibliotek (publika promenader)
 
-Bibliotek där skapare opt-in:ar promenader så andra användare kan upptäcka, filtrera och starta dem. Egen flik i HomeScreen vid sidan om "Mina" och "Sparade".
+**Fritt** bibliotek där skapare opt-in:ar promenader så andra användare
+kan upptäcka, filtrera och köra dem. Inget kommersiellt — inga köp,
+inga utbetalningar, inga Pro-konton. Bara discovery och bra filtrering.
+
+Egen flik i HomeScreen vid sidan om "Mina" och "Sparade".
 
 ### Datamodell — nya fält på `Walk`
 
@@ -350,7 +286,7 @@ Bibliotek där skapare opt-in:ar promenader så andra användare kan upptäcka, 
 - `bounds?: { minLat, maxLat, minLng, maxLng }` — för geo-sökning
 - `city?: string` — manuellt angivet av skaparen (kan auto-fyllas via reverse geocoding av centroid)
 - `region?: string` — län eller kommun
-- `category?: string` — begränsad enum, t.ex. `"natur" | "historia" | "barn" | ...`
+- `category?: string` — begränsad enum, t.ex. `"natur" | "stad" | "historia" | "barn" | "cykel" | ...`
 
 `firestore.rules` uppdateras: alla får läsa walks där `public == true` även utan ägarskap.
 
@@ -360,13 +296,36 @@ Bibliotek där skapare opt-in:ar promenader så andra användare kan upptäcka, 
 - Sökrad: fritext (matchar title + city + region)
 - Kategori-chips
 - Avstånd-slider ("inom X km från mig" — kräver geo-bbox-query)
-- Sortering: relevans / nyast / populärast / närmast
+- Sortering: nyast / populärast (= antal slutförda) / närmast / mest gillade (V2)
 - Tryck på walk → samma flöde som idag (preview + spara/starta)
 
 **CreateWalkScreen:**
 - "Publicera till biblioteket"-toggle (default av)
 - Om på: fält för stad + kategori + ev. beskrivning
 - Liten varning: "Andra användare kan se din promenad"
+
+### Kvalitetssignaler — V1 + V2, inte V3
+
+Genomtänkt val efter konkurrentanalys: 5★-betyg + reviews ger orättvisa
+siffror vid låg volym, drar moderation-overhead, demotiverar skapare via
+brigading. Vi hoppar över det och bygger lättviktiga signaler.
+
+**V1 — implicit + minimal social proof (Iteration 1, ingen extra data):**
+- "**Gått av N personer**" — räknare baserad på sessions/finishers (vi har redan datat)
+- "**Genomsnittlig score: X/Y**" — vi räknar redan ut det i WalkInsights
+- Sortering "Populärast" = fler-än-N-finishers
+- Sortering "Närmast mig" — kräver centroid (Iteration 2)
+
+**V2 — ❤️-knapp (när V1 inte räcker, ~1 helg):**
+- Ett-tap "den här var bra"-knapp på walk-kort + WalkPreview
+- Antal hjärtan visas som badge
+- Sortering "Mest gillade"
+- Inga kommentarer, inga 1-stjärnor → inget att modera utöver befintlig
+  rapportering
+
+**V3 — fullt review-system: uttryckligen utelämnad.** Hobbyprojekt är
+inte värt moderation-overheaden, och 5-stjärniga betyg vid låg volym
+gör mer skada än nytta.
 
 ### Tekniska val
 
@@ -383,55 +342,73 @@ Bibliotek där skapare opt-in:ar promenader så andra användare kan upptäcka, 
 - Lägg `public`, `city`, `category` på Walk
 - Bygg "Bibliotek"-flik med fritext + kategori-filter
 - Klient-side filter (vi ligger långt under 500 walks idag)
+- Visa V1-signaler: completion-count + avg-score per walk
 - Inga geo-sökningar än
+- Rapportera-knapp på walk-kort (för olämpligt innehåll)
 
 **Iteration 2 (~3 h):**
 - Lägg till `centroid` + "Inom X km från mig"-slider
-- Auto-fyll `city` via reverse geocoding
+- Auto-fyll `city` via reverse geocoding av centroid
+- "Spara till mina" utan att starta
 
-**Iteration 3 (när det skalat upp):**
-- Algolia/Typesense för riktig sök
-- Popularity-ranking baserat på antal sessioner
+**Iteration 3 (~1 helg, om V1 inte räcker som kvalitetssignal):**
+- ❤️-knapp + sortering "Mest gillade"
+- Skapar-profilsida ("Walks av Niklas")
+
+**Iteration 4 (när det skalat upp — kanske aldrig):**
+- Algolia/Typesense för riktig fuzzy-sök
+- Popularity-ranking med tidsavtagande (recency + volume)
 
 ### När börja
 
-Vänta tills:
-1. ≥20 skapade promenader att fylla biblioteket med (annars är det tomt och inbjuder inte till användning)
-2. v1.2.0 ute hos testarna och stabilt
-3. App Check är på plats — public read av walks blir mer attraktivt mål för missbruk när biblioteket finns
+Bygg när det är roligt. ~5–10 publika walks räcker för att få ett
+användbart bibliotek; inget hårt krav på "20+" som tidigare. App Check
+är inte ett hårt krav men trevligt att ha innan vi öppnar publika reads.
 
 ---
 
-## Risker & motåtgärder
+## Risker & motåtgärder (hobby-läge)
 
 | Risk | Sannolikhet | Påverkan | Motåtgärd |
 |------|-------------|----------|-----------|
-| Apple/Google nekar app pga in-app-köp utanför deras system | Medel | Hög | Använd web-redirect för betalningar (lagligt sedan 2024) |
-| Inget innehåll → ingen användning | Hög | Hög | Producera 5–10 högkvalitativa promenader själv som seed |
-| Friskvård-godkännande tar för lång tid | Medel | Medel | Börja kontakta Skatteverket parallellt med Fas 1 |
-| Konkurrent kopierar | Låg | Medel | Varumärke + community + B2B-relationer = moat |
 | GPS-noggrannhet för dålig | Låg | Hög | Justerbar tröskel, tillåt manuell "jag är här"-knapp som backup |
+| Tipsrundan/konkurrent lägger till feature vi differentierar på | Medel | Medel | Vi är i hobby-läge — inget akut. Pivota till annan nisch om det händer |
+| App Check inte aktiverat → public read av walks blir attack-yta | Medel (när biblioteket lanseras) | Låg-Medel | Aktivera App Check i nästa AAB-cykel innan biblioteket öppnas |
+| Privat data (display-name, e-post-username) på publika topplistor | Låg | Medel | Privacy-fält som default-deltagarnamn (se post-V1-bucket) |
+| Inaktivitet — projektet dör för att ingen orkar | Medel | Låg (det är hobby) | Det är OK. Fungerar fortsatt för existerande användare oavsett. |
+
+(Tidigare risker som "Apple/Google nekar pga in-app-köp" och
+"Friskvård-godkännande dröjer" är inte längre relevanta i hobby-läget.)
 
 ---
 
-## Konkurrentanalys (kort)
+## Bredare konkurrenslandskap (referensapp jämfört med oss)
 
-| App | Fokus | Vår fördel |
-|-----|-------|-----------|
+Konkurrent-tabellen i sektionen "Konkurrenter" överst täcker
+*direkt* konkurrens (svenska tipspromenad-appar). Tabellen nedan är
+bredare friluft/discovery-appar för referens när vi tänker UX:
+
+| App | Fokus | Var vi är annorlunda |
+|-----|-------|---------------------|
 | **Komoot** | Ruttplanering cykel/vandring | Vi har gamification (frågor + poäng) |
-| **AllTrails** | Naturleder | Vi är lokalt/svenskt, mer urban-fokus |
-| **Geocaching** | Hitta gömda objekt | Vår innehåll är edukativt, inte sökande |
+| **AllTrails** | Naturleder | Vi är svenskt + urban-vänligt |
+| **Geocaching** | Hitta gömda objekt | Vårt innehåll är edukativt, inte söka-objekt |
 | **GuruWalk** | Stadsguider med människa | Vi är självgående, tillgängligt 24/7 |
-| **Tipspromenad** (klassisk papperversion) | Skola/förening | Vi är digitalt, automatisk poäng |
+| **Strava** | Träning + sociala | Vi är upplevelse, inte prestation |
 
 ---
 
-## Nästa konkreta steg
+## Nästa konkreta steg (hobby-läge, ingen press)
 
-1. **Vi (nu):** Implementera `.tipspack`-import i appen
-2. **Du:** Producera ditt första frågebatteri för försäljning
-3. **Du:** Sätt upp Gumroad-sida för försäljning
-4. **Vi:** Iterera baserat på första testet
+Plocka det som passar humöret. Förslag i grov ordning:
+
+1. **Cykelläge** (Fas 2) — den största luckan vs Tipsrundan, kul att bygga
+2. **Score-card-PNG-delning** (post-V1) — viral spridning + snyggt visuellt
+3. **Bibliotek Iteration 1** — när det finns 5–10 promenader att fylla med
+4. **Onboarding-flöde** (post-V1) — 3 skärmar första gången
+5. **Ljudeffekter + haptics** (post-V1) — "wow"-känsla utan kod-tunghet
+6. **Mörkt tema** (post-V1) — `useColorScheme()` är redan delvis stödd
+7. **App Check** (M5) — gör innan biblioteket öppnas
 
 ---
 
