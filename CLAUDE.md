@@ -56,7 +56,9 @@ src/
 
 scripts/                        # Node/PS-helpers utanför app-bundlet
 ├── update-all.mjs              # `npm run update:all` — OTA till båda branches
-└── strip-readonly.ps1          # Tar bort read-only-flagga (OneDrive-artefakt) före build
+└── strip-readonly.ps1          # Legacy från OneDrive-tiden — tar bort read-only-flagga
+                                # före build. Ej längre nödvändig sedan repot
+                                # flyttades till `C:/dev/`. Kvar för säkerhets skull.
 ```
 
 **Utils värda att känna till:**
@@ -157,9 +159,10 @@ serverside-bedömning av varje svar.
   Play Integrity-provider, inte JS SDK). Webbappen är inte deployad så
   reCAPTCHA-vägen är irrelevant just nu. Lägg till i nästa build-cykel som
   kräver ny AAB ändå. Se roadmappen nedan.
-- **Service-account-rotation** — `google-service-account.json` ligger i
-  OneDrive-synkad mapp. Flytta ut och rotera nyckeln i GCP om det finns
-  minsta tveksamhet om OneDrive-läckage.
+- **Service-account-rotation** — `google-service-account.json` har tidigare
+  legat i OneDrive-synkad mapp. Den ligger nu utanför OneDrive (i `C:/dev/`)
+  men nyckeln har eventuellt lekt via OneDrive-historik. Rotera i GCP vid
+  tillfälle.
 
 **Play Console-deklarationer som följer ACTIVITY_RECOGNITION:**
 Stegräkningen kräver `android.permission.ACTIVITY_RECOGNITION` (Android 10+).
@@ -266,63 +269,29 @@ Play Store-spår: **Internt test** visar "(unreviewed)" + ingen innehålls-
 klassificering → Family Link blockerar. **Stängt test** ger riktig granskning
 och klassificering — använd det för riktiga testare.
 
-### OneDrive-buggen (drabbar ENDAST `eas build`)
+### Projektplats: `C:/dev/tipspromenaden-app/`
 
-Projektet ligger på en OneDrive-synkad sökväg. När `eas build` komprimerar
-projektet för uppladdning blir tar-arkivet korrupt (troligen pga. Files-
-On-Demand-placeholders som rehydreras mitt i tar-körningen). Bygget kör
-då fast i **PREPARE_PROJECT**-fasen med fel som:
+Projektet ligger på lokal disk **utanför OneDrive** sedan 2026-04-29.
+Tidigare bodde det i `OneDrive/.../tipspromenaden/tipspromenaden-app/`
+vilket triggade två olika buggar:
 
-```
-tar: src/screens: Cannot mkdir: Permission denied
-tar: src/screens/HomeScreen.tsx: Cannot open: No such file or directory
-tar: Exiting with failure status due to previous errors
-```
+- `eas build` fastnade i PREPARE_PROJECT med korrupta tar-arkiv (Files-
+  On-Demand-placeholders rehydrerades mitt i tar-körningen).
+- `eas update` (OTA) timeoutade på asset-uploaden eftersom OneDrive
+  försökte synka upp .hbc-bundlarna samtidigt som EAS-CLI strömmade
+  dem till Expo — file-handle-krock.
 
-**Fix:** bygg från en kopia på lokal disk utanför OneDrive.
+Båda är borta nu. Bygg och OTA körs direkt från `C:/dev/tipspromenaden-app/`
+utan workarounds. Den gamla OneDrive-kopian är omdöpt till
+`tipspromenaden-app-OLD-DO-NOT-EDIT-2026-04-29/` och kan raderas när som
+helst — sanningen ligger i GitHub + `C:/dev/`.
 
-```bash
-# Första gången (eller efter längre paus)
-mkdir -p /c/dev
-cp -r "/c/Users/<user>/OneDrive - .../tipspromenaden-app" /c/dev/tipspromenaden-app
-
-# node_modules kopieras brutet — kör om install
-cd /c/dev/tipspromenaden-app
-# Radera via cmd (PowerShell/bash kan fastna på långa path-längder i node_modules):
-cmd //c "rmdir /s /q C:\dev\tipspromenaden-app\node_modules"
-npm install
-
-# Därefter: bygg alltid härifrån
-cd /c/dev/tipspromenaden-app
-eas build -p android --profile production --non-interactive --no-wait
-
-# Submit kan också köras härifrån när bygget är klart:
-eas submit -p android --id <build-id> --non-interactive --profile internal
-```
-
-**Viktigt:** nya commits ska fortfarande göras i OneDrive-kopian (det är
-"sanningen"). Innan nästa build: synka över ändringar till `/c/dev/`-
-kopian, t.ex. med `git pull` eller `robocopy` av källfiler (inte
-`node_modules`).
-
-**`eas update` (OTA) drabbas också** — fast på ett annat sätt. När `eas
-update` har exporterat dist/ börjar OneDrive synka upp de nya .hbc-
-bundlarna (~3.6 MB var) till molnet samtidigt som EAS-CLI försöker
-strömma upp dem till Expo. File handles krockar och uploaden timeoutar
-med "Asset processing timed out for assets". Symptom: assetmap.json
-går igenom på sekunder, sedan dör de stora .hbc-filerna.
-
-**Fix före varje OTA-publicering från OneDrive-sökvägen:**
-högerklicka OneDrive-ikonen i systray → "Pausa synkning 2 timmar".
-Sedan kör `npm run update:all -- --message "..."`. Återaktivera
-synken efteråt.
-
-(Permanent lösning: flytta projektet ut ur OneDrive — se roadmap.)
+Backup av gammal state innan flytt: `C:/Users/niklas.eriksson/_archive/`.
 
 ### OTA: appVersion-policy + båda branches
 
-`runtimeVersion.policy: "appVersion"` i `app.config.js` — runtime är
-literal `"1.0.0"` (= `version`-fältet). Tidigare körde vi `"fingerprint"`
+`runtimeVersion.policy: "appVersion"` i `app.config.js` — runtime läses
+dynamiskt från `version`-fältet (just nu `"1.3.0"`). Tidigare körde vi `"fingerprint"`
 men det drev isär: EAS-build-servern och `eas update` lokalt hashade
 olika filuppsättningar, så varje build/publicering fick olika runtime-
 hash och OTA:er nådde aldrig fram. appVersion ger deterministisk
@@ -400,8 +369,6 @@ plocka det som passar när tillfälle ges.
   Senare användningsområden: publik resultat-delning (`/result/{sessionId}`),
   publik promenadkatalog (`/upptack`), skaparportal i webb (react-native-web-build),
   blogg/press kit, Stripe-checkout om premiumplaner blir aktuellt.
-- Flytta projektet ut ur OneDrive permanent (eller konfigurera OneDrive att
-  exkludera repo-mappen) så `eas build` kan köras direkt utan `/c/dev/`-kopian.
 
 **Marknadsföring:**
 - `docs/marketing/` innehåller printbara flygblad i flera varianter
@@ -419,7 +386,6 @@ roadmappen ovan, men ingen blockerar v1.)
   detta när domänen finns. Workaround idag: "Klistra in länk"-knappen i
   ScanQRScreen + bart walkId i delningsmeddelandet.
 - Score-fusk: klient räknar poäng (se säkerhetsmodellen).
-- OneDrive-sökväg bryter `eas build` (se OneDrive-buggen). OTA opåverkad.
 
 ## Filer att läsa först för ny kontext
 
