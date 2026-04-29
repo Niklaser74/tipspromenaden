@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.2.0",
+    version: "1.3.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -81,6 +81,31 @@ module.exports = () => ({
           apiKey: process.env.GOOGLE_MAPS_API_KEY,
         },
       },
+      // Android App Links: när autoVerify=true installeras appen, hämtar
+      // Android automatiskt https://tipspromenaden.app/.well-known/assetlinks.json
+      // och verifierar att SHA256 i den matchar den signerade APK:n. Vid
+      // matchning blir appen DEFAULT-handler för https://tipspromenaden.app/walk/*
+      // utan användarval (ingen "Open with…"-dialog). Vid icke-match faller
+      // OS:et tillbaka på normal browser-öppning, vilket ger smart-fallback
+      // via 404.astro på webbsidan.
+      //
+      // Den befintliga `scheme: "tipspromenaden"`-konfigen ovan skapar
+      // separata intent-filter för custom-scheme-länkar (tipspromenaden://walk/*)
+      // — bevaras för bakåtkompat med redan delade länkar.
+      intentFilters: [
+        {
+          action: "VIEW",
+          autoVerify: true,
+          data: [
+            {
+              scheme: "https",
+              host: "tipspromenaden.app",
+              pathPrefix: "/walk/",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+      ],
     },
     web: {
       favicon: "./assets/favicon.png",

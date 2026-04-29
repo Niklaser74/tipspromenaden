@@ -13,7 +13,7 @@
 
 import * as Crypto from "expo-crypto";
 import { Walk } from "../types";
-import { APP_SCHEME, WALK_PATH } from "../constants/deepLinks";
+import { APP_SCHEME, WALK_PATH, WEB_HOST } from "../constants/deepLinks";
 
 /**
  * Datastrukturen som kodas i QR-koden.
@@ -56,12 +56,14 @@ export function createQRData(walk: Walk): string {
 /**
  * Tolkar en rå sträng och returnerar strukturerad QR-data.
  *
- * Accepterar tre format så att samma kodväg fungerar för QR-skanning,
+ * Accepterar fyra format så att samma kodväg fungerar för QR-skanning,
  * delade länkar och manuell inklistring:
  *   1. JSON från en QR-kod: `{"type":"tipspromenaden","walkId":"…"}`
- *   2. Deep link: `tipspromenaden://walk/<walkId>` (med eller utan
- *      url-encoding av id:t)
- *   3. Rått walkId — t.ex. när någon skickat över bara id-strängen i text
+ *   2. Universal/App Link: `https://tipspromenaden.app/walk/<walkId>`
+ *      (primärformatet sedan v1.3.0 — vad buildWalkLink genererar)
+ *   3. Custom-scheme deep link: `tipspromenaden://walk/<walkId>`
+ *      (legacy — bevaras för redan delade länkar)
+ *   4. Rått walkId — t.ex. när någon skickat över bara id-strängen i text
  *
  * Returnerar `null` om inget av dessa matchar (t.ex. en QR-kod från en
  * annan app, eller en länk till någon annan tjänst).
@@ -83,19 +85,43 @@ export function parseQRData(raw: string): QRData | null {
     /* faller igenom till nästa format */
   }
 
-  // 2. Deep link. decodeURIComponent kan kasta URIError på trasig
+  // 2. Universal/App Link (https). Accepterar både `tipspromenaden.app`
+  //    och `www.tipspromenaden.app` så fummel med www-prefix inte bryter
+  //    inklistring. decodeURIComponent kan kasta URIError på trasig
   //    procent-kodning — fånga och fall vidare till nästa format.
-  const deepLinkPrefix = `${APP_SCHEME}://${WALK_PATH}/`;
-  if (trimmed.toLowerCase().startsWith(deepLinkPrefix)) {
+  const httpsPrefixes = [
+    `https://${WEB_HOST}/${WALK_PATH}/`,
+    `https://www.${WEB_HOST}/${WALK_PATH}/`,
+    `http://${WEB_HOST}/${WALK_PATH}/`, // tolerant mot bortglömt s
+    `http://www.${WEB_HOST}/${WALK_PATH}/`,
+  ];
+  const lower = trimmed.toLowerCase();
+  for (const prefix of httpsPrefixes) {
+    if (lower.startsWith(prefix)) {
+      try {
+        // Trimma bort eventuell query string eller hash
+        const tail = trimmed.slice(prefix.length).split(/[?#]/)[0];
+        const walkId = decodeURIComponent(tail).trim();
+        if (walkId) return { type: "tipspromenaden", walkId, title: "" };
+      } catch {
+        /* trasig URI — fall vidare */
+      }
+      break;
+    }
+  }
+
+  // 3. Custom-scheme deep link (legacy).
+  const schemeLinkPrefix = `${APP_SCHEME}://${WALK_PATH}/`;
+  if (lower.startsWith(schemeLinkPrefix)) {
     try {
-      const walkId = decodeURIComponent(trimmed.slice(deepLinkPrefix.length)).trim();
+      const walkId = decodeURIComponent(trimmed.slice(schemeLinkPrefix.length)).trim();
       if (walkId) return { type: "tipspromenaden", walkId, title: "" };
     } catch {
       /* trasig URI — fall vidare */
     }
   }
 
-  // 3. Rått walkId. generateId() ger base-36 (~16 tecken); regexen är
+  // 4. Rått walkId. generateId() ger base-36 (~16 tecken); regexen är
   //    bred för att också ta in manuellt skapade id:n. Träffar mer än
   //    den borde, men processQRData faller på getWalk() om id:t inte
   //    finns och visar "not found"-alert.
