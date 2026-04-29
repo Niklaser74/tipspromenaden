@@ -371,8 +371,12 @@ plocka det som passar när tillfälle ges.
   "Monitoring" i konsolen, vänta tills all legitim trafik syns som *verified*,
   slå sedan på Enforce. (Web App i konsolen finns men appen har ingen publik
   web-deployment — reCAPTCHA-provider är inte relevant just nu.)
-- `assetlinks.json` på `tipspromenaden.se` när domänen registrerats, så att
-  deep-links verifieras av Android och intent-hijacking stängs ner.
+- `assetlinks.json` på `tipspromenaden.app` (domänen är reggad hos Cloudflare
+  Registrar 2026-04). Verifierar Android App Links och stänger ner
+  intent-hijacking. Kräver: SHA256 från upload-keystore + `intentFilters`
+  i `app.config.js` för `https://tipspromenaden.app/walk/*` + bumpa
+  `version` (native-ändring → ny AAB) + uppdatera `parseQRData()` och
+  `buildWalkLink()` att använda `https://`-formatet.
 - Exportera resultat som CSV/PDF efter avslutad session.
 - Per-skärm landscape-finputs (Active/Results/Leaderboard) — orientation är
   redan unlock:ad, layouterna är funktionellt OK i landscape men inte tunade.
@@ -382,8 +386,20 @@ plocka det som passar när tillfälle ges.
   Testare onboardas via Google Group `tipspromenaden-testers` — se
   `docs/testpiloter-google-group.md`. Ett klick per godkännande, gruppen
   funkar också som distributionslista för uppdateringar.
-- Registrera `tipspromenaden.se` + peka DNS mot en enkel landningssida med
-  app-länkar och `assetlinks.json`.
+- **Webbsida på `tipspromenaden.app`** (domänen reggad hos Cloudflare Registrar):
+  hostas på **Cloudflare Pages** (gratis, samma konsol som registrar/DNS,
+  auto-HTTPS, git-deploy). Stack: **Astro + Tailwind** för låg JS-vikt och
+  Lighthouse 100. Eget repo `tipspromenaden-web` (sibling till app-repot).
+  Initialt innehåll:
+    - `index.astro` — hero, Play Store-badge, screenshots, 3 features
+    - `/walk/[id]` — smart redirect: detekterar OS, försöker `tipspromenaden://`,
+      fallback till Play Store. Behövs tills App Links verifieras (se ovan).
+    - `public/.well-known/assetlinks.json` — Android App Links
+    - `public/.well-known/apple-app-site-association` — förberett för iOS
+    - Privacy policy + Terms of Service (Play Store kräver)
+  Senare användningsområden: publik resultat-delning (`/result/{sessionId}`),
+  publik promenadkatalog (`/upptack`), skaparportal i webb (react-native-web-build),
+  blogg/press kit, Stripe-checkout om premiumplaner blir aktuellt.
 - Flytta projektet ut ur OneDrive permanent (eller konfigurera OneDrive att
   exkludera repo-mappen) så `eas build` kan köras direkt utan `/c/dev/`-kopian.
 
@@ -399,7 +415,7 @@ plocka det som passar när tillfälle ges.
 roadmappen ovan, men ingen blockerar v1.)
 
 - Deep-link-prefix `tipspromenaden://` är custom-scheme — auto-länkas inte
-  i Messenger/SMS. `assetlinks.json` + `https://tipspromenaden.se` löser
+  i Messenger/SMS. `assetlinks.json` + `https://tipspromenaden.app` löser
   detta när domänen finns. Workaround idag: "Klistra in länk"-knappen i
   ScanQRScreen + bart walkId i delningsmeddelandet.
 - Score-fusk: klient räknar poäng (se säkerhetsmodellen).

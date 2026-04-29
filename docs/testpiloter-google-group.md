@@ -80,15 +80,26 @@ och i grupp-administratörens inkorg på Google Groups.
 2. Bocka för pending requests
 3. Klicka **Approve** uppe till höger
 
-Personen får automatiskt ett välkomstmejl från Google Groups. Du behöver
-också skicka **opt-in-URL:en** för Play Closed Testing — den hittar du i
-Play Console → Closed testing → "How testers join" → kopiera länken.
+Personen får automatiskt ett **anpassat välkomstmeddelande** från Google
+Groups som innehåller **opt-in-URL:en** för Play Closed Testing. Klick på
+den länken gör testaren till testpilot och appen blir installerbar från
+Play Store inom några minuter. Helt automatiskt — inget mejl från dig.
 
-**Tips:** sätt upp ett färdigt mall-svar i Gmail med opt-in-URL:en så
-det är två klick att svara på en ny testare:
-> Hej och välkommen som testpilot! Här är länken där du går med i
-> testet och får appen i Play Store: <opt-in-URL>. När du tryckt
-> "Become a tester" tar det några minuter innan appen dyker upp för dig.
+**Engångssetup av välkomstmeddelandet:**
+1. Google Groups → tipspromenaden-testers → **Group settings** → **Member
+   privacy** → **Welcome message**
+2. Klistra in en text i stil med:
+   > Välkommen som testpilot för Tipspromenaden!
+   >
+   > Klicka här för att aktivera testar-åtkomsten:
+   > <opt-in-URL — hämtas från Play Console → Closed testing → "How testers join">
+   >
+   > När du tryckt "Become a tester" dyker appen upp i Play Store inom
+   > några minuter. Tack för att du hjälper till!
+3. Spara
+
+Därefter behöver du bara klicka Approve på pending requests — resten
+sköter Google Groups.
 
 ---
 

@@ -339,6 +339,69 @@ Rekommenderas inte. Android-appar kan dekompileras, nyckelmaterial extraheras, s
 
 ---
 
+## Bibliotek (publika promenader)
+
+Bibliotek där skapare opt-in:ar promenader så andra användare kan upptäcka, filtrera och starta dem. Egen flik i HomeScreen vid sidan om "Mina" och "Sparade".
+
+### Datamodell — nya fält på `Walk`
+
+- `public?: boolean` — skaparen opt-in:ar till biblioteket
+- `centroid?: { latitude, longitude }` — beräknas från frågekoordinater (mittpunkt)
+- `bounds?: { minLat, maxLat, minLng, maxLng }` — för geo-sökning
+- `city?: string` — manuellt angivet av skaparen (kan auto-fyllas via reverse geocoding av centroid)
+- `region?: string` — län eller kommun
+- `category?: string` — begränsad enum, t.ex. `"natur" | "historia" | "barn" | ...`
+
+`firestore.rules` uppdateras: alla får läsa walks där `public == true` även utan ägarskap.
+
+### UI / flöde
+
+**HomeScreen — ny flik "Bibliotek":**
+- Sökrad: fritext (matchar title + city + region)
+- Kategori-chips
+- Avstånd-slider ("inom X km från mig" — kräver geo-bbox-query)
+- Sortering: relevans / nyast / populärast / närmast
+- Tryck på walk → samma flöde som idag (preview + spara/starta)
+
+**CreateWalkScreen:**
+- "Publicera till biblioteket"-toggle (default av)
+- Om på: fält för stad + kategori + ev. beskrivning
+- Liten varning: "Andra användare kan se din promenad"
+
+### Tekniska val
+
+| Sökdimension | Hur | Kostnad |
+|---|---|---|
+| Title-sökning | Klient-side filter efter att ha hämtat alla public walks | Enkelt, OK upp till ~500 walks. Sen krävs Algolia/Typesense. |
+| Geografisk | Geohash-index i Firestore + bbox-query | Funkar bra. Kräver lib eller egen geohash-funktion. |
+| Stad/region | Exakt match på sträng | Enklast. Kräver konsekvent stavning ("Stockholm" inte "stockholm"). Kan auto-fyllas via reverse geocoding. |
+| Kategori | Enum-fält | Trivialt. |
+
+### Iterationer
+
+**Iteration 1 — MVP (~4–6 h, OTA-bart):**
+- Lägg `public`, `city`, `category` på Walk
+- Bygg "Bibliotek"-flik med fritext + kategori-filter
+- Klient-side filter (vi ligger långt under 500 walks idag)
+- Inga geo-sökningar än
+
+**Iteration 2 (~3 h):**
+- Lägg till `centroid` + "Inom X km från mig"-slider
+- Auto-fyll `city` via reverse geocoding
+
+**Iteration 3 (när det skalat upp):**
+- Algolia/Typesense för riktig sök
+- Popularity-ranking baserat på antal sessioner
+
+### När börja
+
+Vänta tills:
+1. ≥20 skapade promenader att fylla biblioteket med (annars är det tomt och inbjuder inte till användning)
+2. v1.2.0 ute hos testarna och stabilt
+3. App Check är på plats — public read av walks blir mer attraktivt mål för missbruk när biblioteket finns
+
+---
+
 ## Risker & motåtgärder
 
 | Risk | Sannolikhet | Påverkan | Motåtgärd |
@@ -388,7 +451,7 @@ och varje installation kräver förälderns godkännande i Family Link.
    - Ladda upp AAB till intern testspåret
    - Fyll i store listing (sv + en) — se `docs/play-store-listing.md`
    - Content rating-formulär (svar: inget olämpligt innehåll → 3+)
-   - Integritetspolicy-URL (se `docs/privacy-policy.md`, hosta på GitHub Pages eller tipspromenaden.se)
+   - Integritetspolicy-URL (se `docs/privacy-policy.md`, hosta på GitHub Pages eller tipspromenaden.app)
    - 2–8 screenshots + feature-grafik 1024×500 + app-ikon 512×512
 5. **Lägg till testarnas Google-konton** (barnens Family Link-konton) i testlistan
 6. **Skicka opt-in-länk** — föräldern godkänner i Family Link, installation sker via Play Store
@@ -415,9 +478,9 @@ mer förarbete. Estimat: ca en veckas kalendertid, mycket väntan på Apple.
 - **eas.json iOS-profil** — lägg till `preview`- och `production`-profiler för iOS med `simulator: false`
 - **TestFlight** — `eas submit --platform ios` för intern distribution till testare (upp till 100 personer utan review)
 - **Universal Links** — komplettera nuvarande `tipspromenaden://`-schema med
-  Associated Domains (`applinks:tipspromenaden.se`) så att QR-länkar öppnar appen
+  Associated Domains (`applinks:tipspromenaden.app`) så att QR-länkar öppnar appen
   direkt från Safari/Kamera-appen utan prompt. Kräver `apple-app-site-association`-fil
-  på tipspromenaden.se.
+  på tipspromenaden.app.
 - **App Store-review** — först vid publik release; TestFlight-interna builds slipper full review
 
 ---
