@@ -8,7 +8,7 @@ title: Integritetspolicy
 
 Play Store kräver att integritetspolicyn är tillgänglig på en **offentlig URL**.
 Enklast: publicera denna fil via **GitHub Pages** på projekt-repot eller lägg
-upp den på `tipspromenaden.se/privacy` när domänen är aktiv.
+upp den på `tipspromenaden.app/privacy` när domänen är aktiv.
 
 ---
 

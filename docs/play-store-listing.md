@@ -13,7 +13,7 @@ engelska som "English (United States)").
 - **Kategori:** Underhållning (alt. Utbildning, Spel → Trivia)
 - **Taggar:** tipspromenad, quiz, GPS, utomhus, familj, friskvård
 - **Kontakt-e-post:** tipspromenaden.app@gmail.com
-- **Webbplats:** https://tipspromenaden.se (när den finns — annars GitHub-repo eller hoppa över)
+- **Webbplats:** https://tipspromenaden.app (när den finns — annars GitHub-repo eller hoppa över)
 - **Integritetspolicy-URL:** https://niklaser74.github.io/tipspromenaden/privacy-policy
 
 ---

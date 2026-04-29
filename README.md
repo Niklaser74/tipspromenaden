@@ -277,7 +277,7 @@ Kanda begransningar som inte ar blockerare:
 - Score beraknas klientside och kan inflateras upp till `min(answers.size(),
   300)`. Full motatgard kraver Cloud Functions (roadmap).
 - Deep-link-prefixet `tipspromenaden://` ar custom-scheme; auto-lankas
-  inte i Messenger/SMS. `assetlinks.json` pa `tipspromenaden.se` loser
+  inte i Messenger/SMS. `assetlinks.json` pa `tipspromenaden.app` loser
   detta nar domanen ar registrerad.
 - App Check ar inte aktiverat an — kraver `@react-native-firebase/app-check`
   som native dep och en ny AAB-build.

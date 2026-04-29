@@ -52,14 +52,14 @@ import { APP_SCHEME, WALK_PATH } from "./src/constants/deepLinks";
 const Stack = createNativeStackNavigator();
 
 // Stöttade format: `tipspromenaden://walk/<id>` och (när universal links är
-// uppsatta) `https://tipspromenaden.se/walk/<id>`. OpenWalkScreen löser
+// uppsatta) `https://tipspromenaden.app/walk/<id>`. OpenWalkScreen löser
 // walkId → Walk och replace:ar till JoinWalk.
 const linking: LinkingOptions<ReactNavigation.RootParamList> = {
   prefixes: [
     Linking.createURL("/"),
     `${APP_SCHEME}://`,
-    "https://tipspromenaden.se",
-    "https://www.tipspromenaden.se",
+    "https://tipspromenaden.app",
+    "https://www.tipspromenaden.app",
   ],
   config: {
     screens: {

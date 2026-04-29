@@ -7,7 +7,7 @@
  *   öppnar promenaden direkt för mottagare med appen installerad, plus en
  *   Play Store-länk som fallback för mottagare som inte har appen än.
  *
- *   Funkar oavsett om tipspromenaden.se är registrerad som universal link
+ *   Funkar oavsett om tipspromenaden.app är registrerad som universal link
  *   eller inte — deep link-schemat är alltid giltigt.
  */
 
