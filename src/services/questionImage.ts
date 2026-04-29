@@ -13,15 +13,17 @@
  * där mobilnätet ofta är svagt.
  */
 
+import { Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system/legacy";
 import {
   ref,
   uploadBytes,
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
-import { storage } from "../config/firebase";
+import { storage, auth } from "../config/firebase";
 
 /** Max bredd i pixlar efter komprimering. Höjd skalas proportionellt. */
 const MAX_WIDTH = 1600;
@@ -69,33 +71,55 @@ export async function pickAndUploadQuestionImage(
     { compress: COMPRESS_QUALITY, format: ImageManipulator.SaveFormat.JPEG }
   );
 
-  // 4. Läs filen via XMLHttpRequest istället för fetch().
-  //    Två RN-buggar att navigera runt:
-  //     a) `fetch(file://...)` kastar intermittent "Network request failed"
-  //        på vissa Android-versioner — känd Hermes/RN-bug.
-  //     b) `uploadString(..., "base64")` failar med "Creating blobs from
-  //        'ArrayBuffer' and 'ArrayBufferView' are not supported"
-  //        eftersom Firebase JS SDK internt bygger Blob från Uint8Array,
-  //        vilket RN:s Blob-polyfill inte stödjer.
-  //    XHR-vägen ger en native Blob som Firebase kan ladda upp direkt,
-  //    så ingen ArrayBuffer-konvertering sker. Standardlösning enligt
-  //    Expo + Firebase-dokumentation.
-  const blob: Blob = await new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.onload = () => resolve(xhr.response);
-    xhr.onerror = () => reject(new Error("Kunde inte läsa bildfilen"));
-    xhr.responseType = "blob";
-    xhr.open("GET", manipulated.uri, true);
-    xhr.send(null);
-  });
-
-  // 5. Ladda upp till Storage.
   const path = `walks/${walkId}/questions/${questionId}.jpg`;
   const storageRef = ref(storage, path);
-  await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
 
-  // 6. Hämta publik URL (signerad med Firebase-token — funkar även när
-  // bucket:en inte är publikt listbar).
+  // 4. Ladda upp. Två kodvägar:
+  //    Native: `FileSystem.uploadAsync` PUT:ar filen direkt mot Firebase
+  //    Storage REST via OS:ets HTTP-stack. Vi går runt Firebase JS SDK:s
+  //    `uploadBytes` på native eftersom den internt försöker bygga en Blob
+  //    från Uint8Array och sedan POSTa den via XHR — på RN 0.83 misslyckas
+  //    den kombinationen tyst med "Network request failed".
+  //    Web: vanlig `uploadBytes` med Blob — fungerar bra i webbläsare.
+  if (Platform.OS === "web") {
+    const blob = await (await fetch(manipulated.uri)).blob();
+    await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+  } else {
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error("Du måste vara inloggad för att ladda upp bilder.");
+    }
+    const bucket = storage.app.options.storageBucket;
+    if (!bucket) {
+      throw new Error("Storage-bucket saknas i Firebase-konfigurationen.");
+    }
+    const uploadUrl =
+      `https://firebasestorage.googleapis.com/v0/b/${bucket}/o` +
+      `?uploadType=media&name=${encodeURIComponent(path)}`;
+
+    const uploadResult = await FileSystem.uploadAsync(
+      uploadUrl,
+      manipulated.uri,
+      {
+        httpMethod: "POST",
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        headers: {
+          Authorization: `Firebase ${idToken}`,
+          "Content-Type": "image/jpeg",
+        },
+      }
+    );
+
+    if (uploadResult.status < 200 || uploadResult.status >= 300) {
+      throw new Error(
+        `Storage-uppladdning misslyckades (HTTP ${uploadResult.status}): ${uploadResult.body}`
+      );
+    }
+  }
+
+  // 5. Hämta publik URL (signerad med Firebase-token — funkar även när
+  // bucket:en inte är publikt listbar). Detta är bara en GET-request, så
+  // Firebase JS SDK:n hanterar det utan trubbel även på RN.
   const url = await getDownloadURL(storageRef);
   return url;
 }
