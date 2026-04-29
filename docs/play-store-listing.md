@@ -108,6 +108,39 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### v1.3.0 — Klickbara delningslänkar (april 2026)
+
+**Svenska (sv-SE):**
+```
+• Delningslänkar är nu klickbara i Messenger, SMS och iMessage. Tidigare visade de bara som vanlig text — nu får mottagaren en snygg förhandsvisning med titel och bild.
+• När appen är installerad öppnas promenaden direkt utan omväg via webbläsaren (Android App Links).
+• Renare delningstext: bara titeln och en länk istället för fyra olika fält.
+• Mindre fixar för bilduppladdning på frågor.
+```
+
+**English (en-US):**
+```
+• Share links are now clickable in Messenger, SMS, and iMessage. Previously they appeared as plain text — now recipients see a clean preview with title and image.
+• When the app is installed, walks open directly without going through the browser first (Android App Links).
+• Cleaner share message: just the title and a link, no four-line fallback.
+• Minor fixes to question-image uploads.
+```
+
+---
+
+### OTA 2026-04-29 — Klickbara länkar för v1.2.0
+
+**Svenska (sv-SE) — endast för EAS Update-loggen, går inte till Play Console:**
+```
+OTA till runtime 1.2.0: förenklat share-meddelande (titel + en https-länk
+istället för fyra rader fallback) + buildWalkLink genererar https-länkar
+mot tipspromenaden.app/walk/<id>. Ger v1.2.0-testare klickbara länkar i
+Messenger redan innan de uppdaterar till 1.3.0-AAB. Web-fallback öppnar
+appen via custom-scheme för 1.2.0-installationer.
+```
+
+---
+
 ### v1.2.0 — Stegräkning (april 2026)
 
 **Svenska (sv-SE):**

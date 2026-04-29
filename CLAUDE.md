@@ -189,13 +189,24 @@ AAB:n kan publiceras:
 - **Plattformsskillnader**: `Platform.OS === "ios"` / `"android"` / `"web"`,
   ofta via `Platform.select`. Se `CreateWalkScreen.tsx`-modalen för ett
   typiskt exempel (KeyboardAvoidingView enbart på iOS).
-- **Release-notes (Play Console "What's new")**: vid varje meningsfull
-  release-batch (AAB-build eller större OTA-push) skriv en kort
-  förändringstext på **både svenska och engelska**, max 500 tecken per
-  språk. Lägg överst i `docs/play-store-listing.md` under
-  `## "What's new"-texter per release` så användaren kan kopiera till
-  Play Console när AAB:n promotas. Bullet-format, användar-orienterat
-  ("du ser nu…"), inte tekniskt ("vi bytte initializeAuth…").
+- **Release-notes vid VARJE uppdatering (HÅRT KRAV)**: så fort en
+  uppdatering når användarna — `eas build` + Play Console-submit ELLER
+  `eas update`/`npm run update:all` — MÅSTE release notes skrivas på
+  **både svenska och engelska**, max 500 tecken per språk. Detta är
+  inte valbart och inte beroende av "om det är en stor release". Även
+  små buggfixar och OTA-pushar får en post.
+
+  Format: bullet-lista, användar-orienterat ("du ser nu…"),
+  inte tekniskt ("vi bytte initializeAuth…"). Lägg ÖVERST i
+  `docs/play-store-listing.md` under `## "What's new"-texter per
+  release` i omvänd kronologisk ordning. Notera om det är AAB-release
+  (går till Play Console) eller bara OTA (loggas bara — Play Console
+  ser ingen OTA).
+
+  **Workflow vid release:** (1) skriv release notes före submit/update,
+  (2) committa noterna i samma commit som triggar release om möjligt,
+  (3) submit/update, (4) påminn användaren att klistra in i Play Console
+  vid AAB-uppladdning.
 
 ## Funktioner värda att veta om
 
