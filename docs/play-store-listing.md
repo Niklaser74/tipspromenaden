@@ -108,6 +108,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (kväll) — TTS muted som default
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0: text-to-speech läser inte längre upp frågor
+automatiskt vid första visning. Default är nu tyst — slå på via
+headset-knappen (🔇 → 🎧) i frågemodalen.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0: text-to-speech no longer reads questions aloud
+automatically when first shown. Default is now silent — turn on via
+the headset button (🔇 → 🎧) in the question modal.
+```
+
+---
+
 ### OTA 2026-04-30 (eftermiddag) — Fix: radera redan-raderad walk
 
 **Svenska (sv-SE) — endast EAS Update-loggen:**
