@@ -25,6 +25,9 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { doc, getDoc } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
+import { db, storage } from "../config/firebase";
 import { useTranslation } from "../i18n";
 import { WEB_HOST, TIPSPACK_PATH } from "../constants/deepLinks";
 
@@ -104,6 +107,47 @@ function isValidSlug(s: string): boolean {
   return /^[a-zA-Z0-9_-]+$/.test(s) && s.length <= 100;
 }
 
+/**
+ * Hämta tipspack-innehållet. Två källor:
+ *
+ *   1. **Curated (statisk fil)** — `tipspromenaden.app/tipspack/<slug>.tipspack`
+ *      serverad av Cloudflare. Snabbast, fungerar offline efter cache.
+ *
+ *   2. **Uppladdad (Firebase Storage)** — användar-uppladdade pack ligger
+ *      på `tipspack/<slug>` med metadata i Firestore-collection `tipspacks`.
+ *
+ * Vi provar curated först (en HTTP-request), faller tillbaka på Firestore-
+ * lookup om 404. Det ger snabbast väg för de flesta paketen utan att
+ * blockera uppladdade.
+ */
+async function fetchTipspack(slug: string): Promise<any> {
+  // 1. Curated — direkt fetch
+  const staticUrl = `https://${WEB_HOST}/${TIPSPACK_PATH}/${encodeURIComponent(slug)}.tipspack`;
+  try {
+    const res = await fetch(staticUrl);
+    if (res.ok) {
+      return await res.json();
+    }
+    // 404 eller annat fel — fall vidare till Firestore-uppladdat
+  } catch {
+    // Nätverksfel — fall vidare
+  }
+
+  // 2. Uppladdat — kolla Firestore för metadata, hämta sedan från Storage
+  const docSnap = await getDoc(doc(db, "tipspacks", slug));
+  if (!docSnap.exists()) {
+    throw new Error(
+      `Paketet "${slug}" finns inte. Kontrollera länken eller om paketet har raderats.`
+    );
+  }
+  const downloadUrl = await getDownloadURL(ref(storage, `tipspack/${slug}`));
+  const res = await fetch(downloadUrl);
+  if (!res.ok) {
+    throw new Error(`Kunde inte hämta paketet (HTTP ${res.status}).`);
+  }
+  return res.json();
+}
+
 export default function OpenTipspackScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
@@ -122,15 +166,8 @@ export default function OpenTipspackScreen() {
         setError(t("openTipspack.invalidSlug"));
         return;
       }
-      const url = `https://${WEB_HOST}/${TIPSPACK_PATH}/${encodeURIComponent(slug)}.tipspack`;
       try {
-        const res = await fetch(url);
-        if (cancelled) return;
-        if (!res.ok) {
-          setError(t("openTipspack.fetchFailed", { status: res.status }));
-          return;
-        }
-        const data = await res.json();
+        const data = await fetchTipspack(slug);
         if (cancelled) return;
         validateTipspack(data);
         // Replace istället för navigate så bakåtpilen från CreateWalk
