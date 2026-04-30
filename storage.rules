@@ -21,34 +21,33 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // -------------------- tipspacks --------------------
-    // Användar-uppladdade .tipspack-filer. Path: tipspack/<slug>.tipspack
+    // Användar-uppladdade .tipspack-filer. Path: tipspack/<slug> (utan
+    // extension i path:en — Content-Disposition på objektet sätter
+    // download-namnet till <slug>.tipspack).
+    //
     // Slug-uniqueness säkerställs via Firestore-doc-id (tipspacks/<slug>).
     // Owner-check görs mot Firestore-doc:s ownerUid-fält.
     //
-    // Förstagångs-upload: ingen Firestore-doc finns än. Då tillåts vilken
-    // signed-in icke-anonym användare som helst — klienten skapar Firestore-
-    // doc:en FÖRE upload (atomicitet via transaction-style: om Storage upload
-    // misslyckas raderas Firestore-doc:en av klienten).
+    // Klient-flöde: skapa Firestore-doc FÖRST → ladda upp till Storage.
+    // Om Storage failar raderar klienten Firestore-doc:en (rollback).
     //
     // Read är publikt — "hemlig länk" är obscurity, inte auth.
-    match /tipspack/{filename} {
+    match /tipspack/{slug} {
       allow read: if true;
 
       allow write: if request.auth != null
                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
                    && request.resource.size < 5 * 1024 * 1024
                    && (
-                        // Förstagångs-upload (Firestore-doc finns inte) eller
-                        // ägare av befintlig doc.
-                        !firestore.exists(/databases/(default)/documents/tipspacks/$(filename.split('.')[0]))
-                        || firestore.get(/databases/(default)/documents/tipspacks/$(filename.split('.')[0])).data.ownerUid == request.auth.uid
+                        !firestore.exists(/databases/(default)/documents/tipspacks/$(slug))
+                        || firestore.get(/databases/(default)/documents/tipspacks/$(slug)).data.ownerUid == request.auth.uid
                       );
 
       allow delete: if request.auth != null
                     && request.auth.token.firebase.sign_in_provider != 'anonymous'
                     && (
-                         !firestore.exists(/databases/(default)/documents/tipspacks/$(filename.split('.')[0]))
-                         || firestore.get(/databases/(default)/documents/tipspacks/$(filename.split('.')[0])).data.ownerUid == request.auth.uid
+                         !firestore.exists(/databases/(default)/documents/tipspacks/$(slug))
+                         || firestore.get(/databases/(default)/documents/tipspacks/$(slug)).data.ownerUid == request.auth.uid
                        );
     }
 
