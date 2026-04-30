@@ -452,7 +452,16 @@ export async function deleteWalkCompletely(walkId: string): Promise<void> {
     }
   }
 
-  await deleteDoc(doc(db, WALKS_COLLECTION, walkId));
+  // Best-effort på själva walk-doc:et: om det redan är raderat (t.ex. via
+  // webb-gränssnittet på tipspromenaden.app/skapa) så behandlar vi det som
+  // success. Firestore-rule:en `allow delete: if resource.data.createdBy
+  // == auth.uid` failar med permission-denied när doc:et inte finns
+  // eftersom resource är null — så vi kollar existence först.
+  const walkRef = doc(db, WALKS_COLLECTION, walkId);
+  const walkSnap = await getDoc(walkRef);
+  if (walkSnap.exists()) {
+    await deleteDoc(walkRef);
+  }
 }
 
 /**
