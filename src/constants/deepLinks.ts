@@ -24,6 +24,22 @@ export const WEB_HOST = "tipspromenaden.app";
 export const WALK_PATH = "walk";
 
 /**
+ * Path-prefix för att öppna ett `.tipspack`-batteri via dess slug.
+ *
+ * Format: `tipspromenaden://tipspack/<slug>` — appen hämtar då filen från
+ * `https://tipspromenaden.app/tipspack/<slug>.tipspack`, validerar och
+ * navigerar till CreateWalk med batteriet förladdat. Användaren behöver
+ * inte ladda ner filen separat. Tillagt i v1.4.0.
+ *
+ * Vi använder ENDAST custom-scheme för det här flödet, INTE App Links.
+ * Skälet: `https://tipspromenaden.app/tipspack/<slug>.tipspack` serverar
+ * JSON-filen direkt på webben — vi vill inte att appen ska intercepta
+ * den URL:en (det skulle bryta nedladdning från webbsidan). Webbsidan
+ * /tipspack genererar custom-scheme-länken i sin "Öppna i appen"-knapp.
+ */
+export const TIPSPACK_PATH = "tipspack";
+
+/**
  * Bygger en delningsbar länk till en specifik promenad.
  *
  * Använder https-formatet sedan v1.3.0 — länken är klickbar i alla

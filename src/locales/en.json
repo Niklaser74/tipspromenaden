@@ -151,6 +151,13 @@
     "missingId": "The link is missing the walk ID.",
     "notFound": "The walk no longer exists, or you don't have access to it."
   },
+  "openTipspack": {
+    "loading": "Fetching question pack…",
+    "cantOpen": "Couldn't fetch the pack",
+    "missingSlug": "The link is missing the pack name.",
+    "invalidSlug": "The link has an invalid pack name.",
+    "fetchFailed": "Couldn't fetch the pack (HTTP {{status}}). Check that the link is correct and that you have an internet connection."
+  },
   "settings": {
     "title": "Settings",
     "language": "Language",

@@ -108,6 +108,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### v1.4.0 — Snabb-import av frågebatterier (april 2026)
+
+**Svenska (sv-SE):**
+```
+• Färdiga frågebatterier öppnas nu direkt i appen från tipspromenaden.app/tipspack — klicka "Öppna i appen" på paketet, så hoppar du rakt in i karta-läget med alla frågor förladdade.
+• Tidigare behövde du ladda ner filen och importera manuellt — det går fortfarande att göra, men nu är det ett klick istället för fyra.
+• Mindre fixar.
+```
+
+**English (en-US):**
+```
+• Question packs now open directly in the app from tipspromenaden.app/tipspack — tap "Open in app" on a pack and you'll jump straight into placement mode with all questions preloaded.
+• Previously you had to download the file and import manually — that still works, but now it's one tap instead of four.
+• Minor fixes.
+```
+
+---
+
 ### v1.3.0 — Klickbara delningslänkar (april 2026)
 
 **Svenska (sv-SE):**

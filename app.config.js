@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.3.0",
+    version: "1.4.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.

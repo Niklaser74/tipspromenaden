@@ -45,15 +45,25 @@ import ResultsScreen from "./src/screens/ResultsScreen";
 import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import OpenWalkScreen from "./src/screens/OpenWalkScreen";
+import OpenTipspackScreen from "./src/screens/OpenTipspackScreen";
 import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import WalkInsightsScreen from "./src/screens/WalkInsightsScreen";
-import { APP_SCHEME, WALK_PATH } from "./src/constants/deepLinks";
+import {
+  APP_SCHEME,
+  WALK_PATH,
+  TIPSPACK_PATH,
+} from "./src/constants/deepLinks";
 
 const Stack = createNativeStackNavigator();
 
-// Stöttade format: `tipspromenaden://walk/<id>` och (när universal links är
-// uppsatta) `https://tipspromenaden.app/walk/<id>`. OpenWalkScreen löser
-// walkId → Walk och replace:ar till JoinWalk.
+// Stöttade deep-link-format:
+//   1. `https://tipspromenaden.app/walk/<id>` (App Link, primärt)
+//      eller `tipspromenaden://walk/<id>` (legacy custom-scheme)
+//      → OpenWalkScreen → JoinWalk
+//   2. `tipspromenaden://tipspack/<slug>` (custom-scheme bara — vi vill
+//      INTE intercepta https://tipspromenaden.app/tipspack/* eftersom
+//      de URL:erna är publika nedladdningar av .tipspack-filer)
+//      → OpenTipspackScreen → CreateWalk (batteri förladdat)
 const linking: LinkingOptions<ReactNavigation.RootParamList> = {
   prefixes: [
     Linking.createURL("/"),
@@ -68,6 +78,12 @@ const linking: LinkingOptions<ReactNavigation.RootParamList> = {
         path: `${WALK_PATH}/:walkId?`,
         parse: {
           walkId: (v: string) => decodeURIComponent(v),
+        },
+      },
+      OpenTipspack: {
+        path: `${TIPSPACK_PATH}/:slug`,
+        parse: {
+          slug: (v: string) => decodeURIComponent(v),
         },
       },
       Settings: "settings",
@@ -184,6 +200,11 @@ function AppNavigator() {
         <Stack.Screen
           name="OpenWalk"
           component={OpenWalkScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OpenTipspack"
+          component={OpenTipspackScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

@@ -151,6 +151,13 @@
     "missingId": "Länken saknar promenadens ID.",
     "notFound": "Promenaden finns inte längre, eller så har du inte tillgång till den."
   },
+  "openTipspack": {
+    "loading": "Hämtar frågebatteri...",
+    "cantOpen": "Kunde inte hämta paketet",
+    "missingSlug": "Länken saknar paketets namn.",
+    "invalidSlug": "Länken har ett ogiltigt paketnamn.",
+    "fetchFailed": "Kunde inte hämta paketet (HTTP {{status}}). Kontrollera att länken är korrekt och att du har internetuppkoppling."
+  },
   "settings": {
     "title": "Inställningar",
     "language": "Språk",

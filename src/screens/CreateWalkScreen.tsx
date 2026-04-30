@@ -326,7 +326,11 @@ export default function CreateWalkScreen() {
   const existingWalk: Walk | undefined = route.params?.walk;
   const isEditing = !!existingWalk;
 
-  const [title, setTitle] = useState(existingWalk?.title ?? "");
+  // Vid deep-link-import: föreslå batteriets namn som titel. Användaren
+  // kan ändra direkt — inputen är fokuserbar i sidopanelen.
+  const [title, setTitle] = useState(
+    existingWalk?.title ?? route.params?.pendingBatteryName ?? ""
+  );
   const [questions, setQuestions] = useState<Question[]>(existingWalk?.questions ?? []);
   const [region, setRegion] = useState<Region | null>(null);
   const [saving, setSaving] = useState(false);
@@ -336,11 +340,15 @@ export default function CreateWalkScreen() {
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
 
-  // Språk — ny promenad defaultar till "sv"; befintlig promenad utan
-  // fältet (skapad före funktionen) behåller "" (inget valt) så att vi
-  // inte felaktigt stämplar en okänd promenad som svenska vid nästa save.
+  // Språk — ny promenad defaultar till "sv" (eller batteriets språk om
+  // vi öppnats via deep link med pendingBatteryLanguage); befintlig
+  // promenad utan fältet (skapad före funktionen) behåller "" (inget
+  // valt) så att vi inte felaktigt stämplar en okänd promenad som
+  // svenska vid nästa save.
   const [language, setLanguage] = useState(
-    existingWalk ? (existingWalk.language ?? "") : "sv"
+    existingWalk
+      ? (existingWalk.language ?? "")
+      : (route.params?.pendingBatteryLanguage ?? "sv")
   );
 
   // Modal för att redigera en fråga
@@ -371,9 +379,21 @@ export default function CreateWalkScreen() {
   // direkt — toggle:n behövs bara i kompakt läge.
   const showList = isWide ? questions.length > 0 : showQuestionList;
 
-  // Frågebatteri-import: lista med ej-placerade batterifrågor + index för nästa
-  const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>([]);
-  const [batteryName, setBatteryName] = useState<string>("");
+  // Frågebatteri-import: lista med ej-placerade batterifrågor + index för nästa.
+  // Init-värdet kommer från `route.params.pendingBattery` om det finns,
+  // dvs. när användaren öppnat appen via deep link `tipspromenaden://tipspack/<slug>`
+  // (OpenTipspackScreen replace:ar hit med batteriet förladdat). I övriga fall
+  // tomt och fylls via "Importera frågebatteri"-knappen.
+  const pendingBattery: BatteryQuestion[] | undefined =
+    route.params?.pendingBattery;
+  const pendingBatteryName: string | undefined = route.params?.pendingBatteryName;
+  const pendingBatteryLanguage: string | undefined =
+    route.params?.pendingBatteryLanguage;
+
+  const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>(
+    pendingBattery ?? []
+  );
+  const [batteryName, setBatteryName] = useState<string>(pendingBatteryName ?? "");
 
   // Återanvänd positioner från en tidigare promenad: picker-modal + källa.
   // När `reusedFromTitle` är satt har vi laddat in tomma kontroller på en
