@@ -127,6 +127,41 @@ service cloud.firestore {
                           || isWalkOwner(get(/databases/$(database)/documents/sessions/$(sessionId)).data.walkId));
       }
     }
+
+    // -------------------- tipspacks --------------------
+    // Användar-uppladdade .tipspack-filer (frågebatterier) som kan delas
+    // via tipspromenaden.app/tipspack. Doc-id == slug (genereras från
+    // filnamnet av klienten). Storage-fil ligger på
+    // `tipspack/{slug}.tipspack` och vidhängs en metadata-doc här som
+    // /tipspack-listan kan visa utan att ladda hela JSON-filen.
+    //
+    // Två synlighetsnivåer:
+    //   isPublic: true   → visas i bibliotekets listsida, vem som helst
+    //                       med direkt URL kan ladda ner
+    //   isPublic: false  → INTE i listan ("hemlig länk") — vem som helst
+    //                       med direkt URL kan fortfarande ladda ner.
+    //                       Storage-filen är publikt läsbar oavsett.
+    //
+    // Skapare måste vara icke-anonym. Slug-uniqueness säkerställs via
+    // doc-id (Firestore tillåter inte två dokument med samma id).
+    match /tipspacks/{slug} {
+      allow read: if true;
+
+      allow create: if isSignedIn()
+                    && !isAnonymous()
+                    && request.resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.slug == slug
+                    && hasValidTipspackShape(request.resource.data);
+
+      allow update: if isSignedIn()
+                    && resource.data.ownerUid == request.auth.uid
+                    && request.resource.data.ownerUid == resource.data.ownerUid
+                    && request.resource.data.slug == slug
+                    && hasValidTipspackShape(request.resource.data);
+
+      allow delete: if isSignedIn()
+                    && resource.data.ownerUid == request.auth.uid;
+    }
   }
 }
 
@@ -148,6 +183,32 @@ function isForwardStatusTransition(from, to) {
   return (from == 'waiting'   && to in ['waiting', 'active', 'completed'])
       || (from == 'active'    && to in ['active', 'completed'])
       || (from == 'completed' && to == 'completed');
+}
+
+function hasValidTipspackShape(data) {
+  return data.slug is string
+         && data.slug.matches('^[a-z0-9_-]+$')
+         && data.slug.size() > 0
+         && data.slug.size() <= 100
+         && data.ownerUid is string
+         && data.name is string
+         && data.name.size() > 0
+         && data.name.size() <= 200
+         && data.questionCount is number
+         && data.questionCount > 0
+         && data.questionCount <= 500
+         && data.isPublic is bool
+         && data.createdAt is number
+         && (!('description' in data)
+             || (data.description is string && data.description.size() <= 2000))
+         && (!('author' in data)
+             || (data.author is string && data.author.size() <= 200))
+         && (!('language' in data)
+             || (data.language is string && data.language.size() <= 10))
+         && (!('fileSizeBytes' in data)
+             || (data.fileSizeBytes is number && data.fileSizeBytes <= 5 * 1024 * 1024))
+         && (!('ownerName' in data)
+             || (data.ownerName is string && data.ownerName.size() <= 100));
 }
 
 function hasValidWalkShape(data) {
