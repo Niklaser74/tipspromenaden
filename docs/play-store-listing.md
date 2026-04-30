@@ -108,6 +108,31 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (eftermiddag) — Fix: radera redan-raderad walk
+
+**Svenska (sv-SE) — endast EAS Update-loggen:**
+```
+OTA till runtime 1.4.0: deleteWalkCompletely kollar nu med getDoc om
+walk-doc:et fortfarande finns innan deleteDoc anropas. Tidigare gav
+permission-denied när walken redan raderats via webben (firestore.rules
+kan inte verifiera ownership när resource är null). Användare kan nu
+rensa lokala "spöken" av walks som finns kvar i AsyncStorage efter att
+de raderats någon annanstans.
+```
+
+---
+
+### OTA 2026-04-30 — Användar-uppladdade pack i deep-link
+
+**Svenska (sv-SE) — endast EAS Update-loggen, går inte till Play Console:**
+```
+OTA till runtime 1.4.0: tipspromenaden://tipspack/<slug> fungerar nu
+även för användar-uppladdade tipspacks. Provar curated-fil först,
+faller tillbaka på Firestore + Firebase Storage.
+```
+
+---
+
 ### v1.4.0 — Snabb-import av frågebatterier (april 2026)
 
 **Svenska (sv-SE):**
