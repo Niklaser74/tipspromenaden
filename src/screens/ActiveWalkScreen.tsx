@@ -63,8 +63,10 @@ export default function ActiveWalkScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   // TTS: autospela frågetexten när en ny fråga öppnas (bra för cykel + headset).
-  // Slås av genom att trycka på mute-knappen i modalen.
-  const [autoSpeak, setAutoSpeak] = useState(true);
+  // Default AV — tystast möjligt i naturen är default; användaren slår på
+  // när hen vill via 🔇/🎧-knappen i modalen. Tidigare default var PÅ
+  // vilket överraskade folk som öppnade frågan på fika eller i sällskap.
+  const [autoSpeak, setAutoSpeak] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [answerFeedback, setAnswerFeedback] = useState<{
