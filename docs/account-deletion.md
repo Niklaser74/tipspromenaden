@@ -47,7 +47,7 @@ Addendum](https://cloud.google.com/terms/data-processing-addendum).
 Om du inte längre har tillgång till appen (t.ex. har bytt telefon) kan du
 begära radering genom att mejla:
 
-**niklas.eriksson@scanarc.se**
+**tipspromenaden.app@gmail.com**
 
 Skicka från samma e-postadress du använde för Google-inloggningen i
 appen. Radering utförs inom 7 dagar.
@@ -62,5 +62,5 @@ radera sessionen, eller kontakta oss via e-post ovan.
 
 - **App:** Tipspromenaden
 - **Utvecklare:** Niklas Eriksson
-- **E-post:** niklas.eriksson@scanarc.se
+- **E-post:** tipspromenaden.app@gmail.com
 - **Integritetspolicy:** [privacy-policy](privacy-policy)

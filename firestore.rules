@@ -80,15 +80,23 @@ service cloud.firestore {
                     // någon spammar sessioner mot påhittade walkId:n.
                     && exists(/databases/$(database)/documents/walks/$(request.resource.data.walkId));
 
-      // Tillåt bara att uppdatera `status`. Dessutom: bara framåtriktade
-      // övergångar (waiting -> active -> completed). Detta hindrar att någon
-      // återuppväcker ett avslutat spel eller rullar tillbaka statusen.
-      // Fältet får inte sättas till oväntade värden.
+      // Tillåt bara att uppdatera `status`. Bara framåtriktade övergångar
+      // (waiting -> active -> completed). Hindrar att någon återuppväcker
+      // ett avslutat spel eller rullar tillbaka statusen.
+      //
+      // **Sabotageskydd:** övergången till `completed` kräver antingen att
+      // man äger walken ELLER att man är deltagare i sessionen. Annars
+      // kunde en uttråkad anonym användare loopa publika sessions och
+      // låsa topplistan för alla. waiting->active är fritt så valfri
+      // deltagare kan markera sig som igång.
       allow update: if isSignedIn()
                     && request.resource.data.diff(resource.data).affectedKeys()
                        .hasOnly(['status'])
                     && isForwardStatusTransition(resource.data.status,
-                                                 request.resource.data.status);
+                                                 request.resource.data.status)
+                    && (request.resource.data.status != 'completed'
+                        || isWalkOwner(resource.data.walkId)
+                        || exists(/databases/$(database)/documents/sessions/$(sessionId)/participants/$(request.auth.uid)));
 
       // Endast ägaren av promenaden får radera sessionen (för konto-radering /
       // GDPR-rensning).

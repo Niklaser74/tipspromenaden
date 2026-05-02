@@ -33,12 +33,12 @@ export default function JoinWalkScreen() {
   const [walk, setWalk] = useState<Walk>(initialWalk);
   const walkWasUpdated = walk !== initialWalk;
 
-  // Förifyll med användarens namn om inloggad (inte anonymt). Anonymt
-  // konto har sällan ett meningsfullt displayName, så då lämnar vi tomt.
+  // Förifyll bara om Google gav oss ett displayName — inte e-post-prefix.
+  // Anledning: e-post-prefix (ofta "förnamn.efternamn") läcker rätt person
+  // till den publika topplistan om användaren bara trycker "Starta" utan
+  // att ändra. displayName är vad användaren själv valt på Google-kontot.
   const initialName =
-    user && !user.isAnonymous
-      ? user.displayName || user.email?.split("@")[0] || ""
-      : "";
+    user && !user.isAnonymous && user.displayName ? user.displayName : "";
   const [name, setName] = useState(initialName);
   const [loading, setLoading] = useState(false);
   const [existingSessionId, setExistingSessionId] = useState<string | null>(

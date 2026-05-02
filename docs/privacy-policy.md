@@ -87,13 +87,19 @@ Inga andra tredjepartstjänster tar emot dina data.
 
 ## 5. Lagring och radering
 
-- Anonyma konton och deras sessionsdata raderas automatiskt efter 90 dagar
-  inaktivitet.
 - Promenader du skapat som inloggad användare lagras tills du raderar dem i
   appen.
-- Vill du att vi raderar all din data direkt? Skicka e-post till
-  **tipspromenaden.app@gmail.com** med ditt UID (finns under Inställningar i appen) så
-  raderar vi manuellt inom 30 dagar.
+- Anonyma sessioner och deltagardata behålls tills du själv raderar dem
+  eller kontaktar oss för manuell radering.
+- Du kan radera ditt konto + all kopplad data direkt i appen via
+  **Inställningar → Radera konto**. Tar bort Auth-konto, dina promenader,
+  dina sessioner och dina deltagardata. Kvarvarande deltagardata i
+  *andra* personers sessioner (t.ex. om du gått en promenad någon annan
+  skapat) raderas inte automatiskt — kontakta oss om du vill ha även
+  dem borttagna.
+- Vill du istället begära radering via e-post? Skicka till
+  **tipspromenaden.app@gmail.com** med ditt UID (finns under Inställningar
+  i appen) så raderar vi manuellt inom 30 dagar.
 
 ## 6. Barn
 

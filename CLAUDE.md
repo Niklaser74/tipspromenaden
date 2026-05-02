@@ -154,15 +154,21 @@ Kvarstående svaghet: klient-uträknad score kan fortfarande inflateras upp till
 (roadmap). Reglernas tak gör attacken småskalig — full motåtgärd kräver
 serverside-bedömning av varje svar.
 
+**Accepterade designval (inte buggar — dokumenterade efter sec-review 2026-04-30):**
+- **Walks är publikt läsbara via id.** `firestore.rules: allow read: if true` på `walks/{walkId}` är medvetet — QR-delning kräver det. Den klient-side `where("public","==",true)` i `getPublicWalks` är endast för listning, inte säkerhet. Konsekvens: vem som helst med en walk-id kan läsa hela walken inkl. facit. ID:n är 96-bit random så fishing av id:n är inte realistiskt.
+- **Score-validering är klient-side.** `firestore.rules` cappar bara `score <= answers.size()`. En motiverad fuskare kan toppa topplistan. Acceptabelt på hobby-skala; flytta till Cloud Function om tävlingar blir aktuella.
+- **Tipspack-storage är publikt läsbar oavsett `isPublic`-flagga.** "Hemlig länk"-läget är obscurity (slug är genererat från filnamn), inte auth.
+
 **Återstår att aktivera (manuellt i konsolerna):**
 - **Firebase App Check** — kräver `@react-native-firebase/app-check` (native
   Play Integrity-provider, inte JS SDK). Webbappen är inte deployad så
   reCAPTCHA-vägen är irrelevant just nu. Lägg till i nästa build-cykel som
-  kräver ny AAB ändå. Se roadmappen nedan.
-- **Service-account-rotation** — `google-service-account.json` har tidigare
-  legat i OneDrive-synkad mapp. Den ligger nu utanför OneDrive (i `C:/dev/`)
-  men nyckeln har eventuellt lekt via OneDrive-historik. Rotera i GCP vid
-  tillfälle.
+  kräver ny AAB ändå. Se roadmappen nedan. **Hot utan App Check:** anonyma
+  klienter kan spamma `participants` eller skapa endless sessions →
+  Firestore-kostnadsbomb. Sätt budget-alert i GCP som mitigation.
+- **Cloud Function för 90-dagars auto-radering** av anonyma sessioner —
+  privacy-policyn lovade detta tidigare; lovade nu UI-knappen istället för
+  att inte hänga ut oimplementerade löften.
 
 **Play Console-deklarationer som följer ACTIVITY_RECOGNITION:**
 Stegräkningen kräver `android.permission.ACTIVITY_RECOGNITION` (Android 10+).
