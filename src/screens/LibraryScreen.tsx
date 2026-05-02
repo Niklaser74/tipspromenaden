@@ -501,25 +501,13 @@ export default function LibraryScreen() {
                   )}
                   {preview && typeof preview === "object" && (
                     <View>
+                      <Text style={styles.previewHint}>
+                        {t("library.previewHint")}
+                      </Text>
                       {preview.questions.map((q, i) => (
-                        <View key={i} style={styles.previewQuestion}>
-                          <Text style={styles.previewQuestionText}>
-                            {i + 1}. {q.text}
-                          </Text>
-                          {q.options.map((opt, j) => (
-                            <Text
-                              key={j}
-                              style={[
-                                styles.previewOption,
-                                j === q.correctOptionIndex &&
-                                  styles.previewOptionCorrect,
-                              ]}
-                            >
-                              {j === q.correctOptionIndex ? "✓ " : "•  "}
-                              {opt}
-                            </Text>
-                          ))}
-                        </View>
+                        <Text key={i} style={styles.previewQuestionText}>
+                          {i + 1}. {q.text}
+                        </Text>
                       ))}
                     </View>
                   )}
@@ -696,24 +684,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: 12,
   },
-  previewQuestion: {
-    marginBottom: 14,
-  },
   previewQuestionText: {
     fontSize: 14,
-    fontWeight: "600",
     color: "#2C3E2D",
-    marginBottom: 6,
+    marginBottom: 8,
+    lineHeight: 20,
   },
-  previewOption: {
-    fontSize: 13,
-    color: "#4A5E4C",
-    marginLeft: 12,
-    marginBottom: 2,
-  },
-  previewOptionCorrect: {
-    color: "#1B6B35",
-    fontWeight: "600",
+  previewHint: {
+    fontSize: 12,
+    color: "#8A9A8D",
+    fontStyle: "italic",
+    marginBottom: 12,
   },
   centered: {
     flex: 1,
