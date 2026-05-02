@@ -108,6 +108,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (sen kväll) — Publika promenader i biblioteket
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Bibliotek-fliken har nu en flik för "Promenader" — bläddra publika tipspromenader som andra användare delat och spela dem direkt.
+• Publicera dina egna: i CreateWalk hittar du "Publicera till bibliotek"-toggle. Ange stad och kategori så blir den lättare att hitta.
+• Filtrera på kategori (Natur/Stad/Historia/Barn/Cykel/Mat/Kultur/Annat) eller sök fritext.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The library now has a "Walks" tab — browse public quiz walks shared by other users and play them directly.
+• Publish your own: in CreateWalk you'll find a "Publish to library" toggle. Add a city and category to make it discoverable.
+• Filter by category (Nature/City/History/Kids/Cycling/Food/Culture/Other) or search free-text.
+```
+
+---
+
 ### OTA 2026-04-30 (kväll) — Bibliotek i appen
 
 **Svenska (sv-SE):**
