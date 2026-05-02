@@ -221,7 +221,17 @@ function hasValidWalkShape(data) {
          && data.questions is list
          && data.questions.size() <= 200
          && (!('description' in data)
-             || (data.description is string && data.description.size() <= 2000));
+             || (data.description is string && data.description.size() <= 2000))
+         && (!('public' in data) || data.public is bool)
+         && (!('city' in data)
+             || (data.city is string && data.city.size() <= 100))
+         && (!('category' in data)
+             || (data.category is string
+                 && data.category in ['natur','stad','historia','barn','cykel','mat','kultur','annat']))
+         && (!('centroid' in data)
+             || (data.centroid is map
+                 && data.centroid.latitude is number
+                 && data.centroid.longitude is number));
 }
 
 // Validerar deltagardokument. Namn-regex blockerar HTML/script-tecken så att

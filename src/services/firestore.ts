@@ -94,6 +94,21 @@ export async function getMyWalks(userId: string): Promise<Walk[]> {
 }
 
 /**
+ * Hämtar alla publika promenader för bibliotekets "Promenader"-flik.
+ * Sortering klient-side på createdAt desc — undviker att kräva ett
+ * composite index (public + createdAt). Vid hobby-skala är payload
+ * försumbar; om listan växer till hundratals kan vi byta till indexerad
+ * server-query.
+ */
+export async function getPublicWalks(): Promise<Walk[]> {
+  const q = query(collection(db, WALKS_COLLECTION), where("public", "==", true));
+  const snap = await getDocs(q);
+  const walks = snap.docs.map((d) => d.data() as Walk);
+  walks.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  return walks;
+}
+
+/**
  * Aggregerad statistik för en walk: alla sessioner, alla deltagare och
  * per-fråga-fördelning av svar. Kostnad: 1 walk-läsning + 1 sessions-query
  * + 1 participants-query per session. Inte gratis för walks med många

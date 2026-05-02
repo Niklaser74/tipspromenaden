@@ -78,6 +78,34 @@ export interface Walk {
     /** Slutdatum för eventet i ISO 8601-format (t.ex. "2025-06-07"). */
     endDate: string;
   };
+  /**
+   * Om `true` syns promenaden i appens publika bibliotek under
+   * "Promenader"-fliken. Skaparen opt-in:ar via toggle i CreateWalk.
+   * Utan detta fält behandlas walken som privat (default).
+   */
+  public?: boolean;
+  /**
+   * Stad där promenaden är placerad — "Stockholm", "Visby" etc.
+   * Skaparen anger manuellt vid publicering. Visas i bibliotekets
+   * lista och kan filtreras på.
+   */
+  city?: string;
+  /**
+   * Kategori-tagg för biblioteket. Begränsad enum:
+   * `"natur" | "stad" | "historia" | "barn" | "cykel" | "mat" | "kultur" | "annat"`.
+   * Driver kategori-filter i biblioteket.
+   */
+  category?: string;
+  /**
+   * Centroid (mittpunkt) av alla frågekoordinater. Auto-beräknas vid
+   * save i CreateWalk. Används för "nära mig"-sortering i biblioteket
+   * (Iteration 2b — geo-bbox-query). Kan vara null om walken inte har
+   * några frågor med koordinater än.
+   */
+  centroid?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 /**

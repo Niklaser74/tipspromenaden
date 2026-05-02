@@ -33,27 +33,50 @@ import {
   fetchTipspackContent,
   type LibraryTipspack,
 } from "../services/tipspackLibrary";
+import { getPublicWalks } from "../services/firestore";
+import { Walk } from "../types";
+
+const CATEGORIES = [
+  "natur",
+  "stad",
+  "historia",
+  "barn",
+  "cykel",
+  "mat",
+  "kultur",
+  "annat",
+] as const;
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
+  const [tab, setTab] = useState<"tipspack" | "walks">("tipspack");
 
   const [packs, setPacks] = useState<LibraryTipspack[] | null>(null);
+  const [walks, setWalks] = useState<Walk[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguages, setSelectedLanguages] = useState<Set<string>>(new Set());
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
   const [expandedSlug, setExpandedSlug] = useState<string | null>(null);
   const [previewBySlug, setPreviewBySlug] = useState<
     Record<string, { questions: { text: string; options: string[]; correctOptionIndex: number }[] } | "loading" | "error">
   >({});
   const [usingSlug, setUsingSlug] = useState<string | null>(null);
 
-  // Initial fetch
+  // Initial fetch — tipspacks och walks parallellt vid mount
   useEffect(() => {
     let cancelled = false;
     getLibraryTipspacks()
       .then((list) => {
         if (!cancelled) setPacks(list);
+      })
+      .catch((e: any) => {
+        if (!cancelled) setError(e?.message || t("library.fetchError"));
+      });
+    getPublicWalks()
+      .then((list) => {
+        if (!cancelled) setWalks(list);
       })
       .catch((e: any) => {
         if (!cancelled) setError(e?.message || t("library.fetchError"));
@@ -97,6 +120,50 @@ export default function LibraryScreen() {
     });
   }
 
+  function toggleCategory(code: string) {
+    setSelectedCategories((curr) => {
+      const next = new Set(curr);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  }
+
+  // Filtrerade walks (bibliotek "Promenader"-flik)
+  const availableCategories = useMemo(() => {
+    if (!walks) return [];
+    const codes = new Set<string>();
+    for (const w of walks) {
+      if (w.category) codes.add(w.category);
+    }
+    return CATEGORIES.filter((c) => codes.has(c));
+  }, [walks]);
+
+  const filteredWalks = useMemo(() => {
+    if (!walks) return [];
+    const term = searchTerm.trim().toLowerCase();
+    return walks.filter((w) => {
+      if (selectedCategories.size > 0) {
+        if (!w.category || !selectedCategories.has(w.category)) return false;
+      }
+      if (selectedLanguages.size > 0) {
+        if (!w.language || !selectedLanguages.has(w.language)) return false;
+      }
+      if (!term) return true;
+      return (
+        w.title.toLowerCase().includes(term) ||
+        (w.description?.toLowerCase().includes(term) ?? false) ||
+        (w.city?.toLowerCase().includes(term) ?? false)
+      );
+    });
+  }, [walks, searchTerm, selectedCategories, selectedLanguages]);
+
+  function joinWalk(walk: Walk) {
+    // Samma flow som OpenWalkScreen → JoinWalk. Användaren fortsätter
+    // direkt till "Gå med"-skärmen där de skriver namn.
+    navigation.replace("JoinWalk", { walk });
+  }
+
   async function expandPack(pack: LibraryTipspack) {
     if (expandedSlug === pack.slug) {
       setExpandedSlug(null);
@@ -133,10 +200,52 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Segmented control: Frågebatterier vs Promenader */}
+      <View style={styles.segmented}>
+        <TouchableOpacity
+          style={[
+            styles.segmentedItem,
+            tab === "tipspack" && styles.segmentedItemActive,
+          ]}
+          onPress={() => setTab("tipspack")}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.segmentedText,
+              tab === "tipspack" && styles.segmentedTextActive,
+            ]}
+          >
+            📚 {t("library.tabTipspacks")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentedItem,
+            tab === "walks" && styles.segmentedItemActive,
+          ]}
+          onPress={() => setTab("walks")}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.segmentedText,
+              tab === "walks" && styles.segmentedTextActive,
+            ]}
+          >
+            🚶 {t("library.tabWalks")}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.searchRow}>
         <TextInput
           style={styles.searchInput}
-          placeholder={t("library.searchPlaceholder")}
+          placeholder={
+            tab === "tipspack"
+              ? t("library.searchPlaceholder")
+              : t("library.searchPlaceholderWalks")
+          }
           placeholderTextColor="#8A9A8D"
           value={searchTerm}
           onChangeText={setSearchTerm}
@@ -145,7 +254,7 @@ export default function LibraryScreen() {
         />
       </View>
 
-      {availableLanguages.length > 1 && (
+      {tab === "tipspack" && availableLanguages.length > 1 && (
         <View style={styles.flagRow}>
           {availableLanguages.map((lang) => {
             const active = selectedLanguages.has(lang.code);
@@ -164,16 +273,47 @@ export default function LibraryScreen() {
         </View>
       )}
 
+      {tab === "walks" && availableCategories.length > 0 && (
+        <View style={styles.flagRow}>
+          {availableCategories.map((cat) => {
+            const active = selectedCategories.has(cat);
+            return (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => toggleCategory(cat)}
+                style={[styles.flagChip, active && styles.flagChipActive]}
+              >
+                <Text
+                  style={[
+                    styles.flagChipText,
+                    active && styles.flagChipTextActive,
+                  ]}
+                >
+                  {t(`category.${cat}`)}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
+
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {packs === null && !error && (
+      {tab === "tipspack" && packs === null && !error && (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#1B6B35" />
           <Text style={styles.loadingText}>{t("library.loading")}</Text>
         </View>
       )}
 
-      {packs !== null && filtered.length === 0 && (
+      {tab === "walks" && walks === null && !error && (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#1B6B35" />
+          <Text style={styles.loadingText}>{t("library.loading")}</Text>
+        </View>
+      )}
+
+      {tab === "tipspack" && packs !== null && filtered.length === 0 && (
         <Text style={styles.empty}>
           {searchTerm || selectedLanguages.size > 0
             ? t("library.noMatch")
@@ -181,6 +321,53 @@ export default function LibraryScreen() {
         </Text>
       )}
 
+      {tab === "walks" && walks !== null && filteredWalks.length === 0 && (
+        <Text style={styles.empty}>
+          {searchTerm || selectedCategories.size > 0 || selectedLanguages.size > 0
+            ? t("library.noMatch")
+            : t("library.emptyWalks")}
+        </Text>
+      )}
+
+      {tab === "walks" && (
+        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+          {filteredWalks.map((walk) => {
+            const placedCount = walk.questions.filter(
+              (q) => q.coordinate.latitude !== 0 || q.coordinate.longitude !== 0
+            ).length;
+            return (
+              <View key={walk.id} style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  {flagForLanguage(walk.language)} {walk.title}
+                </Text>
+                {walk.description ? (
+                  <Text style={styles.cardDescription}>{walk.description}</Text>
+                ) : null}
+                <Text style={styles.cardMeta}>
+                  {placedCount}{" "}
+                  {placedCount === 1
+                    ? t("library.checkpoint")
+                    : t("library.checkpoints")}
+                  {walk.city ? ` · 📍 ${walk.city}` : ""}
+                  {walk.category ? ` · ${t(`category.${walk.category}`)}` : ""}
+                </Text>
+                <View style={styles.actionsRow}>
+                  <TouchableOpacity
+                    style={[styles.useButton, { flex: 1 }]}
+                    onPress={() => joinWalk(walk)}
+                  >
+                    <Text style={styles.useButtonText}>
+                      {t("library.playWalk")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      {tab === "tipspack" && (
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {filtered.map((pack) => {
           const isExpanded = expandedSlug === pack.slug;
@@ -264,6 +451,7 @@ export default function LibraryScreen() {
           );
         })}
       </ScrollView>
+      )}
     </View>
   );
 }
@@ -272,6 +460,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F0E8",
+  },
+  segmented: {
+    flexDirection: "row",
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    overflow: "hidden",
+  },
+  segmentedItem: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  segmentedItemActive: {
+    backgroundColor: "#1B6B35",
+  },
+  segmentedText: {
+    fontSize: 14,
+    color: "#4A5E4C",
+    fontWeight: "600",
+  },
+  segmentedTextActive: {
+    color: "#F5F0E8",
+  },
+  flagChipTextActive: {
+    color: "#F5F0E8",
+    fontWeight: "600",
   },
   searchRow: {
     paddingHorizontal: 16,

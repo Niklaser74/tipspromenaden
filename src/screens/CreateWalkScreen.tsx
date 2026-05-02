@@ -337,6 +337,13 @@ export default function CreateWalkScreen() {
 
   // Eventläge
   const [isEvent, setIsEvent] = useState(!!existingWalk?.event);
+
+  // Publicera till bibliotek: opt-in toggle. Skaparen anger valfritt en
+  // stad och en kategori. Centroid (mittpunkt av alla frågekoordinater)
+  // beräknas auto vid save så biblioteket kan göra "nära mig"-sortering.
+  const [isPublic, setIsPublic] = useState(!!existingWalk?.public);
+  const [city, setCity] = useState(existingWalk?.city ?? "");
+  const [category, setCategory] = useState<string>(existingWalk?.category ?? "");
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
 
@@ -845,6 +852,24 @@ export default function CreateWalkScreen() {
 
     setSaving(true);
     try {
+      // Auto-centroid: medelvärde av alla frågekoordinater. Används av
+      // biblioteket för "nära mig"-sortering. Bara meningsfullt om walken
+      // har minst en placerad fråga (default-koord (0,0) räknas inte).
+      const placed = questions.filter(
+        (q) => q.coordinate.latitude !== 0 || q.coordinate.longitude !== 0
+      );
+      const centroid =
+        placed.length > 0
+          ? {
+              latitude:
+                placed.reduce((s, q) => s + q.coordinate.latitude, 0) /
+                placed.length,
+              longitude:
+                placed.reduce((s, q) => s + q.coordinate.longitude, 0) /
+                placed.length,
+            }
+          : undefined;
+
       const walk: Walk = {
         // Vid redigering: behåll ursprungligt ID, skapare och datum. Nytt ID
         // tas från walkIdRef (genererat vid mount) så att ev. redan
@@ -859,6 +884,16 @@ export default function CreateWalkScreen() {
         ...(language ? { language } : {}),
         ...(isEvent && eventStartDate && eventEndDate
           ? { event: { startDate: eventStartDate, endDate: eventEndDate } }
+          : {}),
+        // Publik publicering: alla bibliotek-fält bara om toggle är på,
+        // så vi inte spammar Firestore med tomma fält på privata walks.
+        ...(isPublic
+          ? {
+              public: true,
+              ...(city.trim() ? { city: city.trim() } : {}),
+              ...(category ? { category } : {}),
+              ...(centroid ? { centroid } : {}),
+            }
           : {}),
       };
 
@@ -1199,6 +1234,70 @@ export default function CreateWalkScreen() {
                 placeholder={t("create.pickDate")}
                 minimumDate={parseIsoDate(eventStartDate) ?? undefined}
               />
+            </View>
+          </View>
+        )}
+
+        {/* Publicera till bibliotek */}
+        <TouchableOpacity
+          style={styles.eventToggle}
+          onPress={() => setIsPublic(!isPublic)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[styles.checkbox, isPublic && styles.checkboxChecked]}
+          >
+            {isPublic && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={styles.eventToggleText}>
+            {t("create.publishToggle")}
+          </Text>
+        </TouchableOpacity>
+
+        {isPublic && (
+          <View style={styles.publishFields}>
+            <Text style={styles.publishWarning}>
+              {t("create.publishWarning")}
+            </Text>
+
+            <View style={styles.dateRow}>
+              <Text style={styles.dateLabel}>{t("create.cityLabel")}</Text>
+              <TextInput
+                style={styles.cityInput}
+                value={city}
+                onChangeText={setCity}
+                placeholder={t("create.cityPlaceholder")}
+                placeholderTextColor="#8A9A8D"
+                maxLength={100}
+              />
+            </View>
+
+            <Text style={styles.dateLabel}>{t("create.categoryLabel")}</Text>
+            <View style={styles.categoryRow}>
+              {(["natur","stad","historia","barn","cykel","mat","kultur","annat"] as const).map(
+                (cat) => {
+                  const active = category === cat;
+                  return (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setCategory(active ? "" : cat)}
+                      style={[
+                        styles.categoryChip,
+                        active && styles.categoryChipActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.categoryChipText,
+                          active && styles.categoryChipTextActive,
+                        ]}
+                      >
+                        {t(`category.${cat}`)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }
+              )}
             </View>
           </View>
         )}
@@ -1735,6 +1834,59 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#2C3E2D",
     backgroundColor: "#F5F0E8",
+  },
+  publishFields: {
+    marginTop: 4,
+    marginBottom: 12,
+    gap: 10,
+    paddingHorizontal: 4,
+  },
+  publishWarning: {
+    fontSize: 12,
+    color: "#8A6F00",
+    backgroundColor: "#FFF8DC",
+    borderWidth: 1,
+    borderColor: "#F0E0A0",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    lineHeight: 16,
+  },
+  cityInput: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: "#E8E8E4",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: "#2C3E2D",
+    backgroundColor: "#F5F0E8",
+  },
+  categoryRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  categoryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    backgroundColor: "#F5F0E8",
+  },
+  categoryChipActive: {
+    backgroundColor: "#1B6B35",
+    borderColor: "#1B6B35",
+  },
+  categoryChipText: {
+    fontSize: 13,
+    color: "#4A5E4C",
+  },
+  categoryChipTextActive: {
+    color: "#F5F0E8",
+    fontWeight: "600",
   },
 
   // Modal
