@@ -108,6 +108,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (sen kväll) — Vibration vid frågezon + skärm vaken
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Telefonen vibrerar med en distinkt 3-pulsig signal när du kommer in i en frågans område — slipper gå förbi när mobilen är i fickan eller man pratar med någon.
+• Skärmen håller sig vaken under hela aktiva promenaden så GPS-spårning och vibration fungerar tillförlitligt. Wake-locket släpps automatiskt när du navigerar bort eller stänger appen.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The phone vibrates with a distinct 3-pulse signal when you enter a question's range — no more walking past when the phone is in your pocket or you're chatting.
+• Screen stays awake during the active walk so GPS tracking and vibration work reliably. Wake-lock releases automatically when you navigate away or close the app.
+```
+
+---
+
 ### OTA 2026-04-30 (kväll) — TTS muted som default
 
 **Svenska (sv-SE):**
