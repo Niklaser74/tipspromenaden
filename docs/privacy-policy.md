@@ -4,72 +4,40 @@ title: Integritetspolicy
 
 # Integritetspolicy — Tipspromenaden
 
-**Senast uppdaterad:** 2026-04-27
+**Senast uppdaterad:** 2026-04-30
 
-Play Store kräver att integritetspolicyn är tillgänglig på en **offentlig URL**.
-Enklast: publicera denna fil via **GitHub Pages** på projekt-repot eller lägg
-upp den på `tipspromenaden.app/privacy` när domänen är aktiv.
+Den här policyn beskriver hur Tipspromenaden samlar in, använder och lagrar
+personuppgifter. Den uppfyller kraven i EU:s dataskyddsförordning (GDPR).
 
 ---
 
-## 1. Vem vi är
+## 1. Personuppgiftsansvarig
 
-Tipspromenaden är en app för digitala tipspromenader utvecklad av
-**Tipspromenaden** (privatperson), kontakt:
+Tipspromenaden drivs av **Niklas Eriksson** som privatperson, hemmahörande i
+Sverige. Kontakt:
 **[tipspromenaden.app@gmail.com](mailto:tipspromenaden.app@gmail.com)**.
 
-## 2. Vilken data vi samlar in
+Vi är inte skyldiga att utse dataskyddsombud (DPO) — vi behandlar inte
+personuppgifter i den omfattning eller känslighet som GDPR Art. 37 kräver.
 
-### 2.1 Platsinformation (GPS)
+## 2. Vilka personuppgifter samlas in — och varför
 
-Appen använder telefonens GPS för att avgöra när du befinner dig vid en
-kontroll. Platsdatan:
+Tabellen nedan listar varje datakategori, ändamål och rättslig grund (GDPR
+Art. 6).
 
-- Används **endast lokalt på din enhet** medan en promenad pågår
-- **Sparas inte** på våra servrar
-- **Delas inte** med tredje part
-- Slutar samlas in så fort du stänger appen eller avslutar promenaden
+| Data | Ändamål | Rättslig grund |
+|---|---|---|
+| **Smeknamn** (självvalt) | Visas i topplistan så deltagare kan se sitt eget och andras resultat | Avtal (Art. 6.1.b) — för att leverera tjänsten du bett om |
+| **Anonymt UID** (Firebase Auth) | Koppla dig till dina svar utan att kräva inloggning | Avtal (Art. 6.1.b) |
+| **Svar och poäng** | Beräkna och visa resultat | Avtal (Art. 6.1.b) |
+| **Tidsstämplar** (start/slut) | Sortera topplistan efter snabbast tid | Avtal (Art. 6.1.b) |
+| **GPS-position** (under promenad) | Avgöra när du är vid en kontrollpunkt så frågan låses upp. Lämnar **aldrig** din enhet. | Avtal (Art. 6.1.b) |
+| **E-post** (vid Google-inloggning) | Identifiera dig som ägare av promenader du skapar | Avtal (Art. 6.1.b) |
+| **Promenader du skapar** (titel, frågor, koordinater) | Lagra ditt innehåll så du och andra kan spela | Avtal (Art. 6.1.b) |
+| **Steg under aktiv promenad** (om du gett behörigheten "Fysisk aktivitet") | Visa antal steg i resultatet och topplistan | Samtycke (Art. 6.1.a) — du kan neka behörigheten utan att appens kärna slutar fungera |
+| **Display-namn från Google** (om Google-inloggad) | Föreslås som default-smeknamn — du kan ändra | Avtal (Art. 6.1.b) |
 
-### 2.2 Deltagar-ID och namn
-
-När du startar eller joinar en promenad skapas ett anonymt Firebase-konto
-(UID). Du anger ett **smeknamn** som visas i topplistan. Detta sparas i
-Firebase Firestore kopplat till aktuell promenad-session.
-
-### 2.3 E-post (endast vid Google-inloggning)
-
-Om du väljer att logga in med Google för att skapa egna promenader sparar vi
-din e-postadress som kontoidentifierare. Detta är valfritt — alla kan delta i
-promenader utan att logga in.
-
-### 2.4 Promenaddata
-
-Promenader du **skapar** (titel, frågor, kontrollpunkter med koordinater,
-svarsalternativ) sparas i Firestore kopplat till ditt konto.
-
-### 2.5 Svar och poäng
-
-När du deltar i en promenad sparas dina svar, poäng och tidsstämplar så att
-topplistan fungerar.
-
-### 2.6 Stegräkning (från och med version 1.2.0)
-
-Om din enhet har en hårdvaru-stegräknare och du ger appen behörigheten
-**Fysisk aktivitet** läses antalet steg du tar **under en pågående
-promenad**. Värdet:
-
-- Sparas tillsammans med dina övriga deltagaruppgifter (samma plats som
-  poäng och svar) och visas i resultatet och topplistan för den
-  promenaden.
-- **Räknas bara mellan när du startar och avslutar en promenad** — inte
-  hela dagen, inte i bakgrunden, inte mellan promenader.
-- **Delas inte** med tredje part, kopplas inte till några hälsotjänster
-  (Google Fit, Health Connect, Apple Health) och används inte för någon
-  form av medicinsk eller diagnostisk slutsats.
-- Är **valfritt** — du kan neka behörigheten utan att appens kärna slutar
-  fungera. Stegfältet utelämnas då helt.
-
-## 3. Vi samlar INTE in
+### 2.1 Vad vi INTE samlar in
 
 - Användningsanalys (Google Analytics, Firebase Analytics eller liknande)
 - Reklam-ID eller spårare
@@ -77,62 +45,112 @@ promenad**. Värdet:
 - Kamera utöver QR-kodsscanning (bilden lämnar aldrig enheten)
 - Krasch- eller diagnostikdata
 
-## 4. Tredje part
+## 3. Tredje part och tredjelandsöverföring
 
-Appen använder **Google Firebase** (Firestore, Authentication) för att lagra
-promenader och sessioner. Google behandlar data enligt sin egen
-integritetspolicy: https://policies.google.com/privacy
+Appen använder **Google Firebase** (Firestore, Authentication, Storage) som
+personuppgiftsbiträde för att lagra promenader, sessioner och frågebilder.
+Google Cloud-tjänster behandlar data både i EU och i USA.
+
+**Tredjelandsöverföring:** Överföring till USA sker under
+[**EU-US Data Privacy Framework**](https://commission.europa.eu/document/fa09cbad-dd7d-4684-ae58-be7c0d0bd3cf_en)
+(adekvansbeslut antaget 2023-07-10) under vilket Google LLC är certifierat,
+samt Googles standardavtalsklausuler enligt
+[Googles Data Processing Addendum](https://cloud.google.com/terms/data-processing-addendum).
+
+Google behandlar data enligt sin egen integritetspolicy:
+[https://policies.google.com/privacy](https://policies.google.com/privacy).
 
 Inga andra tredjepartstjänster tar emot dina data.
 
-## 5. Lagring och radering
+## 4. Lagringstid
 
-- Promenader du skapat som inloggad användare lagras tills du raderar dem i
-  appen.
-- Anonyma sessioner och deltagardata behålls tills du själv raderar dem
-  eller kontaktar oss för manuell radering.
-- Du kan radera ditt konto + all kopplad data direkt i appen via
-  **Inställningar → Radera konto**. Tar bort Auth-konto, dina promenader,
-  dina sessioner och dina deltagardata. Kvarvarande deltagardata i
-  *andra* personers sessioner (t.ex. om du gått en promenad någon annan
-  skapat) raderas inte automatiskt — kontakta oss om du vill ha även
-  dem borttagna.
-- Vill du istället begära radering via e-post? Skicka till
-  **tipspromenaden.app@gmail.com** med ditt UID (finns under Inställningar
-  i appen) så raderar vi manuellt inom 30 dagar.
+| Data | Lagras i |
+|---|---|
+| **Promenader du skapat som inloggad** | Tills du raderar dem (eller raderar kontot). Permanent annars. |
+| **Anonyma sessioner och dina deltagardata** | Tills du raderar kontot via appen (Inställningar → Radera konto) eller begär det via e-post. Inaktiva anonyma sessioner förblir lagrade tills vidare — vi har ingen automatisk TTL-radering än. |
+| **Frågebilder du laddat upp** | Samma livstid som tillhörande promenad |
+| **Loggar hos Firebase** | Enligt Googles standardretention (typiskt 30–180 dagar) |
+| **Eventuella backups hos Google** | Enligt Googles interna retention, max enligt deras [DPA](https://cloud.google.com/terms/data-processing-addendum) |
 
-## 6. Barn
+## 5. Radering och dina rättigheter (GDPR Art. 15-21)
 
-Appen riktar sig till familjer och barn deltar ofta via förälderns konto
-(Family Link). Vi samlar inte medvetet in personuppgifter från barn under 13
-år utöver det smeknamn och de svar som behövs för att promenaden ska fungera.
+Som användare i EU/EES har du rätt att:
 
-## 7. Dina rättigheter (GDPR)
+- **Få information** om vilka data vi har om dig (Art. 15)
+- **Begära rättelse** av felaktiga uppgifter (Art. 16)
+- **Bli glömd** — radera dina data (Art. 17)
+- **Begränsa behandlingen** (Art. 18)
+- **Få en kopia** i maskinläsbart format — dataportabilitet (Art. 20)
+- **Invända** mot behandling (Art. 21)
+- **Klaga till tillsynsmyndighet** —
+  [Integritetsskyddsmyndigheten (IMY)](https://www.imy.se/privatperson/utfora-arende/lamna-ett-klagomal/)
 
-Som användare i EU har du rätt att:
+### 5.1 Hur du raderar din data
 
-- Få veta vilka data vi har om dig (rätt till information)
-- Få dina data rättade eller raderade
-- Få en kopia i maskinläsbart format (dataportabilitet)
-- Klaga till Integritetsskyddsmyndigheten (IMY) om du anser att vi hanterar
-  dina data fel
+1. **I appen:** Inställningar → Radera konto. Tar bort:
+   - Ditt Firebase Auth-konto
+   - Promenader du skapat
+   - Sessioner du startat
+   - Dina deltagardata i sessioner du är ägare av
 
-Kontakta **tipspromenaden.app@gmail.com** för att utöva dessa rättigheter.
+2. **Det som INTE raderas automatiskt:** deltagardata du lämnat i *andra*
+   personers sessioner (t.ex. när du gått en promenad någon annan skapat).
+   Skicka e-post till tipspromenaden.app@gmail.com med ditt UID om du vill
+   ha även dem borttagna — vi raderar manuellt inom 30 dagar.
 
-## 8. Säkerhet
+3. **Anonym användare:** Du kan radera din egen anonyma identitet via samma
+   knapp. Eller skicka e-post med ditt UID (visas i appen under
+   Inställningar).
 
-All dataöverföring sker via krypterad HTTPS/TLS. Firebase-reglerna är
-konfigurerade så att användare endast kommer åt sina egna
-deltagardata och promenader de själva skapat.
+### 5.2 Utöva andra rättigheter
+
+Skicka e-post till
+[tipspromenaden.app@gmail.com](mailto:tipspromenaden.app@gmail.com).
+Vi svarar inom 30 dagar enligt GDPR Art. 12.3.
+
+## 6. Barn under 13 år
+
+Tjänsten är inte avsedd att användas av barn under 13 år utan vårdnadshavares
+medverkan. Om barnet använder ett Google-konto via **Family Link** sköter
+Google de samtycken som krävs. Anonyma sessioner kräver bara ett självvalt
+smeknamn — vi gör ingen separat åldersverifiering där.
+
+Vårdnadshavare som upptäcker att deras barn under 13 har lämnat data utan
+deras samtycke kan kontakta oss för omedelbar radering.
+
+## 7. Säkerhet
+
+- All dataöverföring sker via krypterad HTTPS/TLS
+- Firebase-säkerhetsregler säkerställer att du bara kan se egna privata
+  data (publika walks är öppna by design — det är så QR-delning fungerar)
+- Inga lokala kopior av dina data lämnar din enhet utöver Firebase-synk
+- Vi rekommenderar att du själv skyddar din enhet med skärmlås
+
+## 8. Cookies och lokal lagring
+
+Appen och webbskaparen (`tipspromenaden.app/skapa`) använder din enhets
+lokala lagring (AsyncStorage på mobil, IndexedDB/localStorage i webbläsare)
+för att hålla dig inloggad och cacha promenader offline. Detta är
+**strikt nödvändig** funktionalitet och kräver inget cookie-samtycke
+enligt ePrivacy-direktivet. Vi använder **inga** analytics-, reklam-
+eller spårnings-cookies.
 
 ## 9. Ändringar i policyn
 
-Om vi gör väsentliga ändringar uppdaterar vi datumet överst och meddelar
-aktiva användare i appen.
+Vid väsentliga ändringar uppdateras datumet överst, vi meddelar aktiva
+användare i appen, och tidigare versioner kvarstår tillgängliga via
+git-historiken på vårt offentliga GitHub-repo.
 
 ---
 
-## Engelsk översättning
+## English summary
 
-_(Samma innehåll på engelska bör läggas till innan publik release. För
-intern testning räcker svensk version — barnen i testet förstår svenska.)_
+This privacy policy is published in Swedish as our primary user base is in
+Sweden. An English translation is in preparation. Until then, the key
+points: we collect only what's needed to run quiz walks (nickname, answers,
+GPS during a walk, optionally email if you sign in with Google). We use
+Google Firebase as data processor (data stored in EU + USA under the
+EU-US Data Privacy Framework). You can delete your account and data at any
+time via Settings → Delete account, or by emailing
+**tipspromenaden.app@gmail.com**. Full GDPR rights apply. Complaints to
+[IMY (Swedish DPA)](https://www.imy.se/en/).

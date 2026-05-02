@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Linking,
 } from "react-native";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
@@ -181,9 +182,11 @@ export default function SettingsScreen() {
         </>
       )}
 
-      {/* Danger zone — radera konto + all data. Bara för icke-anonyma;
-          anonyma användare har inget Firestore-konto att radera. */}
-      {canSync && (
+      {/* Danger zone — visas för alla inloggade (Google + anonyma).
+          Anonyma användare har också rätt enligt GDPR Art. 17 att få
+          sitt UID + deltagardata raderade. deleteAccountAndData()
+          hanterar båda fallen. */}
+      {!!user && (
         <>
           <Text style={[styles.sectionTitle, styles.sectionTitleDanger]}>
             {t("settings.dangerZone")}
@@ -196,10 +199,14 @@ export default function SettingsScreen() {
             >
               <View style={styles.syncLabelWrap}>
                 <Text style={[styles.rowLabel, styles.rowLabelDanger]}>
-                  {t("settings.deleteAccount")}
+                  {user.isAnonymous
+                    ? t("settings.deleteAnonAccount")
+                    : t("settings.deleteAccount")}
                 </Text>
                 <Text style={styles.rowHint}>
-                  {t("settings.deleteAccountHint")}
+                  {user.isAnonymous
+                    ? t("settings.deleteAnonAccountHint")
+                    : t("settings.deleteAccountHint")}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -215,6 +222,22 @@ export default function SettingsScreen() {
             {t("settings.version", { version })}
           </Text>
         </View>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/villkor")}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowLabel}>{t("settings.terms")}</Text>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/integritet")}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowLabel}>{t("settings.privacy")}</Text>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
         <View style={styles.row}>
           <View style={styles.syncLabelWrap}>
             <Text style={styles.rowLabel}>OTA</Text>
@@ -344,6 +367,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#2C3E2D",
     fontWeight: "500",
+  },
+  rowChevron: {
+    fontSize: 22,
+    color: "#8A9A8D",
   },
   check: {
     fontSize: 18,

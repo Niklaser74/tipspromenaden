@@ -24,7 +24,10 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   StyleSheet,
+  Alert,
+  Linking,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useTranslation } from "../i18n";
 import { LANGUAGES, flagForLanguage } from "../constants/languages";
@@ -152,10 +155,56 @@ export default function LibraryScreen() {
     });
   }, [walks, searchTerm, selectedCategories, selectedLanguages]);
 
-  function joinWalk(walk: Walk) {
-    // Replace istället för navigate så bakåtpilen från JoinWalk hoppar
-    // tillbaka till Home, inte till biblioteket.
+  /**
+   * Visar GPS-säkerhets-disclaimer första gången användaren startar en
+   * publik walk (alltså en skapad av annan användare). Lagrar accept i
+   * AsyncStorage så hen inte ser den igen. Krav från ToS: vi varnar
+   * eftersom rutter kan leda genom trafik, terräng, mörker etc.
+   */
+  const SAFETY_DISCLAIMER_KEY = "library:safetyDisclaimerAccepted:v1";
+
+  async function joinWalk(walk: Walk) {
+    const seen = await AsyncStorage.getItem(SAFETY_DISCLAIMER_KEY);
+    if (!seen) {
+      await new Promise<void>((resolve) => {
+        Alert.alert(
+          t("library.safetyTitle"),
+          t("library.safetyBody"),
+          [
+            {
+              text: t("library.safetyAccept"),
+              onPress: async () => {
+                await AsyncStorage.setItem(SAFETY_DISCLAIMER_KEY, "1");
+                resolve();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      });
+    }
     navigation.replace("JoinWalk", { walk });
+  }
+
+  /**
+   * Öppnar e-post-klienten med pre-fyllt rapport-meddelande. Enkel
+   * MVP — mer formell rapport-flow om/när biblioteket växer och
+   * rapporterna blir många.
+   */
+  function reportContent(kind: "walk" | "tipspack", id: string, title: string) {
+    const subject = encodeURIComponent(
+      `Rapportera ${kind === "walk" ? "promenad" : "tipspack"}: ${title}`
+    );
+    const body = encodeURIComponent(
+      `Hej,\n\nJag vill rapportera följande som olämpligt:\n\n` +
+        `Typ: ${kind === "walk" ? "Promenad" : "Tipspack"}\n` +
+        `Titel: ${title}\n` +
+        `ID: ${id}\n\n` +
+        `Anledning:\n[Beskriv kort varför]\n`
+    );
+    Linking.openURL(
+      `mailto:tipspromenaden.app@gmail.com?subject=${subject}&body=${body}`
+    );
   }
 
   async function toggleNearMe() {
@@ -432,14 +481,23 @@ export default function LibraryScreen() {
                 {walk.category ? ` · ${t(`category.${walk.category}`)}` : ""}
                 {distance !== null ? ` · 🚶 ${formatDistance(distance)}` : ""}
               </Text>
-              <TouchableOpacity
-                style={styles.useButton}
-                onPress={() => joinWalk(walk)}
-              >
-                <Text style={styles.useButtonText}>
-                  {t("library.playWalk")}
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[styles.useButton, { flex: 1 }]}
+                  onPress={() => joinWalk(walk)}
+                >
+                  <Text style={styles.useButtonText}>
+                    {t("library.playWalk")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.reportButton}
+                  onPress={() => reportContent("walk", walk.id, walk.title)}
+                  accessibilityLabel={t("library.reportWalk")}
+                >
+                  <Text style={styles.reportButtonText}>⚐</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </ScrollView>
@@ -486,6 +544,13 @@ export default function LibraryScreen() {
                   <Text style={styles.useButtonText}>
                     {isUsing ? t("library.loading") : t("library.use")}
                   </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.reportButton}
+                  onPress={() => reportContent("tipspack", pack.slug, pack.name)}
+                  accessibilityLabel={t("library.reportTipspack")}
+                >
+                  <Text style={styles.reportButtonText}>⚐</Text>
                 </TouchableOpacity>
               </View>
 
@@ -556,6 +621,19 @@ const styles = StyleSheet.create({
   flagChipTextActive: {
     color: "#F5F0E8",
     fontWeight: "600",
+  },
+  reportButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  reportButtonText: {
+    fontSize: 16,
+    color: "#8A9A8D",
   },
   locationError: {
     fontSize: 12,

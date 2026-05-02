@@ -13,8 +13,9 @@ engelska som "English (United States)").
 - **Kategori:** Underhållning (alt. Utbildning, Spel → Trivia)
 - **Taggar:** tipspromenad, quiz, GPS, utomhus, familj, friskvård
 - **Kontakt-e-post:** tipspromenaden.app@gmail.com
-- **Webbplats:** https://tipspromenaden.app (när den finns — annars GitHub-repo eller hoppa över)
-- **Integritetspolicy-URL:** https://niklaser74.github.io/tipspromenaden/privacy-policy
+- **Webbplats:** https://tipspromenaden.app
+- **Integritetspolicy-URL:** https://tipspromenaden.app/integritet
+- **Användarvillkor-URL:** https://tipspromenaden.app/villkor (klistra in i Play Console-fältet "Terms of Service")
 
 ---
 
@@ -356,7 +357,12 @@ Inget av nedanstående förekommer i appen — alla svar: **Nej**.
 - Kontrollerade substanser
 - Gambling / hasardspel
 - Skräckinnehåll
-- Användargenererat innehåll delat publikt (quiz-frågor delas via QR, inte publik feed)
+
+**Användargenererat innehåll delat publikt: JA** — sedan v1.4.0 har biblioteket
+en publik flik med användar-uppladdade tipspack och promenader användare opt-in:at
+publicera. Moderationsmekanism: rapport-knapp på varje publik post i biblioteket
+mejlar tipspromenaden.app@gmail.com. Användarvillkoren ger oss rätt att utan
+förvarning ta bort innehåll som bryter mot reglerna.
 
 Platsdata (GPS) ska markeras: **används endast under pågående promenad, sparas inte på server**.
 

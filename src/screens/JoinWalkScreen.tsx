@@ -242,6 +242,7 @@ export default function JoinWalkScreen() {
             returnKeyType="go"
             onSubmitEditing={handleStart}
           />
+          <Text style={styles.privacyHint}>{t("join.privacyHint")}</Text>
         </View>
 
         {/* Start button */}
@@ -433,6 +434,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#2C3E2D",
     marginBottom: 8,
+  },
+  privacyHint: {
+    fontSize: 12,
+    color: "#8A9A8D",
+    marginTop: 6,
+    fontStyle: "italic",
   },
   nameInput: {
     backgroundColor: "#FFFFFF",
