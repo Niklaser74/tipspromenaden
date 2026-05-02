@@ -108,6 +108,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (sen kväll II) — "Nära mig"-sortering
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Ny "📍 Nära mig"-knapp på Promenader-fliken i biblioteket. Slå på så sorteras listan med närmast walk först + avstånd visas på varje kort.
+• Kräver platsåtkomst första gången (frågar via systemets standardpopup).
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New "📍 Near me" button on the Walks tab in the library. Toggle on to sort by nearest walk first + show distance on each card.
+• Requires location access on first use (asked via system standard popup).
+```
+
+---
+
 ### OTA 2026-04-30 (sen kväll) — Publika promenader i biblioteket
 
 **Svenska (sv-SE):**
