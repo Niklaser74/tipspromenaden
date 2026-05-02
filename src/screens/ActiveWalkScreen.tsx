@@ -11,6 +11,7 @@ import {
   Vibration,
 } from "react-native";
 import * as Speech from "expo-speech";
+import { useKeepAwake } from "expo-keep-awake";
 import MapView, { Marker, Circle } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
 import { useMapType } from "../hooks/useMapType";
@@ -31,6 +32,16 @@ import { useTranslation } from "../i18n";
 const TRIGGER_DISTANCE_METERS = 15;
 
 export default function ActiveWalkScreen() {
+  // Skärmen ska aldrig släckas under aktiv promenad. Tre skäl:
+  //   1. Karta + GPS är centrala — skärm-på är förväntat under promenaden
+  //   2. När skärmen släcks fryser Android JS-tråden (Doze) efter någon
+  //      minut → GPS-bevakning stoppas → vibration när man kommer i
+  //      frågezonen triggas inte → man går förbi kontrollen
+  //   3. Wake-locket släpps automatiskt när screen unmountar (när
+  //      användaren navigerar bort eller appen stängs)
+  // Batterikostnad accepteras — promenader är timmar, inte dagar.
+  useKeepAwake();
+
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { t, locale } = useTranslation();
