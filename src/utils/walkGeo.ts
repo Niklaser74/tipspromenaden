@@ -22,8 +22,11 @@ export interface LatLng {
  * geografisk centroid på en sfär är overkill här eftersom promenaderna
  * sträcker sig över hundratals meter, inte grader.
  *
- * Returnerar null om promenaden saknar giltiga koordinater (t.ex.
- * halv-sparad draft). Anroparen får då bestämma hur den ska sorteras.
+ * Hoppar över koordinater som är `(0, 0)` — appen använder dem som
+ * sentinel för "ej placerad" (Atlanten är inte intressant) och de skulle
+ * annars dra centroid mot havet för halvfärdiga walks.
+ *
+ * Returnerar null om promenaden saknar giltiga placerade koordinater.
  */
 export function walkCentroid(walk: Walk): LatLng | null {
   const coords = (walk.questions || [])
@@ -34,7 +37,8 @@ export function walkCentroid(walk: Walk): LatLng | null {
         typeof c.latitude === "number" &&
         typeof c.longitude === "number" &&
         Number.isFinite(c.latitude) &&
-        Number.isFinite(c.longitude)
+        Number.isFinite(c.longitude) &&
+        !(c.latitude === 0 && c.longitude === 0)
     );
   if (coords.length === 0) return null;
 

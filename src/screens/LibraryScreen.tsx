@@ -35,18 +35,8 @@ import {
 } from "../services/tipspackLibrary";
 import { getPublicWalks } from "../services/firestore";
 import { getCurrentLocation, getDistanceInMeters } from "../utils/location";
+import { WALK_CATEGORIES } from "../constants/categories";
 import { Walk } from "../types";
-
-const CATEGORIES = [
-  "natur",
-  "stad",
-  "historia",
-  "barn",
-  "cykel",
-  "mat",
-  "kultur",
-  "annat",
-] as const;
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
@@ -65,14 +55,11 @@ export default function LibraryScreen() {
   >({});
   const [usingSlug, setUsingSlug] = useState<string | null>(null);
 
-  // "Nära mig" — när hen aktiverar visas walks sorterade på avstånd från
-  // hens GPS-position. Walks utan centroid sorteras längst ned.
   const [nearMe, setNearMe] = useState(false);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
 
-  // Initial fetch — tipspacks och walks parallellt vid mount
   useEffect(() => {
     let cancelled = false;
     getLibraryTipspacks()
@@ -137,14 +124,13 @@ export default function LibraryScreen() {
     });
   }
 
-  // Filtrerade walks (bibliotek "Promenader"-flik)
   const availableCategories = useMemo(() => {
     if (!walks) return [];
     const codes = new Set<string>();
     for (const w of walks) {
       if (w.category) codes.add(w.category);
     }
-    return CATEGORIES.filter((c) => codes.has(c));
+    return WALK_CATEGORIES.filter((c) => codes.has(c));
   }, [walks]);
 
   const filteredWalks = useMemo(() => {
@@ -167,23 +153,20 @@ export default function LibraryScreen() {
   }, [walks, searchTerm, selectedCategories, selectedLanguages]);
 
   function joinWalk(walk: Walk) {
-    // Samma flow som OpenWalkScreen → JoinWalk. Användaren fortsätter
-    // direkt till "Gå med"-skärmen där de skriver namn.
+    // Replace istället för navigate så bakåtpilen från JoinWalk hoppar
+    // tillbaka till Home, inte till biblioteket.
     navigation.replace("JoinWalk", { walk });
   }
 
   async function toggleNearMe() {
     if (nearMe) {
-      // Avaktivera: bara stäng av sortering, behåll cachad position
       setNearMe(false);
       return;
     }
     if (userLocation) {
-      // Använd cachad position
       setNearMe(true);
       return;
     }
-    // Hämta GPS — kan kräva permission första gången
     setLocationLoading(true);
     setLocationError(null);
     try {
@@ -200,31 +183,36 @@ export default function LibraryScreen() {
     }
   }
 
-  // Sortera walks efter avstånd när "nära mig" är på
-  const sortedWalks = useMemo(() => {
-    if (!nearMe || !userLocation) return filteredWalks;
-    const withDist = filteredWalks.map((w) => {
-      if (!w.centroid) return { walk: w, distance: Infinity };
-      const dist = getDistanceInMeters(
-        userLocation.latitude,
-        userLocation.longitude,
-        w.centroid.latitude,
-        w.centroid.longitude
-      );
-      return { walk: w, distance: dist };
+  /**
+   * Walks med pre-beräknad metadata för rendering. Avstånd räknas en
+   * gång (inte i både sort och display) och placedCount memoiseras
+   * tillsammans med listan istället för per render-rad.
+   */
+  const walksToRender = useMemo(() => {
+    const items = filteredWalks.map((w) => {
+      const placedCount = w.questions.filter(
+        (q) => q.coordinate.latitude !== 0 || q.coordinate.longitude !== 0
+      ).length;
+      const distance =
+        nearMe && userLocation && w.centroid
+          ? getDistanceInMeters(
+              userLocation.latitude,
+              userLocation.longitude,
+              w.centroid.latitude,
+              w.centroid.longitude
+            )
+          : null;
+      return { walk: w, placedCount, distance };
     });
-    withDist.sort((a, b) => a.distance - b.distance);
-    return withDist.map((x) => x.walk);
+    if (nearMe && userLocation) {
+      items.sort(
+        (a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity)
+      );
+    }
+    return items;
   }, [filteredWalks, nearMe, userLocation]);
 
-  function distanceLabel(walk: Walk): string | null {
-    if (!nearMe || !userLocation || !walk.centroid) return null;
-    const m = getDistanceInMeters(
-      userLocation.latitude,
-      userLocation.longitude,
-      walk.centroid.latitude,
-      walk.centroid.longitude
-    );
+  function formatDistance(m: number): string {
     if (m < 1000) return `${Math.round(m)} m`;
     if (m < 10000) return `${(m / 1000).toFixed(1)} km`;
     return `${Math.round(m / 1000)} km`;
@@ -417,7 +405,7 @@ export default function LibraryScreen() {
         </Text>
       )}
 
-      {tab === "walks" && walks !== null && sortedWalks.length === 0 && (
+      {tab === "walks" && walks !== null && walksToRender.length === 0 && (
         <Text style={styles.empty}>
           {searchTerm || selectedCategories.size > 0 || selectedLanguages.size > 0
             ? t("library.noMatch")
@@ -427,41 +415,33 @@ export default function LibraryScreen() {
 
       {tab === "walks" && (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
-          {sortedWalks.map((walk) => {
-            const placedCount = walk.questions.filter(
-              (q) => q.coordinate.latitude !== 0 || q.coordinate.longitude !== 0
-            ).length;
-            const dist = distanceLabel(walk);
-            return (
-              <View key={walk.id} style={styles.card}>
-                <Text style={styles.cardTitle}>
-                  {flagForLanguage(walk.language)} {walk.title}
+          {walksToRender.map(({ walk, placedCount, distance }) => (
+            <View key={walk.id} style={styles.card}>
+              <Text style={styles.cardTitle}>
+                {flagForLanguage(walk.language)} {walk.title}
+              </Text>
+              {walk.description ? (
+                <Text style={styles.cardDescription}>{walk.description}</Text>
+              ) : null}
+              <Text style={styles.cardMeta}>
+                {placedCount}{" "}
+                {placedCount === 1
+                  ? t("library.checkpoint")
+                  : t("library.checkpoints")}
+                {walk.city ? ` · 📍 ${walk.city}` : ""}
+                {walk.category ? ` · ${t(`category.${walk.category}`)}` : ""}
+                {distance !== null ? ` · 🚶 ${formatDistance(distance)}` : ""}
+              </Text>
+              <TouchableOpacity
+                style={styles.useButton}
+                onPress={() => joinWalk(walk)}
+              >
+                <Text style={styles.useButtonText}>
+                  {t("library.playWalk")}
                 </Text>
-                {walk.description ? (
-                  <Text style={styles.cardDescription}>{walk.description}</Text>
-                ) : null}
-                <Text style={styles.cardMeta}>
-                  {placedCount}{" "}
-                  {placedCount === 1
-                    ? t("library.checkpoint")
-                    : t("library.checkpoints")}
-                  {walk.city ? ` · 📍 ${walk.city}` : ""}
-                  {walk.category ? ` · ${t(`category.${walk.category}`)}` : ""}
-                  {dist ? ` · 🚶 ${dist}` : ""}
-                </Text>
-                <View style={styles.actionsRow}>
-                  <TouchableOpacity
-                    style={[styles.useButton, { flex: 1 }]}
-                    onPress={() => joinWalk(walk)}
-                  >
-                    <Text style={styles.useButtonText}>
-                      {t("library.playWalk")}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            );
-          })}
+              </TouchableOpacity>
+            </View>
+          ))}
         </ScrollView>
       )}
 

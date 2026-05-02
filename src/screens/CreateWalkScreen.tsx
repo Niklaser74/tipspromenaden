@@ -33,7 +33,9 @@ interface Region {
 }
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { getCurrentLocation } from "../utils/location";
+import { walkCentroid } from "../utils/walkGeo";
 import { generateId, createQRData } from "../utils/qr";
+import { WALK_CATEGORIES, type WalkCategory } from "../constants/categories";
 import { saveWalk } from "../services/firestore";
 import { saveWalkLocally, getSavedWalks, displayWalkTitle } from "../services/storage";
 import type { SavedWalk } from "../types";
@@ -338,12 +340,11 @@ export default function CreateWalkScreen() {
   // Eventläge
   const [isEvent, setIsEvent] = useState(!!existingWalk?.event);
 
-  // Publicera till bibliotek: opt-in toggle. Skaparen anger valfritt en
-  // stad och en kategori. Centroid (mittpunkt av alla frågekoordinater)
-  // beräknas auto vid save så biblioteket kan göra "nära mig"-sortering.
   const [isPublic, setIsPublic] = useState(!!existingWalk?.public);
   const [city, setCity] = useState(existingWalk?.city ?? "");
-  const [category, setCategory] = useState<string>(existingWalk?.category ?? "");
+  const [category, setCategory] = useState<WalkCategory | "">(
+    existingWalk?.category ?? ""
+  );
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
 
@@ -852,23 +853,11 @@ export default function CreateWalkScreen() {
 
     setSaving(true);
     try {
-      // Auto-centroid: medelvärde av alla frågekoordinater. Används av
-      // biblioteket för "nära mig"-sortering. Bara meningsfullt om walken
-      // har minst en placerad fråga (default-koord (0,0) räknas inte).
-      const placed = questions.filter(
-        (q) => q.coordinate.latitude !== 0 || q.coordinate.longitude !== 0
-      );
-      const centroid =
-        placed.length > 0
-          ? {
-              latitude:
-                placed.reduce((s, q) => s + q.coordinate.latitude, 0) /
-                placed.length,
-              longitude:
-                placed.reduce((s, q) => s + q.coordinate.longitude, 0) /
-                placed.length,
-            }
-          : undefined;
+      // Centroid används av biblioteket för "nära mig"-sortering — beräknas
+      // bara när walken faktiskt publiceras, inte slösat på privata sparar.
+      const centroid = isPublic
+        ? walkCentroid({ questions } as Walk)
+        : null;
 
       const walk: Walk = {
         // Vid redigering: behåll ursprungligt ID, skapare och datum. Nytt ID
@@ -885,8 +874,6 @@ export default function CreateWalkScreen() {
         ...(isEvent && eventStartDate && eventEndDate
           ? { event: { startDate: eventStartDate, endDate: eventEndDate } }
           : {}),
-        // Publik publicering: alla bibliotek-fält bara om toggle är på,
-        // så vi inte spammar Firestore med tomma fält på privata walks.
         ...(isPublic
           ? {
               public: true,
@@ -1274,30 +1261,28 @@ export default function CreateWalkScreen() {
 
             <Text style={styles.dateLabel}>{t("create.categoryLabel")}</Text>
             <View style={styles.categoryRow}>
-              {(["natur","stad","historia","barn","cykel","mat","kultur","annat"] as const).map(
-                (cat) => {
-                  const active = category === cat;
-                  return (
-                    <TouchableOpacity
-                      key={cat}
-                      onPress={() => setCategory(active ? "" : cat)}
+              {WALK_CATEGORIES.map((cat) => {
+                const active = category === cat;
+                return (
+                  <TouchableOpacity
+                    key={cat}
+                    onPress={() => setCategory(active ? "" : cat)}
+                    style={[
+                      styles.categoryChip,
+                      active && styles.categoryChipActive,
+                    ]}
+                  >
+                    <Text
                       style={[
-                        styles.categoryChip,
-                        active && styles.categoryChipActive,
+                        styles.categoryChipText,
+                        active && styles.categoryChipTextActive,
                       ]}
                     >
-                      <Text
-                        style={[
-                          styles.categoryChipText,
-                          active && styles.categoryChipTextActive,
-                        ]}
-                      >
-                        {t(`category.${cat}`)}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }
-              )}
+                      {t(`category.${cat}`)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         )}

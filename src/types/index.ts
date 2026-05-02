@@ -91,11 +91,11 @@ export interface Walk {
    */
   city?: string;
   /**
-   * Kategori-tagg för biblioteket. Begränsad enum:
-   * `"natur" | "stad" | "historia" | "barn" | "cykel" | "mat" | "kultur" | "annat"`.
-   * Driver kategori-filter i biblioteket.
+   * Kategori-tagg för biblioteket. Se `WALK_CATEGORIES` i
+   * `src/constants/categories.ts` för giltiga värden. Driver
+   * kategori-filter i biblioteket.
    */
-  category?: string;
+  category?: import("../constants/categories").WalkCategory;
   /**
    * Centroid (mittpunkt) av alla frågekoordinater. Auto-beräknas vid
    * save i CreateWalk. Används för "nära mig"-sortering i biblioteket

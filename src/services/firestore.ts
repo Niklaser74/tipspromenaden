@@ -24,6 +24,7 @@ import {
   deleteDoc,
   query,
   where,
+  limit,
   onSnapshot,
   Unsubscribe,
 } from "firebase/firestore";
@@ -94,14 +95,20 @@ export async function getMyWalks(userId: string): Promise<Walk[]> {
 }
 
 /**
- * Hämtar alla publika promenader för bibliotekets "Promenader"-flik.
- * Sortering klient-side på createdAt desc — undviker att kräva ett
- * composite index (public + createdAt). Vid hobby-skala är payload
- * försumbar; om listan växer till hundratals kan vi byta till indexerad
- * server-query.
+ * Hämtar publika promenader för bibliotekets "Promenader"-flik.
+ *
+ * Hard-cap på 200 docs för att undvika att en stor kollektion drar ner
+ * appen om biblioteket växer. Sortering sker client-side på createdAt —
+ * det undviker en composite index (public + createdAt) men betyder att
+ * när vi närmar oss capet kommer äldre walks droppas slumpmässigt.
+ * Då är det dags att byta till indexerad server-query med pagination.
  */
 export async function getPublicWalks(): Promise<Walk[]> {
-  const q = query(collection(db, WALKS_COLLECTION), where("public", "==", true));
+  const q = query(
+    collection(db, WALKS_COLLECTION),
+    where("public", "==", true),
+    limit(200)
+  );
   const snap = await getDocs(q);
   const walks = snap.docs.map((d) => d.data() as Walk);
   walks.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
