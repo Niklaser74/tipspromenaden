@@ -32,7 +32,8 @@
     "settings": "Inställningar",
     "stats": "Statistik",
     "manageTags": "Hantera taggar",
-    "walkInsights": "Promenad-statistik"
+    "walkInsights": "Promenad-statistik",
+    "library": "Bibliotek"
   },
   "home": {
     "brandTagline": "Quiz & Äventyr",
@@ -42,6 +43,8 @@
     "createWalkNeedLogin": "Logga in för att skapa",
     "scanQR": "Scanna QR-kod",
     "scanQRDesc": "Gå med i en promenad via QR",
+    "library": "Hitta frågor",
+    "libraryDesc": "Bläddra färdiga frågebatterier",
     "yourWalks": "Dina promenader",
     "questions": {
       "one": "{{count}} fråga",
@@ -157,6 +160,22 @@
     "missingSlug": "Länken saknar paketets namn.",
     "invalidSlug": "Länken har ett ogiltigt paketnamn.",
     "fetchFailed": "Kunde inte hämta paketet (HTTP {{status}}). Kontrollera att länken är korrekt och att du har internetuppkoppling."
+  },
+  "library": {
+    "title": "Bibliotek",
+    "subtitle": "Färdiga frågebatterier",
+    "searchPlaceholder": "Sök på titel, beskrivning eller författare",
+    "loading": "Laddar...",
+    "fetchError": "Kunde inte hämta biblioteket. Kontrollera internetuppkopplingen.",
+    "previewError": "Kunde inte ladda förhandsgranskning.",
+    "noMatch": "Inga paket matchar dina filter.",
+    "empty": "Biblioteket är tomt än så länge.",
+    "previewQuestions": "👁 Förhandsgranska",
+    "hideQuestions": "Dölj frågor",
+    "use": "Använd",
+    "uploaded": "uppladdat",
+    "question": "fråga",
+    "questions": "frågor"
   },
   "settings": {
     "title": "Inställningar",

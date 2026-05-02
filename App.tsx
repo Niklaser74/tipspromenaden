@@ -46,6 +46,7 @@ import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import OpenWalkScreen from "./src/screens/OpenWalkScreen";
 import OpenTipspackScreen from "./src/screens/OpenTipspackScreen";
+import LibraryScreen from "./src/screens/LibraryScreen";
 import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import WalkInsightsScreen from "./src/screens/WalkInsightsScreen";
 import {
@@ -206,6 +207,15 @@ function AppNavigator() {
           name="OpenTipspack"
           component={OpenTipspackScreen}
           options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Library"
+          component={LibraryScreen}
+          options={{
+            title: t("nav.library"),
+            headerStyle: { backgroundColor: "#F5F0E8" },
+            headerTintColor: "#2C3E2D",
+          }}
         />
         <Stack.Screen
           name="ManageTags"

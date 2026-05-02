@@ -32,7 +32,8 @@
     "settings": "Settings",
     "stats": "Stats",
     "manageTags": "Manage tags",
-    "walkInsights": "Walk insights"
+    "walkInsights": "Walk insights",
+    "library": "Library"
   },
   "home": {
     "brandTagline": "Quiz & Adventure",
@@ -42,6 +43,8 @@
     "createWalkNeedLogin": "Sign in to create",
     "scanQR": "Scan QR code",
     "scanQRDesc": "Join a walk via QR",
+    "library": "Find questions",
+    "libraryDesc": "Browse ready-made question packs",
     "yourWalks": "Your walks",
     "questions": {
       "one": "{{count}} question",
@@ -157,6 +160,22 @@
     "missingSlug": "The link is missing the pack name.",
     "invalidSlug": "The link has an invalid pack name.",
     "fetchFailed": "Couldn't fetch the pack (HTTP {{status}}). Check that the link is correct and that you have an internet connection."
+  },
+  "library": {
+    "title": "Library",
+    "subtitle": "Ready-made question packs",
+    "searchPlaceholder": "Search by title, description or author",
+    "loading": "Loading…",
+    "fetchError": "Couldn't fetch the library. Check your internet connection.",
+    "previewError": "Couldn't load preview.",
+    "noMatch": "No packs match your filters.",
+    "empty": "The library is empty so far.",
+    "previewQuestions": "👁 Preview",
+    "hideQuestions": "Hide questions",
+    "use": "Use",
+    "uploaded": "uploaded",
+    "question": "question",
+    "questions": "questions"
   },
   "settings": {
     "title": "Settings",

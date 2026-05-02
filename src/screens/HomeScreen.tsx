@@ -457,6 +457,23 @@ export default function HomeScreen() {
               <Text style={styles.actionArrowDark}>›</Text>
             </View>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionCard}
+            onPress={() => navigation.navigate("Library")}
+            activeOpacity={0.8}
+          >
+            <View style={styles.actionCardInner}>
+              <Text style={styles.actionEmoji}>📚</Text>
+              <View style={styles.actionTextContainer}>
+                <Text style={styles.actionTitleDark}>{t("home.library")}</Text>
+                <Text style={styles.actionDescriptionDark}>
+                  {t("home.libraryDesc")}
+                </Text>
+              </View>
+              <Text style={styles.actionArrowDark}>›</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Saved Walks */}
