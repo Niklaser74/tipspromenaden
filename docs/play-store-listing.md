@@ -108,6 +108,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-04-30 (kväll) — Bibliotek i appen
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Ny "Hitta frågor"-knapp på startsidan öppnar ett bibliotek med färdiga frågebatterier — både kuraterade och uppladdade av andra användare.
+• Sök på titel, beskrivning eller författare. Filtrera på språk.
+• Frågorna är dolda by default — tryck "Förhandsgranska" för att se dem, "Använd" för att starta en ny promenad med batteriet.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New "Find questions" button on the home screen opens a library of ready-made question packs — both curated and uploaded by other users.
+• Search by title, description or author. Filter by language.
+• Questions are hidden by default — tap "Preview" to see them, "Use" to start a new walk with the pack.
+```
+
+---
+
 ### OTA 2026-04-30 (sen kväll) — Vibration vid frågezon + skärm vaken
 
 **Svenska (sv-SE):**
