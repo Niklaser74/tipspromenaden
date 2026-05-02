@@ -8,6 +8,7 @@ import {
   Modal,
   Platform,
   Image,
+  Vibration,
 } from "react-native";
 import * as Speech from "expo-speech";
 import MapView, { Marker, Circle } from "../components/MapViewWeb";
@@ -166,6 +167,18 @@ export default function ActiveWalkScreen() {
         }
 
         if (dist <= TRIGGER_DISTANCE_METERS && !modalVisibleRef.current) {
+          // Vibrationspuls för att göra deltagaren uppmärksam även när
+          // telefonen är i fickan eller man pratar med någon. Mönstret
+          // [paus, vibrera, paus, vibrera, paus, vibrera] = tre korta
+          // pulsar med 100 ms paus emellan — distinkt från en SMS-notis
+          // utan att vara skrämmande. Web saknar Vibration så vi skippar.
+          if (Platform.OS !== "web") {
+            try {
+              Vibration.vibrate([0, 220, 100, 220, 100, 220]);
+            } catch {
+              // Saknad permission eller hårdvara — tyst.
+            }
+          }
           setActiveQuestion(question);
           setSelectedAnswer(null);
           setAnswerFeedback(null);
