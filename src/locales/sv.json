@@ -182,7 +182,11 @@
     "question": "fråga",
     "questions": "frågor",
     "checkpoint": "kontroll",
-    "checkpoints": "kontroller"
+    "checkpoints": "kontroller",
+    "nearMe": "Nära mig",
+    "nearMeOn": "Sorterat nära mig",
+    "locationLoading": "Hämtar position...",
+    "locationError": "Kunde inte hämta position. Tillåt platsåtkomst i inställningarna."
   },
   "category": {
     "natur": "Natur",

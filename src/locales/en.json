@@ -182,7 +182,11 @@
     "question": "question",
     "questions": "questions",
     "checkpoint": "checkpoint",
-    "checkpoints": "checkpoints"
+    "checkpoints": "checkpoints",
+    "nearMe": "Near me",
+    "nearMeOn": "Sorted by distance",
+    "locationLoading": "Getting location…",
+    "locationError": "Couldn't get location. Allow location access in settings."
   },
   "category": {
     "natur": "Nature",
