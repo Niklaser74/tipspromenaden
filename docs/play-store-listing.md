@@ -109,6 +109,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-03 (kväll) — Hjälpsida + länkar till hemsidan
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Ny "Så funkar det"-guide på tipspromenaden.app/sa-funkar-det med instruktioner för både deltagare och skapare (på svenska + engelska).
+• Inställningar → Om appen har nu länkar till hemsidan, hjälpguiden och webb-skaparen — så du lätt hittar resurserna utanför appen.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New "How it works" guide at tipspromenaden.app/sa-funkar-det with instructions for both participants and creators (in Swedish + English).
+• Settings → About now has links to the website, the help guide and the web-based walk creator — so you can easily find resources outside the app.
+```
+
+---
+
 ### OTA 2026-05-03 — App nu på 8 språk
 
 **Svenska (sv-SE):**

@@ -224,6 +224,36 @@ export default function SettingsScreen() {
         </View>
         <TouchableOpacity
           style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/sa-funkar-det")}
+          activeOpacity={0.6}
+        >
+          <View style={styles.syncLabelWrap}>
+            <Text style={styles.rowLabel}>{t("settings.howItWorks")}</Text>
+            <Text style={styles.rowHint}>{t("settings.howItWorksHint")}</Text>
+          </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/")}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowLabel}>{t("settings.website")}</Text>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/skapa")}
+          activeOpacity={0.6}
+        >
+          <View style={styles.syncLabelWrap}>
+            <Text style={styles.rowLabel}>{t("settings.createOnWeb")}</Text>
+            <Text style={styles.rowHint}>{t("settings.createOnWebHint")}</Text>
+          </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
           onPress={() => Linking.openURL("https://tipspromenaden.app/villkor")}
           activeOpacity={0.6}
         >
