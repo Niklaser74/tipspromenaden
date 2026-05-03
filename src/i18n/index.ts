@@ -14,6 +14,12 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 import sv from "../locales/sv.json";
 import en from "../locales/en.json";
+import de from "../locales/de.json";
+import no from "../locales/no.json";
+import da from "../locales/da.json";
+import fi from "../locales/fi.json";
+import fr from "../locales/fr.json";
+import es from "../locales/es.json";
 
 /** Nyckel i AsyncStorage där användarens språkval ligger. */
 const STORAGE_KEY = "app.language";
@@ -21,17 +27,32 @@ const STORAGE_KEY = "app.language";
 /** Specialvärde som betyder "följ systemspråket". */
 export const SYSTEM_LANGUAGE = "system";
 
-export type LanguageCode = "sv" | "en" | typeof SYSTEM_LANGUAGE;
+export type LanguageCode =
+  | "sv"
+  | "en"
+  | "de"
+  | "no"
+  | "da"
+  | "fi"
+  | "fr"
+  | "es"
+  | typeof SYSTEM_LANGUAGE;
 
 /** Språk som visas i språkväljaren. Lägg till fler här när du lägger till nya locales. */
 export const availableLanguages: { code: LanguageCode; labelKey: string }[] = [
   { code: SYSTEM_LANGUAGE, labelKey: "settings.languageSystem" },
   { code: "sv", labelKey: "settings.languageSwedish" },
   { code: "en", labelKey: "settings.languageEnglish" },
+  { code: "de", labelKey: "settings.languageGerman" },
+  { code: "no", labelKey: "settings.languageNorwegian" },
+  { code: "da", labelKey: "settings.languageDanish" },
+  { code: "fi", labelKey: "settings.languageFinnish" },
+  { code: "fr", labelKey: "settings.languageFrench" },
+  { code: "es", labelKey: "settings.languageSpanish" },
 ];
 
 /** Översättningstabell. Registrera nya språk här. */
-const translations = { sv, en };
+const translations = { sv, en, de, no, da, fi, fr, es };
 
 /** Global i18n-instans. */
 export const i18n = new I18n(translations);

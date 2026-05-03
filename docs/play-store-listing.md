@@ -109,6 +109,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-03 — App nu på 8 språk
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Appen är nu översatt till alla 8 språk vi stödjer för frågor: svenska, engelska, tyska, norsk, dansk, finska, franska och spanska.
+• Välj språk under Inställningar → Språk, eller låt appen följa systemspråket.
+• Översättningarna är AI-genererade — hör av dig om något låter konstigt på ditt språk!
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The app is now translated into all 8 languages we support for questions: Swedish, English, German, Norwegian, Danish, Finnish, French and Spanish.
+• Pick your language under Settings → Language, or let the app follow your system language.
+• Translations are AI-generated — let us know if anything sounds off in your language!
+```
+
+---
+
 ### OTA 2026-04-30 (sen kväll II) — "Nära mig"-sortering
 
 **Svenska (sv-SE):**
