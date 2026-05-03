@@ -102,6 +102,10 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 - `offlineSync.ts` — Synkar offline-svar var 30:e sekund
 - `questionBattery.ts` — Validerar och importerar `.tipspack`-filer
 - `questionImage.ts` — Laddar upp frågebilder till Firebase Storage
+- `tipspackLibrary.ts` — Hämtar curated tipspacks från
+  `tipspromenaden.app/tipspack/index.json` + uploaded från Firestore-
+  collection `tipspacks` där `isPublic: true`. Mergat resultat används av
+  `LibraryScreen`.
 - `stats.ts` — Lokal statistik (antal skapade promenader, m.m.)
 
 ## Datamodell (Firestore)
@@ -245,6 +249,41 @@ AAB:n kan publiceras:
   Saknas sensor eller ACTIVITY_RECOGNITION-permission → fältet utelämnas
   tyst, inga UI-fel. Native-permission deklarerad i `app.config.js` +
   Health Apps-deklaration i Play Console.
+- **Bibliotek** — `LibraryScreen` (nås via "Hitta frågor" på Home) har
+  två flikar: **Frågebatterier** (curated + uppladdade tipspacks via
+  `services/tipspackLibrary.ts`) och **Promenader** (publika walks via
+  `getPublicWalks`). Sök, kategori-chips, språk-flaggor, "📍 Nära mig"-
+  sortering. Förhandsgranska visar bara frågetext (inte svar) för att
+  inte spoila för spelare. ⚐-knapp öppnar mailto för att rapportera
+  olämpligt innehåll. Första gången användaren startar en publik walk
+  visas en GPS-säkerhetsdisclaimer (AsyncStorage-key
+  `library:safetyDisclaimerAccepted:v1`).
+- **Publicera till bibliotek** — i `CreateWalkScreen` finns en
+  "Publicera till bibliotek"-toggle. När på: stad-input + kategori-chips
+  (8 kategorier i `src/constants/categories.ts`). Vid save beräknas
+  centroid auto från frågekoordinater (`utils/walkGeo.ts walkCentroid`)
+  och sparas på Walk så bibliotekets "nära mig" kan sortera.
+- **Tipspack-import via deep link** — `OpenTipspackScreen` hanterar
+  `tipspromenaden://tipspack/<slug>`. Provar curated-fil
+  (`tipspromenaden.app/tipspack/<slug>.tipspack`) först, faller tillbaka
+  på Firestore + Firebase Storage för uppladdade. Replace:ar till
+  `CreateWalk` med batteriet förladdat.
+- **Vibration vid frågezon** — `ActiveWalkScreen` triggar en distinkt
+  3-pulsig vibration (`Vibration.vibrate([0, 220, 100, 220, 100, 220])`)
+  när användaren kommer in i `TRIGGER_DISTANCE_METERS`. Användaren märker
+  även när telefonen är i fickan.
+- **Skärmen håller sig vaken** — `useKeepAwake()` (från `expo-keep-awake`,
+  transitive via SDK 55) håller wake-lock medan `ActiveWalkScreen` är
+  mounted. Krävs eftersom Android Doze stoppar JS efter någon minut →
+  GPS-bevakning skulle dö → vibrationen triggas inte.
+- **Legal-länkar** — `SettingsScreen` har rader för Användarvillkor och
+  Integritetspolicy som öppnar `tipspromenaden.app/villkor` resp.
+  `/integritet` via `Linking.openURL`. Markdown-källan ligger i
+  `docs/terms-of-service.md` + `docs/privacy-policy.md` och speglas
+  manuellt till webbens `src/pages/villkor.md` + `integritet.md`.
+- **Anonym kontoradering** — Settings → Danger zone visas nu också för
+  anonyma användare (GDPR Art. 17). Olika label/hint men samma
+  `deleteAccountAndData()`-funktion.
 - **Autospar i CreateWalk** — `services/walkDraft.ts` sparar utkast
   (titel, frågor, event, språk) debouncat 1 s till AsyncStorage. Vid mount
   erbjuder skärmen "Återställ / Börja om" om en draft finns för walkId.
