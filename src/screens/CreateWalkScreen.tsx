@@ -1032,8 +1032,17 @@ export default function CreateWalkScreen() {
       )}
       </View>{/* end mapWrap */}
 
-      {/* Bottom panel (sidopanel i splitvy) */}
-      <View style={[styles.bottomPanel, isWide && styles.sidePanel]}>
+      {/* Bottom panel (sidopanel i splitvy) — ScrollView så att hela
+          innehållet (toggles, fält, save-knappen) går att nå när
+          panelen växer (event + publicera + kategorier kan tillsammans
+          bli högre än viewport). Den inre questionList-ScrollView:n
+          har egen maxHeight (220px) så nestade scroll-fall undviks. */}
+      <ScrollView
+        style={[styles.bottomPanel, isWide && styles.sidePanel]}
+        contentContainerStyle={styles.bottomPanelContent}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
 
         {/* Importera frågebatteri + Återanvänd positioner — båda visas bara
             på fräsch ny promenad (inga frågor, inte redigering). */}
@@ -1363,7 +1372,7 @@ export default function CreateWalkScreen() {
             </Text>
           )}
         </TouchableOpacity>
-      </View>{/* end bottomPanel/sidePanel */}
+      </ScrollView>{/* end bottomPanel/sidePanel */}
       </View>{/* end mainArea */}
 
       {/* Question editor modal */}
@@ -1502,6 +1511,8 @@ const styles = StyleSheet.create({
   sidePanel: {
     width: 380,
     flex: undefined,
+    maxHeight: undefined,
+    flexGrow: 1,
     borderTopWidth: 0,
     borderLeftWidth: 1,
     borderLeftColor: "#F0F0EC",
@@ -1591,10 +1602,15 @@ const styles = StyleSheet.create({
     maxWidth: "85%",
   },
 
-  // Bottom panel
+  // Bottom panel — ScrollView. På smal skärm tar den max 60% av höjden
+  // så kartan alltid behåller minst 40% och panelens egna innehåll
+  // (toggles + save-knapp) blir scrollbart om det inte ryms. flexGrow:0
+  // gör att panelen bara växer till sitt innehåll upp till maxHeight.
+  // I splitvy (sidePanel) override:as detta — då får panelen full höjd.
   bottomPanel: {
     backgroundColor: "#FFFFFF",
-    padding: 20,
+    flexGrow: 0,
+    maxHeight: "60%",
     borderTopWidth: 1,
     borderTopColor: "#F0F0EC",
     ...Platform.select({
@@ -1607,6 +1623,12 @@ const styles = StyleSheet.create({
       android: { elevation: 8 },
       web: { boxShadow: "0px -2px 8px rgba(0,0,0,0.06)" },
     }),
+  },
+  // Padding flyttad hit eftersom ScrollView vill ha det på
+  // contentContainerStyle, inte på själva komponenten.
+  bottomPanelContent: {
+    padding: 20,
+    paddingBottom: 32,
   },
   // Importera frågebatteri-knapp
   importBatteryButton: {

@@ -109,6 +109,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-03 (natt II) — Fix: spara-knapp utanför skärmen i Skapa-vyn
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Buggfix: när man slog på event + publicera samtidigt i Skapa-vyn hamnade spara-knappen utanför skärmen och gick inte att nå. Bottenpanelen är nu scrollbar med max 60 % av höjden.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Bug fix: when both event and publish toggles were on in the Create view, the save button ended up below the screen edge and was unreachable. The bottom panel is now scrollable with a max height of 60%.
+```
+
+---
+
 ### OTA 2026-05-03 (natt) — OSM-tiles på native = stigar i appen
 
 **Svenska (sv-SE):**
