@@ -16,7 +16,7 @@ import {
   Animated,
   PanResponder,
 } from "react-native";
-import MapView, { Marker } from "../components/MapViewWeb";
+import MapView, { Marker, Polyline } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
 import { useMapType } from "../hooks/useMapType";
 import { DateField } from "../components/DateField";
@@ -344,6 +344,11 @@ export default function CreateWalkScreen() {
   const [city, setCity] = useState(existingWalk?.city ?? "");
   const [category, setCategory] = useState<WalkCategory | "">(
     existingWalk?.category ?? ""
+  );
+  // Aktivitetstyp — walk är default, bike är opt-in. Påverkar trigger-
+  // tröskel (15 m → 50 m) och kartzoom under själva promenaden.
+  const [activityType, setActivityType] = useState<"walk" | "bike">(
+    existingWalk?.activityType ?? "walk"
   );
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
@@ -882,6 +887,9 @@ export default function CreateWalkScreen() {
               ...(centroid ? { centroid } : {}),
             }
           : {}),
+        // Spara bara aktivitetstyp om != default ("walk"). Håller äldre
+        // promenader bakåtkompatibla — saknas fältet räknas det som walk.
+        ...(activityType !== "walk" ? { activityType } : {}),
       };
 
       // Spara till Firebase (setDoc upserts automatiskt)
@@ -953,6 +961,17 @@ export default function CreateWalkScreen() {
         showsMyLocationButton
         mapType={mapType}
       >
+        {/* Förhandsvisning av rutten — streckad linje mellan kontrollerna
+            i nuvarande ordning. Hjälper skaparen se hur deltagaren rör
+            sig genom promenaden. Bara om vi har ≥ 2 frågor. */}
+        {questions.length >= 2 && (
+          <Polyline
+            coordinates={questions.map((q) => q.coordinate)}
+            strokeColor="rgba(27,107,53,0.6)"
+            strokeWidth={3}
+            lineDashPattern={[8, 6]}
+          />
+        )}
         {questions.map((q, idx) => (
           <Marker
             key={q.id}
@@ -1183,6 +1202,47 @@ export default function CreateWalkScreen() {
             ))}
           </ScrollView>
         </View>
+
+        {/* Aktivitetstyp — walk eller bike. Påverkar trigger-tröskel
+            och kartzoom under själva promenaden. Kompakt segmented
+            control istället för checkbox eftersom det är ett 1-av-2
+            val, inte på/av. */}
+        <Text style={styles.dateLabel}>{t("create.activityTypeLabel")}</Text>
+        <View style={styles.activityTypeRow}>
+          {(["walk", "bike"] as const).map((type) => {
+            const active = activityType === type;
+            return (
+              <TouchableOpacity
+                key={type}
+                onPress={() => setActivityType(type)}
+                style={[
+                  styles.activityTypeChip,
+                  active && styles.activityTypeChipActive,
+                ]}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.activityTypeChipText,
+                    active && styles.activityTypeChipTextActive,
+                  ]}
+                >
+                  {type === "walk" ? "🚶" : "🚲"}{" "}
+                  {t(
+                    type === "walk"
+                      ? "create.activityTypeWalk"
+                      : "create.activityTypeBike"
+                  )}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        {activityType === "bike" && (
+          <Text style={styles.activityTypeHint}>
+            {t("create.activityTypeBikeHint")}
+          </Text>
+        )}
 
         {/* Event toggle */}
         <TouchableOpacity
@@ -1872,6 +1932,41 @@ const styles = StyleSheet.create({
   categoryChipTextActive: {
     color: "#F5F0E8",
     fontWeight: "600",
+  },
+  activityTypeRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  activityTypeChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    backgroundColor: "#F5F0E8",
+    alignItems: "center",
+  },
+  activityTypeChipActive: {
+    backgroundColor: "#1B6B35",
+    borderColor: "#1B6B35",
+  },
+  activityTypeChipText: {
+    fontSize: 14,
+    color: "#4A5E4C",
+  },
+  activityTypeChipTextActive: {
+    color: "#F5F0E8",
+    fontWeight: "600",
+  },
+  activityTypeHint: {
+    fontSize: 12,
+    color: "#8A9A8D",
+    fontStyle: "italic",
+    marginTop: 4,
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
 
   // Modal

@@ -14,12 +14,14 @@ import { View, Text, StyleSheet, Platform } from "react-native";
 let NativeMapView: any;
 let NativeMarker: any;
 let NativeCircle: any;
+let NativePolyline: any;
 
 if (Platform.OS !== "web") {
   const Maps = require("react-native-maps");
   NativeMapView = Maps.default;
   NativeMarker = Maps.Marker;
   NativeCircle = Maps.Circle;
+  NativePolyline = Maps.Polyline;
 }
 
 // ==================== WEB IMPLEMENTATION ====================
@@ -63,13 +65,27 @@ interface WebCircleProps {
   fillColor?: string;
 }
 
-// Extract marker and circle data from React children
+interface WebPolylineProps {
+  coordinates: { latitude: number; longitude: number }[];
+  strokeColor?: string;
+  strokeWidth?: number;
+  /**
+   * Streckmönster, t.ex. [10, 5] = 10 px linje, 5 px gap. Renderas via
+   * Leaflet `dashArray` på web. På native skickas vidare till
+   * react-native-maps `lineDashPattern`.
+   */
+  lineDashPattern?: number[];
+}
+
+// Extract marker, circle and polyline data from React children
 function extractChildData(children: React.ReactNode): {
   markers: WebMarkerProps[];
   circles: WebCircleProps[];
+  polylines: WebPolylineProps[];
 } {
   const markers: WebMarkerProps[] = [];
   const circles: WebCircleProps[] = [];
+  const polylines: WebPolylineProps[] = [];
 
   React.Children.forEach(children, (child) => {
     if (!React.isValidElement(child)) return;
@@ -79,6 +95,7 @@ function extractChildData(children: React.ReactNode): {
       const nested = extractChildData(child.props.children);
       markers.push(...nested.markers);
       circles.push(...nested.circles);
+      polylines.push(...nested.polylines);
       return;
     }
 
@@ -88,17 +105,20 @@ function extractChildData(children: React.ReactNode): {
       markers.push(props);
     } else if (props.center && props.radius !== undefined) {
       circles.push(props);
+    } else if (Array.isArray(props.coordinates)) {
+      polylines.push(props);
     }
 
-    // Recurse into children to find nested markers/circles
+    // Recurse into children to find nested markers/circles/polylines
     if (props.children) {
       const nested = extractChildData(props.children);
       markers.push(...nested.markers);
       circles.push(...nested.circles);
+      polylines.push(...nested.polylines);
     }
   });
 
-  return { markers, circles };
+  return { markers, circles, polylines };
 }
 
 const WebMapView = forwardRef(
@@ -176,8 +196,8 @@ const WebMapView = forwardRef(
       return () => window.removeEventListener("message", handler);
     }, []);
 
-    // Build and send marker/circle data when children or iframe readiness changes
-    const { markers, circles } = extractChildData(children);
+    // Build and send marker/circle/polyline data when children or iframe readiness changes
+    const { markers, circles, polylines } = extractChildData(children);
 
     // Store callbacks
     markerCallbacksRef.current = {
@@ -220,23 +240,31 @@ const WebMapView = forwardRef(
         fillColor: c.fillColor || "rgba(232,168,56,0.1)",
       }));
 
+      const polylineData = polylines.map((p) => ({
+        coords: p.coordinates.map((c) => [c.latitude, c.longitude]),
+        strokeColor: p.strokeColor || "#1B6B35",
+        strokeWidth: p.strokeWidth || 3,
+        dashArray: p.lineDashPattern ? p.lineDashPattern.join(",") : null,
+      }));
+
       iframeRef.current.contentWindow.postMessage(
         {
           source: "react-app",
           type: "updateMarkers",
           markers: markerData,
           circles: circleData,
+          polylines: polylineData,
           showUserLocation: showsUserLocation || false,
         },
         "*"
       );
-    }, [iframeReady, markers.length, JSON.stringify(markers.map(m => ({
+    }, [iframeReady, markers.length, polylines.length, JSON.stringify(markers.map(m => ({
       lat: m.coordinate.latitude,
       lng: m.coordinate.longitude,
       opacity: m.opacity,
       title: m.title,
       draggable: m.draggable,
-    })))]);
+    }))), JSON.stringify(polylines.map(p => p.coordinates))]);
 
     // Extract label text from marker children (the number in the circle)
     function extractMarkerLabel(markerProps: WebMarkerProps): string {
@@ -350,6 +378,7 @@ const WebMapView = forwardRef(
 
   var markers = [];
   var circles = [];
+  var polylines = [];
   var userMarker = null;
   var showUserLoc = false;
 
@@ -387,8 +416,10 @@ const WebMapView = forwardRef(
       // Clear existing
       markers.forEach(function(m) { map.removeLayer(m); });
       circles.forEach(function(c) { map.removeLayer(c); });
+      polylines.forEach(function(p) { map.removeLayer(p); });
       markers = [];
       circles = [];
+      polylines = [];
 
       showUserLoc = event.data.showUserLocation;
 
@@ -449,6 +480,18 @@ const WebMapView = forwardRef(
         circles.push(circle);
       });
 
+      // Add polylines (rutt-linjer mellan kontroller)
+      (event.data.polylines || []).forEach(function(p) {
+        var opts = {
+          color: p.strokeColor,
+          weight: p.strokeWidth,
+          opacity: 0.7,
+        };
+        if (p.dashArray) opts.dashArray = p.dashArray;
+        var poly = L.polyline(p.coords, opts).addTo(map);
+        polylines.push(poly);
+      });
+
       // User location
       if (showUserLoc && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(pos) {
@@ -506,23 +549,30 @@ function WebCircle(props: WebCircleProps) {
   return null;
 }
 
+function WebPolyline(props: WebPolylineProps) {
+  return null;
+}
+
 // ==================== EXPORTS ====================
 
 let MapView: any;
 let Marker: any;
 let Circle: any;
+let Polyline: any;
 
 if (Platform.OS === "web") {
   MapView = WebMapView;
   Marker = WebMarker;
   Circle = WebCircle;
+  Polyline = WebPolyline;
 } else {
   MapView = NativeMapView;
   Marker = NativeMarker;
   Circle = NativeCircle;
+  Polyline = NativePolyline;
 }
 
-export { Marker, Circle };
+export { Marker, Circle, Polyline };
 export default MapView;
 
 const styles = StyleSheet.create({

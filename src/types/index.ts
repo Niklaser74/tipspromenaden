@@ -106,6 +106,14 @@ export interface Walk {
     latitude: number;
     longitude: number;
   };
+  /**
+   * Aktivitetstyp — styr trigger-tröskel, kartzoom och badge i UI.
+   * `"walk"` (default när fältet saknas, bakåtkompatibelt): 15 m
+   * trigger, närmre kartzoom, ingen badge. `"bike"`: 50 m trigger,
+   * större zoom, "närmar dig"-vibration vid 100 m, 🚲-badge på
+   * walk-kort. Skaparen väljer vid skapande/redigering.
+   */
+  activityType?: "walk" | "bike";
 }
 
 /**

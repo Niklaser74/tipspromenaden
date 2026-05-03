@@ -109,6 +109,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-03 (sen kväll) — Cykelläge
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Nytt cykelläge när du skapar en promenad! Välj "🚲 Cykel" i Skapa-vyn så får promenaden 50 m trigger-zon (istället för 15 m), bredare kartzoom och en förvarning ~100 m innan kontrollen så du hinner stanna.
+• Rutt-linje på kartan visar nu ordningen mellan kontrollpunkterna under promenaden — gäller både gång och cykel.
+• 🚲-badge på cykel-promenader i listor och bibliotek.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New bike mode when creating a walk! Pick "🚲 Bike" in the Create view and the walk gets a 50 m trigger zone (vs 15 m), wider map zoom, and a heads-up vibration ~100 m before each checkpoint so you can slow down in time.
+• Route line on the map now shows the order between checkpoints during the walk — for both walking and biking.
+• 🚲 badge on bike walks in lists and library.
+```
+
+---
+
 ### OTA 2026-05-03 (kväll) — Hjälpsida + länkar till hemsidan
 
 **Svenska (sv-SE):**

@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import * as Speech from "expo-speech";
 import { useKeepAwake } from "expo-keep-awake";
-import MapView, { Marker, Circle } from "../components/MapViewWeb";
+import MapView, { Marker, Circle, Polyline } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
 import { useMapType } from "../hooks/useMapType";
 import { useRoute, useNavigation } from "@react-navigation/native";
@@ -28,8 +28,7 @@ import { Walk, Question, Answer, Participant, Session } from "../types";
 import { generateId } from "../utils/qr";
 import { usePedometer } from "../hooks/usePedometer";
 import { useTranslation } from "../i18n";
-
-const TRIGGER_DISTANCE_METERS = 15;
+import { getActivityConfig } from "../constants/activityType";
 
 export default function ActiveWalkScreen() {
   // Skärmen ska aldrig släckas under aktiv promenad. Tre skäl:
@@ -106,6 +105,18 @@ export default function ActiveWalkScreen() {
   const modalVisibleRef = useRef(modalVisible);
   modalVisibleRef.current = modalVisible;
 
+  // Aktivitetstyp-konfiguration — styr trigger-tröskel, approaching-distans
+  // och initial kartzoom. Walk = snäv tröskel (15 m), bike = bredare (50 m)
+  // plus förvarning vid 100 m. Stabilt under hela promenaden.
+  const activityConfig = getActivityConfig(walk);
+  const TRIGGER_DISTANCE_METERS = activityConfig.triggerDistanceMeters;
+  const APPROACHING_DISTANCE_METERS = activityConfig.approachingDistanceMeters;
+
+  // Spårar vilka kontrollpunkter vi redan har "närmar dig"-vibrerat för,
+  // så att vi inte vibrerar varje GPS-tick när användaren befinner sig
+  // i approaching-zonen. Reset:as när kontrollen blir besvarad.
+  const approachingNotifiedRef = useRef<Set<string>>(new Set());
+
   // Skapa eller anslut till session vid start
   useEffect(() => {
     (async () => {
@@ -175,6 +186,28 @@ export default function ActiveWalkScreen() {
         if (dist < minDist) {
           minDist = dist;
           closest = question;
+        }
+
+        // "Närmar dig"-förvarning för bike-mode (för walk är trigger ==
+        // approaching så vi hoppar över). En kort enpuls första gången
+        // användaren passerar approaching-tröskeln för en kontroll. Hjälper
+        // cyklist att börja sänka farten så de inte susar förbi triggern.
+        if (
+          APPROACHING_DISTANCE_METERS > TRIGGER_DISTANCE_METERS &&
+          dist <= APPROACHING_DISTANCE_METERS &&
+          dist > TRIGGER_DISTANCE_METERS &&
+          !approachingNotifiedRef.current.has(question.id) &&
+          !modalVisibleRef.current
+        ) {
+          approachingNotifiedRef.current.add(question.id);
+          if (Platform.OS !== "web") {
+            try {
+              // En kort puls — distinkt från trigger-mönstret (3 pulsar).
+              Vibration.vibrate(180);
+            } catch {
+              // Saknad permission eller hårdvara — tyst.
+            }
+          }
         }
 
         if (dist <= TRIGGER_DISTANCE_METERS && !modalVisibleRef.current) {
@@ -392,12 +425,15 @@ export default function ActiveWalkScreen() {
   const total = walk.questions.length;
 
   const getInitialRegion = () => {
+    // Bike-walks zoomar ut mer som default — rutterna är längre och
+    // cyklisten behöver mer kontext om kommande kontroller.
+    const delta = activityConfig.initialLatitudeDelta;
     if (userLat && userLng) {
       return {
         latitude: userLat,
         longitude: userLng,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
+        latitudeDelta: delta,
+        longitudeDelta: delta,
       };
     }
     if (walk.questions.length > 0) {
@@ -405,8 +441,8 @@ export default function ActiveWalkScreen() {
       return {
         latitude: q.coordinate.latitude,
         longitude: q.coordinate.longitude,
-        latitudeDelta: 0.005,
-        longitudeDelta: 0.005,
+        latitudeDelta: delta,
+        longitudeDelta: delta,
       };
     }
     return undefined;
@@ -425,6 +461,19 @@ export default function ActiveWalkScreen() {
           Platform.OS !== "web" ? handleRegionChange : undefined
         }
       >
+        {/* Rutt-linje mellan kontrollpunkter — hjälper deltagaren se
+            sammanhanget och nästa kontroll. Bara om vi har ≥ 2 frågor
+            (annars finns ingen linje att rita). Streckad så den inte
+            misstas för en exakt rutt — skaparens ordning, inte
+            navigerings-rutt. */}
+        {walk.questions.length >= 2 && (
+          <Polyline
+            coordinates={walk.questions.map((q) => q.coordinate)}
+            strokeColor="rgba(27,107,53,0.6)"
+            strokeWidth={3}
+            lineDashPattern={[8, 6]}
+          />
+        )}
         {walk.questions.map((q, idx) => {
           const isDone = answeredIds.has(q.id);
           const isNearest = nearestQuestion?.id === q.id;
@@ -454,6 +503,16 @@ export default function ActiveWalkScreen() {
                   radius={TRIGGER_DISTANCE_METERS}
                   strokeColor="rgba(229,57,53,0.5)"
                   fillColor="rgba(229,57,53,0.1)"
+                />
+              )}
+              {/* Bike-mode: ytterligare ring för approaching-zonen, så
+                  cyklisten ser var "närmar dig"-pulsen utlöses. */}
+              {!isDone && APPROACHING_DISTANCE_METERS > TRIGGER_DISTANCE_METERS && (
+                <Circle
+                  center={q.coordinate}
+                  radius={APPROACHING_DISTANCE_METERS}
+                  strokeColor="rgba(232,168,56,0.4)"
+                  fillColor="rgba(232,168,56,0.05)"
                 />
               )}
             </React.Fragment>
@@ -489,7 +548,7 @@ export default function ActiveWalkScreen() {
       <View style={styles.distancePill}>
         {nearestDistance !== null && nearestQuestion ? (
           <Text style={styles.distanceText}>
-            {nearestDistance <= 30 && nearestDistance > TRIGGER_DISTANCE_METERS
+            {nearestDistance <= Math.max(30, APPROACHING_DISTANCE_METERS) && nearestDistance > TRIGGER_DISTANCE_METERS
               ? "📍 "
               : ""}
             {t("active.distanceToControl", {
@@ -499,7 +558,7 @@ export default function ActiveWalkScreen() {
                   : `${nearestDistance} m`,
               order: nearestQuestion.order,
             })}
-            {nearestDistance <= 30 && nearestDistance > TRIGGER_DISTANCE_METERS
+            {nearestDistance <= Math.max(30, APPROACHING_DISTANCE_METERS) && nearestDistance > TRIGGER_DISTANCE_METERS
               ? t("active.almostThere")
               : ""}
           </Text>

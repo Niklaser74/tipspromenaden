@@ -661,6 +661,7 @@ export default function HomeScreen() {
                       <Text style={styles.walkInfo}>
                         {flagForLanguage(item.walk.language)}
                         {flagForLanguage(item.walk.language) ? "  " : ""}
+                        {item.walk.activityType === "bike" ? "🚲  " : ""}
                         {t("home.questions", {
                           count: item.walk.questions.length,
                         })}

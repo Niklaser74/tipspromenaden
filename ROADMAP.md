@@ -1,10 +1,13 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-04-29
+> Senast uppdaterad: 2026-05-03
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
+>
+> **Aktivt just nu:** Fas 2 — cykelläge. Se sektionen "Cykelläge — pågående
+> implementation" nedan för scope och iterationer.
 
 ---
 
@@ -111,14 +114,14 @@ skill.
 
 ---
 
-### Fas 2 — Cykelläge + längre rutter (~2 veckor kod)
+### Fas 2 — Cykelläge + längre rutter — *påbörjas 2026-05-03*
 **Mål:** Stötta cykling som separat aktivitetsläge — där Tipsrundan är
 svagast och vi kan vara klart bättre.
 
-**Funktioner:**
+**Funktioner (originalplan):**
 - Aktivitetstyp som metadata: `walk` / `bike` / `run`
 - **Cykelläge-UX:**
-  - Längre tröskel för "närhet till kontrollpunkt" (200–500 m istf 3 m)
+  - Längre tröskel för "närhet till kontrollpunkt" (50–200 m istf 15 m)
   - Notifiering "närmar dig" 200 m innan
   - Större kartzoom default
   - Pausläge (vid trafikljus etc)
@@ -127,17 +130,30 @@ svagast och vi kan vara klart bättre.
   (för att kunna dela färdiga rutter direkt utan placeringssteg)
 - Linje-ritning på karta — visa rutten som polyline mellan kontrollerna
 
+Detaljerad MVP-plan finns under "Cykelläge — pågående implementation" nedan.
+
 **Success-kriterium:** Vi själva tycker det är roligare att göra en
 cykel-quiz än att gå en gång-quiz. Familjen testar och ger feedback.
 
 ---
 
-### Fas 3 — Fritt bibliotek (publika promenader)
+### Fas 3 — Fritt bibliotek (publika promenader) ✅ klart april–maj 2026
 **Mål:** Discovery — låt användare frivilligt dela sina promenader så
 andra kan hitta och köra dem. **Inget kommersiellt lager**, inga
 köp/utbetalningar/Pro-konton — bara opt-in publicering och bra
-filtrering. Detaljerad spec i sektionen "Bibliotek (publika promenader)"
-nedan.
+filtrering.
+
+**Levererat (Iteration 1 + 2):**
+- ✅ `public`, `city`, `category`, `centroid` på Walk
+- ✅ Bibliotek-flik i HomeScreen + LibraryScreen med fritext + kategori-chips
+- ✅ Förhandsgranskning av frågor (utan svarsalternativ) före nedladdning
+- ✅ V1-signaler: completion-count + avg-score
+- ✅ Iteration 2: "📍 Nära mig"-sortering med distans på varje kort
+- ✅ Rapportera-knapp för olämpligt innehåll
+- ✅ Säkerhetsdialog vid första bibliotek-körning
+
+Detaljerad spec finns kvar under "Bibliotek (publika promenader)" nedan
+för referens.
 
 **Kärna:**
 - `public?: boolean` på Walk — skaparen opt-in:ar
@@ -398,17 +414,76 @@ bredare friluft/discovery-appar för referens när vi tänker UX:
 
 ---
 
-## Nästa konkreta steg (hobby-läge, ingen press)
+## Cykelläge — pågående implementation (maj 2026)
+
+**MVP-scope (en OTA-cykel, runtime 1.4.0):**
+
+| # | Komponent | Vad |
+|---|-----------|-----|
+| 1 | `Walk`-typ | Lägg till `activityType?: "walk" \| "bike"` (default `"walk"` om saknas — bakåtkompatibelt) |
+| 2 | CreateWalkScreen | Picker för aktivitetstyp i samma stil som event/publish-toggles |
+| 3 | ActiveWalkScreen | Större trigger-tröskel för bike (50 m default mot 15 m för walk) |
+| 4 | ActiveWalkScreen | "Närmar dig"-vibration när inom 2× tröskeln (~100 m) — en gång per kontroll |
+| 5 | MapView | Större initial zoom för bike-walks (latitudeDelta 0.02 mot 0.005) |
+| 6 | MapView | Polyline mellan kontrollpunkter — gäller både walk + bike, hjälper också för walk |
+| 7 | Walk-kort | 🚲-badge bredvid språkflagga på bike-walks (HomeScreen + LibraryScreen) |
+| 8 | i18n | Nya nycklar i alla 8 språk (`activityTypeLabel`, `activityTypeWalk`, `activityTypeBike`, `approachingControl`) |
+
+**Skip för MVP, eventuellt iteration 2:**
+- Pausläge (vid trafikljus) — trickigt UX, vänta tills familjen testat
+- `.tipswalk`-filformat med både frågor OCH koordinater — separat arbete
+- Validering av rutt-längd (5–30 km för bike) — onödigt, låt skaparen bestämma
+- Filter "bara cykel-walks" i biblioteket — lägg till om det blir många bike-walks
+- `"run"` som aktivitetstyp — samma UX som walk, ingen vinst i att lägga till än
+
+**Success-kriterium MVP:** Vi kan skapa en bike-walk i appen, GPS låser
+upp frågor på 50 m istället för 15 m, kartan zoomar ut, polylinjen visar
+rutten, och badgen syns på listan. Sen testar vi själva på cykel.
+
+---
+
+## Levererat sedan roadmap-skrivningen (april–maj 2026)
+
+Följande är inte beskrivet i fasplanen ovan men har levererats:
+
+- ✅ **App översatt till 8 språk** (sv/en/de/no/da/fi/fr/es) — i18n-system
+  med fallback till svenska, system-språk som default
+- ✅ **Hjälpsida på hemsidan** (`/sa-funkar-det`) bilingual sv/en — guide
+  för deltagare och skapare; länkad från Inställningar → Om appen
+- ✅ **Länkar i appen till hemsidan** — Hemsida, Så funkar det, Skapa på
+  webben i Settings → Om appen
+- ✅ **GDPR/ToS-pass** — integritetspolicy, användarvillkor, "Radera mina
+  data" för anonyma användare, säkerhetsdialog för bibliotek
+- ✅ **Säkerhetspass** — walkId-validering, sessions-completion-skydd,
+  npm audit fixes, e-post-prefix-läckage adresserat
+- ✅ **Code review-pass** — walkCentroid utbruten, WALK_CATEGORIES delad
+  konstant, distance pre-compute, getPublicWalks limit
+- ✅ **Tag-system** för promenader — `manageTags`-skärm, taggar per walk,
+  filtrering på Mina-fliken
+- ✅ **Hemsida på Cloudflare Pages** med deep-links via `/walk/<id>`
+- ✅ **Score-card-PNG-delning** — Leaderboard + Results har snyggt
+  delningskort med QR-kod
+- ✅ **Trigger-tröskel justerad** från ~3 m till 15 m efter fält-tester
+
+---
+
+## Nästa konkreta steg (efter cykelläget)
 
 Plocka det som passar humöret. Förslag i grov ordning:
 
-1. **Cykelläge** (Fas 2) — den största luckan vs Tipsrundan, kul att bygga
-2. **Score-card-PNG-delning** (post-V1) — viral spridning + snyggt visuellt
-3. **Bibliotek Iteration 1** — när det finns 5–10 promenader att fylla med
-4. **Onboarding-flöde** (post-V1) — 3 skärmar första gången
-5. **Ljudeffekter + haptics** (post-V1) — "wow"-känsla utan kod-tunghet
-6. **Mörkt tema** (post-V1) — `useColorScheme()` är redan delvis stödd
-7. **App Check** (M5) — gör innan biblioteket öppnas
+1. **Cykelläge** (Fas 2) — *aktivt nu*
+2. **App Check** — borde gjorts innan biblioteket öppnades, gör det innan
+   publik release på Play
+3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
+   Universal Links
+4. **Onboarding-flöde** — 3 skärmar första gången appen öppnas
+5. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel
+6. **Mörkt tema** — respektera `useColorScheme()`
+7. **Accessibility-pass** — VoiceOver/TalkBack-labels
+8. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
+   V1-signaler känns för svaga)
+9. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
+   delning av färdiga rutter (Fas 2 fortsättning, koppla till cykel-rutter)
 
 ---
 

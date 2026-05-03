@@ -467,7 +467,9 @@ export default function LibraryScreen() {
           {walksToRender.map(({ walk, placedCount, distance }) => (
             <View key={walk.id} style={styles.card}>
               <Text style={styles.cardTitle}>
-                {flagForLanguage(walk.language)} {walk.title}
+                {flagForLanguage(walk.language)}
+                {walk.activityType === "bike" ? " 🚲" : ""}{" "}
+                {walk.title}
               </Text>
               {walk.description ? (
                 <Text style={styles.cardDescription}>{walk.description}</Text>
@@ -479,7 +481,9 @@ export default function LibraryScreen() {
                   : t("library.checkpoints")}
                 {walk.city ? ` · 📍 ${walk.city}` : ""}
                 {walk.category ? ` · ${t(`category.${walk.category}`)}` : ""}
-                {distance !== null ? ` · 🚶 ${formatDistance(distance)}` : ""}
+                {distance !== null
+                  ? ` · ${walk.activityType === "bike" ? "🚲" : "🚶"} ${formatDistance(distance)}`
+                  : ""}
               </Text>
               <View style={styles.actionsRow}>
                 <TouchableOpacity
