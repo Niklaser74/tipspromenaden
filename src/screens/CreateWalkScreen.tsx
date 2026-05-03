@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import MapView, { Marker, Polyline } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
+import MapAttribution from "../components/MapAttribution";
 import { useMapType } from "../hooks/useMapType";
 import { DateField } from "../components/DateField";
 import { parseIsoDate } from "../utils/date";
@@ -1004,6 +1005,7 @@ export default function CreateWalkScreen() {
         onPress={cycleMapType}
         style={styles.mapTypeToggle}
       />
+      <MapAttribution mapType={mapType} />
 
       {/* Floating info pill — visar olika text i batteriläge */}
       {batteryQueue.length > 0 ? (

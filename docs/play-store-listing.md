@@ -109,6 +109,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-03 (natt) — OSM-tiles på native = stigar i appen
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Karta i appen visar nu samma stigar som webbsidan! Vi byter från Google/Apple Maps till OpenStreetMap-tiles ("standard") och OpenTopoMap ("terräng") på native — bra för cykel- och vandringsrutter där små stigar är viktiga.
+• Hybrid (satellit) är oförändrad.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The map in the app now shows the same trails as the website! We switched from Google/Apple Maps to OpenStreetMap tiles ("standard") and OpenTopoMap ("terrain") on native — great for cycling and hiking routes where small trails matter.
+• Hybrid (satellite) view is unchanged.
+```
+
+---
+
 ### OTA 2026-05-03 (sen kväll) — Cykelläge
 
 **Svenska (sv-SE):**

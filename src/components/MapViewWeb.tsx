@@ -11,17 +11,19 @@ import { View, Text, StyleSheet, Platform } from "react-native";
 // react-native-maps stöds inte på web.
 // På web använder vi Leaflet via en iframe med inline HTML.
 
-let NativeMapView: any;
+let NativeMapViewRaw: any;
 let NativeMarker: any;
 let NativeCircle: any;
 let NativePolyline: any;
+let NativeUrlTile: any;
 
 if (Platform.OS !== "web") {
   const Maps = require("react-native-maps");
-  NativeMapView = Maps.default;
+  NativeMapViewRaw = Maps.default;
   NativeMarker = Maps.Marker;
   NativeCircle = Maps.Circle;
   NativePolyline = Maps.Polyline;
+  NativeUrlTile = Maps.UrlTile;
 }
 
 // ==================== WEB IMPLEMENTATION ====================
@@ -552,6 +554,61 @@ function WebCircle(props: WebCircleProps) {
 function WebPolyline(props: WebPolylineProps) {
   return null;
 }
+
+// ==================== NATIVE TILE OVERLAY ====================
+
+/**
+ * Tunn wrapper kring react-native-maps `MapView` som lägger på en
+ * `UrlTile`-overlay baserat på vald karttyp. Ger paritet med webbsidan
+ * som använder OpenStreetMap för "standard" och OpenTopoMap för
+ * "terrain" — båda crowdsourcade och visar mycket fler stigar/spår än
+ * Google/Apple-baskartan, särskilt utanför städer.
+ *
+ * För `hybrid` använder vi Apple/Google-satellit eftersom Esri-satelliten
+ * (som webben kör) ser sämre ut i mobil-zoom.
+ *
+ * Attribution renderas separat av anroparen via `<MapAttribution>` —
+ * krav från OSM:s "Tile Usage Policy".
+ */
+const NativeMapView = Platform.OS !== "web"
+  ? React.forwardRef((props: any, ref: any) => {
+      const { mapType = "standard", children, ...rest } = props;
+      const tile =
+        mapType === "standard"
+          ? {
+              url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+              maxZ: 19,
+            }
+          : mapType === "terrain"
+          ? {
+              url: "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
+              maxZ: 17,
+            }
+          : null;
+
+      // För hybrid: använd Apple/Google-satellit som baskarta, ingen overlay.
+      // För standard/terrain: sätt baskartan till "none" så vår tile inte
+      // ligger ovanpå dubbelrenderad Google-data, och rita UrlTile.
+      // (mapType="none" stöds av react-native-maps på Android. På iOS
+      // ignoreras värdet — då täcker UrlTile bara baskartan, vilket är
+      // ofarligt men kan blinka under laddning.)
+      const underlyingType = tile ? "none" : "hybrid";
+
+      return (
+        <NativeMapViewRaw ref={ref} mapType={underlyingType} {...rest}>
+          {tile && (
+            <NativeUrlTile
+              urlTemplate={tile.url}
+              maximumZ={tile.maxZ}
+              flipY={false}
+              zIndex={-1}
+            />
+          )}
+          {children}
+        </NativeMapViewRaw>
+      );
+    })
+  : null;
 
 // ==================== EXPORTS ====================
 

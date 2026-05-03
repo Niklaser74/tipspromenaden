@@ -14,6 +14,7 @@ import * as Speech from "expo-speech";
 import { useKeepAwake } from "expo-keep-awake";
 import MapView, { Marker, Circle, Polyline } from "../components/MapViewWeb";
 import MapTypeToggle from "../components/MapTypeToggle";
+import MapAttribution from "../components/MapAttribution";
 import { useMapType } from "../hooks/useMapType";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { watchPosition, getDistanceInMeters, AccuracyTier } from "../utils/location";
@@ -543,6 +544,7 @@ export default function ActiveWalkScreen() {
         onPress={cycleMapType}
         style={styles.mapTypeToggle}
       />
+      <MapAttribution mapType={mapType} />
 
       {/* Distance indicator - floating pill */}
       <View style={styles.distancePill}>
