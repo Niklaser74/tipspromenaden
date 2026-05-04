@@ -6,10 +6,14 @@
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
-> **Aktivt just nu:** ingenting — ingen kod påbörjad. Recent leveranser:
-> cykelläge, OpenTopoMap-stigar, "Mina paket"-flik, App Check Stage 1 (web),
-> Google Maps på webben, onboarding-flöde. Väntar på cykeltest-feedback
-> och nästa beslut. Förslag på nästa drag i "Nästa konkreta steg"-listan.
+> **Aktivt just nu:** ingenting — ingen kod påbörjad. Senaste arbete (2026-05-04):
+> säkerhetspass 2 (CSP/headers, walk-redirect-regex, SRI, QR-https, console-strip,
+> GCP budget alert) + bibliotek-hang fix (useEffect-deps + 15s failsafe).
+> Tidigare leveranser: cykelläge, OpenTopoMap-stigar, "Mina paket"-flik, App
+> Check Stage 1 (web), Google Maps på webben, onboarding-flöde. Väntar på
+> cykeltest-feedback och nästa beslut. iOS-bygge **övervägs** (~1 100 kr/år
+> löpande Apple Developer-avgift — ej beslutat). Förslag på nästa drag i
+> "Nästa konkreta steg"-listan.
 
 ---
 
@@ -483,8 +487,25 @@ Följande är inte beskrivet i fasplanen ovan men har levererats:
   webben i Settings → Om appen
 - ✅ **GDPR/ToS-pass** — integritetspolicy, användarvillkor, "Radera mina
   data" för anonyma användare, säkerhetsdialog för bibliotek
-- ✅ **Säkerhetspass** — walkId-validering, sessions-completion-skydd,
+- ✅ **Säkerhetspass 1** (2026-04-30) — walkId-validering, sessions-completion-skydd,
   npm audit fixes, e-post-prefix-läckage adresserat
+- ✅ **Säkerhetspass 2** (2026-05-04) — full review av båda repon (web + app):
+  - Web: HTTP-headers via `public/_headers` på Cloudflare Pages (CSP,
+    X-Frame-Options DENY, nosniff, Referrer-Policy, Permissions-Policy),
+    striktare regex på `/walk/<id>` (samma som 404.astro), SRI-pin på
+    unpkg-leaflet-pluginen, `.gitignore` `.env*` wildcard,
+    `rel="noopener noreferrer"` på externa länkar
+  - App: `http://`-prefix bort ur QR/paste-parsern (bara `https://`
+    accepteras nu), `babel-plugin-transform-remove-console` strippar
+    console-anrop från produktions-bundeln
+  - GCP: månadsbudget-alert aktiverad på `tipspromenaden-491207`
+    (50/90/100% trösklar) som mitigation tills App Check Stage 2 är på
+- ✅ **Bibliotek-hang fix** (2026-05-04) — Frågebatterier-fliken kunde
+  fastna i evig laddning. Två lager: `tipspackLibrary.fetchUploaded`
+  parallelliserade `getDownloadURL` med `Promise.allSettled` + per-källa-
+  timeouts, och `LibraryScreen.useEffect` deps korrigerade (`[t]` ledde
+  till loop som avbröt fetch via cancelled-flagga). Hård 15 s failsafe
+  som tvingar `packs/walks` från `null` till `[]` om något skulle hänga.
 - ✅ **Code review-pass** — walkCentroid utbruten, WALK_CATEGORIES delad
   konstant, distance pre-compute, getPublicWalks limit
 - ✅ **Tag-system** för promenader — `manageTags`-skärm, taggar per walk,
@@ -519,6 +540,19 @@ Plocka det som passar humöret. Förslag i grov ordning:
 10. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
     spaces och &-tecken i slug (`djur & natur`) → fula procent-encodade
     URL:er. Sanitera till hyphen-form vid upload på webben.
+11. **Cloud Function för score-validering** — flytta poäng-uträkning
+    serverside så klient-inflaterad score inte går igenom. Kvarvarande
+    accepterad svaghet enligt sec-review 2026-05-04. Kräver Firebase
+    Functions-setup (Blaze-plan, men gratis-tier räcker för hobby-volym).
+12. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
+    som finns (`GHSA-j687-52p2-xcff`, `define:vars` XSS) påverkar oss
+    inte praktiskt eftersom vi inte använder `define:vars`. Bumpen
+    kostar 1–3 h och kan bryta Cloudflare Pages-byggen. Gör när Astro 6
+    varit ute ≥1 månad och alla `@astrojs/*`-integrations är v6-klara,
+    eller när vi ändå rör build-pipelinen.
+13. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
+    är på och vi sett Monitor-läget gå rent ett tag, flippa både
+    Firestore och Storage från Monitor till Enforce i Firebase Console.
 
 ---
 
