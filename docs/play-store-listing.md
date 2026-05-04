@@ -109,6 +109,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (V) — "Mina paket" i biblioteket
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Ny flik "📦 Mina paket" i Bibliotek-vyn (synlig när du är inloggad). Här hittar du alla tipspacks du laddat upp via webben — både publika och hemliga. Du kan dela länk, växla mellan publik/hemlig och radera direkt från appen.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New "📦 My packs" tab in the Library view (visible when signed in). Here you'll find all tipspacks you uploaded via the web — both public and secret. Share links, toggle public/secret and delete right from the app.
+```
+
+---
+
 ### OTA 2026-05-04 (IV) — Fix: avstavad "Aktivitetstyp"-etikett
 
 **Svenska (sv-SE):**

@@ -15,7 +15,7 @@
  *     (samma flöde som deep-link tipspromenaden://tipspack/<slug>)
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -26,17 +26,26 @@ import {
   StyleSheet,
   Alert,
   Linking,
+  Share,
+  Platform,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "../i18n";
 import { LANGUAGES, flagForLanguage } from "../constants/languages";
 import {
   getLibraryTipspacks,
   fetchTipspackContent,
+  getMyTipspacks,
+  getTipspackDownloadUrl,
+  setTipspackPublic,
+  deleteMyTipspack,
   type LibraryTipspack,
+  type MyTipspack,
 } from "../services/tipspackLibrary";
 import { getPublicWalks } from "../services/firestore";
+import { useAuth } from "../context/AuthContext";
+import { WEB_HOST } from "../constants/deepLinks";
 import { getCurrentLocation, getDistanceInMeters } from "../utils/location";
 import { WALK_CATEGORIES } from "../constants/categories";
 import { Walk } from "../types";
@@ -44,10 +53,17 @@ import { Walk } from "../types";
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const [tab, setTab] = useState<"tipspack" | "walks">("tipspack");
+  const { user } = useAuth();
+  const [tab, setTab] = useState<"tipspack" | "walks" | "mine">("tipspack");
 
   const [packs, setPacks] = useState<LibraryTipspack[] | null>(null);
   const [walks, setWalks] = useState<Walk[] | null>(null);
+  // "Mina paket" — bara meningsfullt för inloggade (icke-anonyma)
+  // användare som har laddat upp egna pack via webben. Anonyma och
+  // utloggade ser inte fliken.
+  const [myPacks, setMyPacks] = useState<MyTipspack[] | null>(null);
+  const [myPacksBusy, setMyPacksBusy] = useState<string | null>(null);
+  const canSeeMine = !!user && !user.isAnonymous;
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLanguages, setSelectedLanguages] = useState<Set<string>>(new Set());
@@ -83,6 +99,26 @@ export default function LibraryScreen() {
       cancelled = true;
     };
   }, [t]);
+
+  // Hämta mina pack vid mount + varje gång skärmen får fokus, så att
+  // ändringar (t.ex. nyuppladdat via webben) syns när användaren kommer
+  // tillbaka. Bara om vi är inloggad — annars onödigt anrop.
+  const reloadMyPacks = useCallback(async () => {
+    if (!user || user.isAnonymous) return;
+    try {
+      const list = await getMyTipspacks(user.uid);
+      setMyPacks(list);
+    } catch (e: any) {
+      console.warn("getMyTipspacks failed:", e);
+      setMyPacks([]);
+    }
+  }, [user]);
+
+  useFocusEffect(
+    useCallback(() => {
+      reloadMyPacks();
+    }, [reloadMyPacks])
+  );
 
   // Vilka språk-flaggor finns att visa som filter? (bara de som faktiskt
   // har minst ett pack — undvik att visa filter för språk som inte finns)
@@ -267,6 +303,82 @@ export default function LibraryScreen() {
     return `${Math.round(m / 1000)} km`;
   }
 
+  // ─── "Mina paket" handlers ────────────────────────────────────────
+  // App-länk = `tipspromenaden://tipspack/<slug>` — fungerar både för
+  // publika och hemliga pack eftersom Storage-rules tillåter public read
+  // på tipspack/-prefixet. Vem som har länken kan ladda paketet.
+  // Web-fallback: `https://tipspromenaden.app/tipspack/<slug>` används
+  // som universal link för enheter där appen inte är installerad.
+  async function shareMyPack(pack: MyTipspack) {
+    const url = `https://${WEB_HOST}/tipspack/${pack.slug}`;
+    try {
+      await Share.share({
+        message: t("library.mineShareMessage", { name: pack.name, url }),
+        title: pack.name,
+        url, // iOS lägger till länken som separat fält
+      });
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+    }
+  }
+
+  async function shareMyPackDirectFile(pack: MyTipspack) {
+    setMyPacksBusy("dl:" + pack.slug);
+    try {
+      const url = await getTipspackDownloadUrl(pack.slug);
+      await Share.share({ message: url, url, title: pack.name });
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+    } finally {
+      setMyPacksBusy(null);
+    }
+  }
+
+  async function toggleMyPackPublic(pack: MyTipspack) {
+    setMyPacksBusy("toggle:" + pack.slug);
+    try {
+      await setTipspackPublic(pack.slug, !pack.isPublic);
+      setMyPacks((curr) =>
+        curr
+          ? curr.map((p) =>
+              p.slug === pack.slug ? { ...p, isPublic: !p.isPublic } : p
+            )
+          : curr
+      );
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+    } finally {
+      setMyPacksBusy(null);
+    }
+  }
+
+  function confirmDeleteMyPack(pack: MyTipspack) {
+    Alert.alert(
+      t("library.mineDeleteTitle"),
+      t("library.mineDeleteMessage", { name: pack.name }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            setMyPacksBusy("del:" + pack.slug);
+            try {
+              await deleteMyTipspack(pack.slug);
+              setMyPacks((curr) =>
+                curr ? curr.filter((p) => p.slug !== pack.slug) : curr
+              );
+            } catch (e: any) {
+              Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+            } finally {
+              setMyPacksBusy(null);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   async function expandPack(pack: LibraryTipspack) {
     if (expandedSlug === pack.slug) {
       setExpandedSlug(null);
@@ -339,6 +451,25 @@ export default function LibraryScreen() {
             🚶 {t("library.tabWalks")}
           </Text>
         </TouchableOpacity>
+        {canSeeMine && (
+          <TouchableOpacity
+            style={[
+              styles.segmentedItem,
+              tab === "mine" && styles.segmentedItemActive,
+            ]}
+            onPress={() => setTab("mine")}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.segmentedText,
+                tab === "mine" && styles.segmentedTextActive,
+              ]}
+            >
+              📦 {t("library.tabMine")}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.searchRow}>
@@ -587,6 +718,107 @@ export default function LibraryScreen() {
         })}
       </ScrollView>
       )}
+
+      {tab === "mine" && canSeeMine && (
+        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+          {myPacks === null && (
+            <ActivityIndicator size="large" color="#1B6B35" style={{ marginTop: 40 }} />
+          )}
+          {myPacks !== null && myPacks.length === 0 && (
+            <View style={{ paddingHorizontal: 16, paddingTop: 24 }}>
+              <Text style={styles.empty}>{t("library.mineEmpty")}</Text>
+              <Text style={styles.mineEmptyHint}>{t("library.mineEmptyHint")}</Text>
+            </View>
+          )}
+          {myPacks !== null && myPacks.length > 0 && (
+            <Text style={styles.mineHeader}>{t("library.mineSubtitle")}</Text>
+          )}
+          {myPacks?.map((p) => {
+            const busyToggle = myPacksBusy === "toggle:" + p.slug;
+            const busyDel = myPacksBusy === "del:" + p.slug;
+            const busyDl = myPacksBusy === "dl:" + p.slug;
+            return (
+              <View key={p.slug} style={styles.card}>
+                <View style={styles.mineRowTop}>
+                  <Text style={[styles.cardTitle, { flex: 1 }]} numberOfLines={2}>
+                    {flagForLanguage(p.language)} {p.name}
+                  </Text>
+                  <View
+                    style={[
+                      styles.minePill,
+                      p.isPublic ? styles.minePillPublic : styles.minePillSecret,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.minePillText,
+                        p.isPublic ? styles.minePillTextPublic : styles.minePillTextSecret,
+                      ]}
+                    >
+                      {p.isPublic ? `🌐 ${t("library.minePublic")}` : `🔗 ${t("library.mineSecret")}`}
+                    </Text>
+                  </View>
+                </View>
+                {p.description ? (
+                  <Text style={styles.cardDescription}>{p.description}</Text>
+                ) : null}
+                <Text style={styles.cardMeta}>
+                  {p.questionCount}{" "}
+                  {p.questionCount === 1 ? t("library.question") : t("library.questions")}
+                  {" · "}
+                  <Text style={styles.mineSlug}>slug: {p.slug}</Text>
+                </Text>
+                <View style={styles.mineActionsRow}>
+                  <TouchableOpacity
+                    style={[styles.useButton, { flex: 1 }]}
+                    onPress={() => shareMyPack(p)}
+                    disabled={!!myPacksBusy}
+                  >
+                    <Text style={styles.useButtonText}>📲 {t("library.mineShareLink")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.previewButton}
+                    onPress={() => shareMyPackDirectFile(p)}
+                    disabled={!!myPacksBusy}
+                  >
+                    {busyDl ? (
+                      <ActivityIndicator size="small" color="#1B6B35" />
+                    ) : (
+                      <Text style={styles.previewButtonText}>📥</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.mineActionsRow}>
+                  <TouchableOpacity
+                    style={styles.mineSecondaryButton}
+                    onPress={() => toggleMyPackPublic(p)}
+                    disabled={!!myPacksBusy}
+                  >
+                    {busyToggle ? (
+                      <ActivityIndicator size="small" color="#4A5E4C" />
+                    ) : (
+                      <Text style={styles.mineSecondaryText}>
+                        {p.isPublic ? t("library.mineMakeSecret") : t("library.mineMakePublic")}
+                      </Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.mineDangerButton}
+                    onPress={() => confirmDeleteMyPack(p)}
+                    disabled={!!myPacksBusy}
+                  >
+                    {busyDel ? (
+                      <ActivityIndicator size="small" color="#B33A3A" />
+                    ) : (
+                      <Text style={styles.mineDangerText}>{t("common.delete")}</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -747,6 +979,87 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#F5F0E8",
     fontWeight: "700",
+  },
+
+  // ─── Mina paket ──────────────────────────────────────────────────
+  mineHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    fontSize: 13,
+    color: "#8A9A8D",
+    fontStyle: "italic",
+  },
+  mineEmptyHint: {
+    marginTop: 8,
+    fontSize: 13,
+    color: "#8A9A8D",
+    lineHeight: 18,
+  },
+  mineRowTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  minePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+  },
+  minePillPublic: {
+    backgroundColor: "#E0F0E5",
+  },
+  minePillSecret: {
+    backgroundColor: "#FCE8D2",
+  },
+  minePillText: {
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  minePillTextPublic: {
+    color: "#1B6B35",
+  },
+  minePillTextSecret: {
+    color: "#A05A1F",
+  },
+  mineSlug: {
+    fontFamily: Platform.select({ ios: "Menlo", android: "monospace", web: "monospace" }),
+    fontSize: 12,
+    color: "#8A9A8D",
+  },
+  mineActionsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 10,
+  },
+  mineSecondaryButton: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    alignItems: "center",
+    backgroundColor: "#FAF8F2",
+  },
+  mineSecondaryText: {
+    fontSize: 13,
+    color: "#4A5E4C",
+    fontWeight: "500",
+  },
+  mineDangerButton: {
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#F0D6D6",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  mineDangerText: {
+    fontSize: 13,
+    color: "#B33A3A",
+    fontWeight: "500",
   },
   preview: {
     marginTop: 14,

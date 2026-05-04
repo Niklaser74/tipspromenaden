@@ -20,11 +20,15 @@
 
 import {
   collection,
+  doc,
+  getDoc,
   getDocs,
   query,
+  setDoc,
   where,
+  deleteDoc,
 } from "firebase/firestore";
-import { ref, getDownloadURL } from "firebase/storage";
+import { ref, getDownloadURL, deleteObject } from "firebase/storage";
 import { db, storage } from "../config/firebase";
 import { WEB_HOST, TIPSPACK_PATH } from "../constants/deepLinks";
 
@@ -124,6 +128,62 @@ export async function getLibraryTipspacks(): Promise<LibraryTipspack[]> {
     }
   }
   return merged;
+}
+
+/**
+ * Tipspack-metadata som ligger i Firestore. Speglar webbens
+ * `lib/tipspackLibrary.ts` `TipspackMeta`. App-sidan behöver detta för
+ * "Mina paket"-vyn där vi listar både publika och hemliga pack ägda av
+ * den inloggade användaren.
+ */
+export interface MyTipspack {
+  slug: string;
+  ownerUid: string;
+  ownerName?: string;
+  name: string;
+  description?: string;
+  author?: string;
+  language?: string;
+  questionCount: number;
+  fileSizeBytes: number;
+  isPublic: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * Hämtar alla tipspacks ägda av en specifik uid. Inkluderar både
+ * `isPublic: true` (synliga i biblioteket) och `false` (hemliga,
+ * delas via länk). Sorteras klient-side på createdAt desc.
+ */
+export async function getMyTipspacks(uid: string): Promise<MyTipspack[]> {
+  const q = query(collection(db, "tipspacks"), where("ownerUid", "==", uid));
+  const snap = await getDocs(q);
+  const list = snap.docs.map((d) => d.data() as MyTipspack);
+  list.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+  return list;
+}
+
+/** Hämta direkt download-URL för en tipspack (signed Firebase Storage URL). */
+export async function getTipspackDownloadUrl(slug: string): Promise<string> {
+  return getDownloadURL(ref(storage, `tipspack/${slug}`));
+}
+
+/** Toggla isPublic på ett tipspack. Bara ägaren får göra detta (Firestore-rules). */
+export async function setTipspackPublic(slug: string, isPublic: boolean): Promise<void> {
+  const docRef = doc(db, "tipspacks", slug);
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) throw new Error("Pack hittades inte");
+  const current = snap.data() as MyTipspack;
+  await setDoc(docRef, { ...current, isPublic, updatedAt: Date.now() });
+}
+
+/** Radera tipspack — både Firestore-doc och Storage-fil. */
+export async function deleteMyTipspack(slug: string): Promise<void> {
+  await deleteObject(ref(storage, `tipspack/${slug}`)).catch(() => {
+    // Filen kan saknas (om upload failade) — ignorera
+  });
+  await deleteDoc(doc(db, "tipspacks", slug));
 }
 
 /**
