@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (VII) — Fix: Frågebatterier-fliken slutade snurra
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Buggfix: Frågebatterier i Bibliotek kunde fastna i evig laddning om en uppladdad fil saknades eller nätet hängde. Nu hämtas alla nedladdnings-länkar parallellt med tids-cap och delpaket som strular hoppas tyst över.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Bug fix: the Question packs tab in Library could spin forever if an uploaded file was missing or the network stalled. Download URLs now fetch in parallel with a time-cap and any failing item is silently skipped.
+```
+
+---
+
 ### OTA 2026-05-04 (VI) — Säkerhetshärdning
 
 **Svenska (sv-SE):**

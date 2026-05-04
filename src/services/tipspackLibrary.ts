@@ -47,6 +47,27 @@ export interface LibraryTipspack {
   downloadUrl: string;
 }
 
+/**
+ * Lovar `value` om den hinner inom `ms`, annars resolvar med `fallback`.
+ * Används så att en seg/hängande nät-operation inte blockerar hela
+ * bibliotek-laddningen — spinnern måste alltid kunna sluta snurra.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(fallback), ms);
+    promise.then(
+      (v) => {
+        clearTimeout(timer);
+        resolve(v);
+      },
+      () => {
+        clearTimeout(timer);
+        resolve(fallback);
+      }
+    );
+  });
+}
+
 /** Curated-list från webben. */
 async function fetchCurated(): Promise<LibraryTipspack[]> {
   try {
@@ -70,22 +91,34 @@ async function fetchCurated(): Promise<LibraryTipspack[]> {
   }
 }
 
-/** Uploaded-list från Firestore. */
+/**
+ * Uploaded-list från Firestore.
+ *
+ * `getDownloadURL` körs parallellt med `Promise.allSettled` (inte sekventiellt
+ * i loop) så ett enskilt Storage-fel inte blockerar resten — och så att en
+ * Storage-anrop som hänger inte blockerar hela vyn.
+ */
 async function fetchUploaded(): Promise<LibraryTipspack[]> {
   try {
     const q = query(collection(db, "tipspacks"), where("isPublic", "==", true));
     const snap = await getDocs(q);
+    const docs = snap.docs.map((d) => d.data() as any);
+
+    const urlResults = await Promise.allSettled(
+      docs.map((d) =>
+        withTimeout(
+          getDownloadURL(ref(storage, `tipspack/${d.slug}`)),
+          5000,
+          ""
+        )
+      )
+    );
+
     const items: LibraryTipspack[] = [];
-    for (const docSnap of snap.docs) {
-      const d = docSnap.data() as any;
-      let downloadUrl = "";
-      try {
-        downloadUrl = await getDownloadURL(ref(storage, `tipspack/${d.slug}`));
-      } catch {
-        // Fil kan saknas — skippa då hela posten är meningslös utan
-        // download-möjlighet.
-        continue;
-      }
+    docs.forEach((d, i) => {
+      const r = urlResults[i];
+      const url = r.status === "fulfilled" ? r.value : "";
+      if (!url) return; // utan download-URL är posten meningslös
       items.push({
         slug: d.slug,
         name: d.name,
@@ -95,9 +128,9 @@ async function fetchUploaded(): Promise<LibraryTipspack[]> {
         questionCount: d.questionCount,
         fileSizeBytes: d.fileSizeBytes ?? 0,
         source: "uploaded",
-        downloadUrl,
+        downloadUrl: url,
       });
-    }
+    });
     return items;
   } catch {
     return [];
@@ -112,7 +145,13 @@ async function fetchUploaded(): Promise<LibraryTipspack[]> {
  * curated:s fördel.
  */
 export async function getLibraryTipspacks(): Promise<LibraryTipspack[]> {
-  const [curated, uploaded] = await Promise.all([fetchCurated(), fetchUploaded()]);
+  // Hård tids-cap per källa så att en hängande nät-operation inte blockerar
+  // spinnern i appen för evigt. 8 s för curated (statisk JSON, normalt ms),
+  // 12 s för uploaded (Firestore + N parallella Storage-URL:er).
+  const [curated, uploaded] = await Promise.all([
+    withTimeout(fetchCurated(), 8000, [] as LibraryTipspack[]),
+    withTimeout(fetchUploaded(), 12000, [] as LibraryTipspack[]),
+  ]);
   const seen = new Set<string>();
   const merged: LibraryTipspack[] = [];
   for (const p of curated) {
