@@ -416,6 +416,7 @@
     "activityTypeWalk": "Tur",
     "activityTypeBike": "Sykkel",
     "activityTypeBikeHint": "Større utløsersone (50 m) og bredere kartzoom — passer for lengre ruter på sykkel.",
+    "settingsBlockLabel": "Innstillinger",
     "cityLabel": "By",
     "cityPlaceholder": "F.eks. Oslo",
     "categoryLabel": "Kategori",

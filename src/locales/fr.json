@@ -416,6 +416,7 @@
     "activityTypeWalk": "Marche",
     "activityTypeBike": "Vélo",
     "activityTypeBikeHint": "Zone de déclenchement plus large (50 m) et zoom de carte plus large — adapté aux itinéraires plus longs à vélo.",
+    "settingsBlockLabel": "Paramètres",
     "cityLabel": "Ville",
     "cityPlaceholder": "Ex. Paris",
     "categoryLabel": "Catégorie",

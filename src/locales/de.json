@@ -416,6 +416,7 @@
     "activityTypeWalk": "Wandern",
     "activityTypeBike": "Fahrrad",
     "activityTypeBikeHint": "Größere Auslösezone (50 m) und weiterer Kartenzoom — passend für längere Strecken mit dem Fahrrad.",
+    "settingsBlockLabel": "Einstellungen",
     "cityLabel": "Stadt",
     "cityPlaceholder": "z. B. Berlin",
     "categoryLabel": "Kategorie",

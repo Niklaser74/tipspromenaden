@@ -416,6 +416,7 @@
     "activityTypeWalk": "Tur",
     "activityTypeBike": "Cykel",
     "activityTypeBikeHint": "Større udløserzone (50 m) og bredere kortzoom — passer til længere ruter på cykel.",
+    "settingsBlockLabel": "Indstillinger",
     "cityLabel": "By",
     "cityPlaceholder": "F.eks. København",
     "categoryLabel": "Kategori",

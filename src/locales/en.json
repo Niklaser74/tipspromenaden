@@ -416,6 +416,7 @@
     "activityTypeWalk": "Walk",
     "activityTypeBike": "Bike",
     "activityTypeBikeHint": "Larger trigger zone (50 m) and wider map zoom — suits longer routes on bike.",
+    "settingsBlockLabel": "Settings",
     "cityLabel": "City",
     "cityPlaceholder": "E.g. Visby",
     "categoryLabel": "Category",

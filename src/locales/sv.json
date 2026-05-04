@@ -416,6 +416,7 @@
     "activityTypeWalk": "Promenad",
     "activityTypeBike": "Cykel",
     "activityTypeBikeHint": "Större trigger-zon (50 m) och bredare kartzoom — passar längre rutter på cykel.",
+    "settingsBlockLabel": "Inställningar",
     "cityLabel": "Stad",
     "cityPlaceholder": "T.ex. Visby",
     "categoryLabel": "Kategori",

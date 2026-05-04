@@ -416,6 +416,7 @@
     "activityTypeWalk": "Kävely",
     "activityTypeBike": "Pyörä",
     "activityTypeBikeHint": "Suurempi laukaisuvyöhyke (50 m) ja laajempi kartan zoom — sopii pidemmille reiteille pyörällä.",
+    "settingsBlockLabel": "Asetukset",
     "cityLabel": "Kaupunki",
     "cityPlaceholder": "Esim. Helsinki",
     "categoryLabel": "Luokka",

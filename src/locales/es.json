@@ -416,6 +416,7 @@
     "activityTypeWalk": "Caminata",
     "activityTypeBike": "Bici",
     "activityTypeBikeHint": "Zona de activación más grande (50 m) y zoom de mapa más amplio — apto para rutas más largas en bici.",
+    "settingsBlockLabel": "Ajustes",
     "cityLabel": "Ciudad",
     "cityPlaceholder": "Ej. Madrid",
     "categoryLabel": "Categoría",

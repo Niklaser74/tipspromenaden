@@ -353,6 +353,16 @@ export default function CreateWalkScreen() {
   );
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
+  // Sammanslaget "Inställningar"-block för att inte ta upp kartytan i
+  // onödan. Kollapsat default — användaren expanderar bara om hen vill
+  // ändra något utöver titel + frågor + språk. Auto-expanderas vid
+  // redigering om någon avancerad inställning redan är aktiv så
+  // användaren ser direkt vad som är på.
+  const [showSettings, setShowSettings] = useState(
+    !!existingWalk?.event ||
+      !!existingWalk?.public ||
+      existingWalk?.activityType === "bike"
+  );
 
   // Språk — ny promenad defaultar till "sv" (eller batteriets språk om
   // vi öppnats via deep link med pendingBatteryLanguage); befintlig
@@ -1214,6 +1224,31 @@ export default function CreateWalkScreen() {
           </ScrollView>
         </View>
 
+        {/* Inställningar-block — kollapsbart för att frigöra kartyta.
+            Innehåller aktivitetstyp + event + publicera. Visar en sammanfattning
+            (badges för aktiva inställningar) i kollapsat läge. */}
+        <TouchableOpacity
+          style={styles.settingsToggleRow}
+          onPress={() => setShowSettings((s) => !s)}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.settingsToggleText}>
+            ⚙️ {t("create.settingsBlockLabel")}
+          </Text>
+          <View style={styles.settingsBadges}>
+            {activityType === "bike" && (
+              <Text style={styles.settingsBadge}>🚲</Text>
+            )}
+            {isEvent && <Text style={styles.settingsBadge}>📅</Text>}
+            {isPublic && <Text style={styles.settingsBadge}>🌐</Text>}
+            <Text style={styles.settingsToggleChevron}>
+              {showSettings ? "▾" : "▸"}
+            </Text>
+          </View>
+        </TouchableOpacity>
+
+        {showSettings && (
+        <View style={styles.settingsBlock}>
         {/* Aktivitetstyp — walk eller bike. Påverkar trigger-tröskel
             och kartzoom under själva promenaden. Kompakt segmented
             control istället för checkbox eftersom det är ett 1-av-2
@@ -1357,6 +1392,8 @@ export default function CreateWalkScreen() {
             </View>
           </View>
         )}
+        </View>
+        )}{/* end settings block */}
 
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
@@ -1956,6 +1993,46 @@ const styles = StyleSheet.create({
   categoryChipTextActive: {
     color: "#F5F0E8",
     fontWeight: "600",
+  },
+  // "⚙️ Inställningar"-expander — kompakt rad i kollapsat läge så att
+  // panelen inte tar upp halva skärmen i onödan. Badges visar vilka
+  // inställningar som redan är aktiva (🚲, 📅, 🌐) så användaren ser
+  // status utan att behöva expandera.
+  settingsToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginTop: 8,
+    marginBottom: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0DDD3",
+    backgroundColor: "#FAF8F2",
+  },
+  settingsToggleText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2C3E2D",
+  },
+  settingsBadges: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  settingsBadge: {
+    fontSize: 14,
+  },
+  settingsToggleChevron: {
+    fontSize: 14,
+    color: "#8A9A8D",
+    marginLeft: 6,
+    fontWeight: "600",
+  },
+  settingsBlock: {
+    paddingTop: 6,
+    paddingBottom: 4,
   },
   activityTypeRow: {
     flexDirection: "row",

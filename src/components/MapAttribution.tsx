@@ -21,12 +21,11 @@ interface Props {
 }
 
 export default function MapAttribution({ mapType }: Props) {
-  // Hybrid använder Apple/Google-satellit på native som har egen
-  // inbäddad attribution — vi behöver inte lägga till något där.
-  if (Platform.OS === "web" || mapType === "hybrid") return null;
+  // Bara terrain använder OpenTopoMap-tiles på native nu — standard +
+  // hybrid kör Apple/Google som har egen inbäddad attribution.
+  if (Platform.OS === "web" || mapType !== "terrain") return null;
 
-  const text =
-    mapType === "terrain" ? "© OpenTopoMap (CC-BY-SA)" : "© OpenStreetMap";
+  const text = "© OpenTopoMap (CC-BY-SA)";
 
   return (
     <View style={styles.container} pointerEvents="none">

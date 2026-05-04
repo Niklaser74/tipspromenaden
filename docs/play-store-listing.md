@@ -109,6 +109,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 — Standard-karta tillbaka till Apple/Google + kompaktare Skapa-vy
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• "Karta"-vyn använder nu Apple/Google Maps igen — OpenStreetMap blockade vissa tiles. Terräng-vyn behåller OpenTopoMap där stigarna syns bra.
+• Skapa-promenad: aktivitetstyp, event och publicera är nu samlade under en kollapsbar "⚙️ Inställningar"-rad. Frigör mer kartyta så du ser var du sätter dina kontroller.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The "Map" view is back to Apple/Google Maps — OpenStreetMap was blocking some tiles. The Terrain view keeps OpenTopoMap where trails show up nicely.
+• Create-walk view: activity type, event and publish are now grouped under a collapsible "⚙️ Settings" row. Frees up more map space so you can see where you're placing your controls.
+```
+
+---
+
 ### OTA 2026-05-03 (natt II) — Fix: spara-knapp utanför skärmen i Skapa-vyn
 
 **Svenska (sv-SE):**

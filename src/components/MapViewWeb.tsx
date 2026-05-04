@@ -573,26 +573,27 @@ function WebPolyline(props: WebPolylineProps) {
 const NativeMapView = Platform.OS !== "web"
   ? React.forwardRef((props: any, ref: any) => {
       const { mapType = "standard", children, ...rest } = props;
+
+      // Endast `terrain` använder en UrlTile-overlay (OpenTopoMap) —
+      // den ger trevlig topografi + stigar för cykel/vandring.
+      // `standard` använder Apple/Google-baskartan (deras egna är bättre i
+      // städer än OSM, och OSM:s tile-server blockerar app-trafik utan
+      // godkänd user-agent).
+      // `hybrid` använder Apple/Google-satellit.
       const tile =
-        mapType === "standard"
-          ? {
-              url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-              maxZ: 19,
-            }
-          : mapType === "terrain"
+        mapType === "terrain"
           ? {
               url: "https://a.tile.opentopomap.org/{z}/{x}/{y}.png",
               maxZ: 17,
             }
           : null;
 
-      // För hybrid: använd Apple/Google-satellit som baskarta, ingen overlay.
-      // För standard/terrain: sätt baskartan till "none" så vår tile inte
-      // ligger ovanpå dubbelrenderad Google-data, och rita UrlTile.
-      // (mapType="none" stöds av react-native-maps på Android. På iOS
-      // ignoreras värdet — då täcker UrlTile bara baskartan, vilket är
-      // ofarligt men kan blinka under laddning.)
-      const underlyingType = tile ? "none" : "hybrid";
+      const underlyingType =
+        mapType === "hybrid"
+          ? "hybrid"
+          : tile
+          ? "none" // terrain: OSM-baserad overlay täcker baskartan
+          : "standard";
 
       return (
         <NativeMapViewRaw ref={ref} mapType={underlyingType} {...rest}>
