@@ -765,8 +765,6 @@ export default function LibraryScreen() {
                 <Text style={styles.cardMeta}>
                   {p.questionCount}{" "}
                   {p.questionCount === 1 ? t("library.question") : t("library.questions")}
-                  {" · "}
-                  <Text style={styles.mineSlug}>slug: {p.slug}</Text>
                 </Text>
                 <View style={styles.mineActionsRow}>
                   <TouchableOpacity
