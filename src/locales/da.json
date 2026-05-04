@@ -242,6 +242,9 @@
     "howItWorksHint": "Guide til deltagere og skabere",
     "createOnWeb": "Lav på nettet",
     "createOnWebHint": "Byg en quizgåtur i browseren med tastatur",
+    "replayOnboarding": "Vis intro igen",
+    "replayOnboardingDoneTitle": "Færdig",
+    "replayOnboardingDoneMessage": "Introen vises næste gang du starter appen.",
     "dangerZone": "Farezone",
     "deleteAccount": "Slet konto og data",
     "deleteAccountHint": "Fjerner dig fra appen og sletter alle dine quizgåture. Kan ikke fortrydes.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Når nogen har gennemført din quizgåtur samler vi statistikken her.",
     "loadFailed": "Kunne ikke indlæse statistikken",
     "footnote": "Træk for at opdatere"
+  },
+  "onboarding": {
+    "skip": "Spring over",
+    "next": "Næste",
+    "done": "Kom i gang",
+    "page1Title": "Velkommen til Tipspromenaden",
+    "page1Body": "En GPS-baseret quizgåtur udendørs. Gå til et sted — spørgsmålet låses op automatisk, når du er fremme.",
+    "page2Title": "To måder at starte på",
+    "page2Body": "Scan en QR-kode fra en ven og begynd at gå med det samme. Eller log ind med Google og lav din egen quizgåtur — placer kontrolpunkter på kortet, skriv spørgsmål, del en QR-kode.",
+    "page3Title": "Klar til at udforske",
+    "page3Body": "Tip: tjek biblioteket for ture i nærheden af dig. Eller bladr i spørgsmålspakker (.tipspack), som andre har delt. God tur!"
   }
 }

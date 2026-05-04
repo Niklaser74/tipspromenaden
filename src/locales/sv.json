@@ -242,6 +242,9 @@
     "howItWorksHint": "Guide för deltagare och skapare",
     "createOnWeb": "Skapa på webben",
     "createOnWebHint": "Bygg promenad i webbläsaren med tangentbord",
+    "replayOnboarding": "Visa intro igen",
+    "replayOnboardingDoneTitle": "Klart",
+    "replayOnboardingDoneMessage": "Intron visas nästa gång du startar appen.",
     "dangerZone": "Farozon",
     "deleteAccount": "Radera konto och data",
     "deleteAccountHint": "Tar bort dig från appen och raderar alla dina promenader. Kan inte ångras.",
@@ -490,5 +493,16 @@
     "emptyDesc": "När någon har genomfört din promenad samlar vi statistiken här.",
     "loadFailed": "Kunde inte ladda statistiken",
     "footnote": "Dra för att uppdatera"
+  },
+  "onboarding": {
+    "skip": "Hoppa över",
+    "next": "Nästa",
+    "done": "Kom igång",
+    "page1Title": "Välkommen till Tipspromenaden",
+    "page1Body": "En GPS-baserad quizpromenad utomhus. Gå till en plats — frågan låses upp automatiskt när du är framme.",
+    "page2Title": "Två sätt att börja",
+    "page2Body": "Skanna en QR-kod från en vän och börja gå direkt. Eller logga in med Google och skapa en egen tipspromenad — placera kontrollpunkter på kartan, skriv frågor, dela en QR-kod.",
+    "page3Title": "Färdig att utforska",
+    "page3Body": "Tips: kolla biblioteket för färdiga promenader nära dig. Eller bläddra bland frågebatterier (.tipspack) som andra delat. Trevlig promenad!"
   }
 }

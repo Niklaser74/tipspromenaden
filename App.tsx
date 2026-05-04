@@ -4,10 +4,14 @@ import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
 import * as ScreenOrientation from "expo-screen-orientation";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthProvider } from "./src/context/AuthContext";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import { initI18n, useTranslation } from "./src/i18n";
 import { installWalkTagsSync } from "./src/services/walkTagsSync";
+import OnboardingScreen, {
+  ONBOARDED_STORAGE_KEY,
+} from "./src/screens/OnboardingScreen";
 
 // Koppla in taggarnas auto-push till molnet en gång vid modulladdning.
 // Ligger utanför komponentträdet så det inte återupprepas vid re-render.
@@ -242,14 +246,24 @@ function AppNavigator() {
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  // null = vi vet inte än (väntar på AsyncStorage), false = behöver visas,
+  // true = onboarding redan klar (eller just klar). Tristate undviker
+  // blink från fel default vid första render.
+  const [onboarded, setOnboarded] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Läs in sparat språkval innan vi renderar navigator. Väldigt snabbt
-    // (bara en AsyncStorage-läsning), men förhindrar blipp från fel språk.
-    initI18n().finally(() => setReady(true));
+    // Läs in sparat språkval + onboarding-status innan vi renderar
+    // navigator. Båda är snabba AsyncStorage-läsningar; vi gör dem
+    // parallellt så loading-spinnern syns ett ögonblick mindre.
+    Promise.all([
+      initI18n(),
+      AsyncStorage.getItem(ONBOARDED_STORAGE_KEY)
+        .then((v) => setOnboarded(v === "true"))
+        .catch(() => setOnboarded(false)),
+    ]).finally(() => setReady(true));
   }, []);
 
-  if (!ready) {
+  if (!ready || onboarded === null) {
     return (
       <View
         style={{
@@ -261,6 +275,17 @@ export default function App() {
       >
         <ActivityIndicator color="#1B6B35" />
       </View>
+    );
+  }
+
+  // Onboarding renderas över allt annat (utanför navigator) eftersom
+  // det är ett pre-app-flöde. När användaren slutfört eller hoppat över
+  // sätts onboarded=true och vanliga app:en visas.
+  if (!onboarded) {
+    return (
+      <ErrorBoundary>
+        <OnboardingScreen onDone={() => setOnboarded(true)} />
+      </ErrorBoundary>
     );
   }
 

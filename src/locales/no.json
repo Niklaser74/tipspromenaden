@@ -242,6 +242,9 @@
     "howItWorksHint": "Guide for deltakere og skapere",
     "createOnWeb": "Lag på nettet",
     "createOnWebHint": "Bygg en tipstur i nettleseren med tastatur",
+    "replayOnboarding": "Vis intro igjen",
+    "replayOnboardingDoneTitle": "Ferdig",
+    "replayOnboardingDoneMessage": "Introen vises neste gang du starter appen.",
     "dangerZone": "Faresone",
     "deleteAccount": "Slett konto og data",
     "deleteAccountHint": "Fjerner deg fra appen og sletter alle tipsturene dine. Kan ikke angres.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Når noen har gjennomført tipsturen din samler vi statistikken her.",
     "loadFailed": "Kunne ikke laste statistikken",
     "footnote": "Dra for å oppdatere"
+  },
+  "onboarding": {
+    "skip": "Hopp over",
+    "next": "Neste",
+    "done": "Kom i gang",
+    "page1Title": "Velkommen til Tipspromenaden",
+    "page1Body": "En GPS-basert quiz-tur utendørs. Gå til et sted — spørsmålet låses opp automatisk når du er framme.",
+    "page2Title": "To måter å starte på",
+    "page2Body": "Skann en QR-kode fra en venn og begynn å gå med en gang. Eller logg inn med Google og lag din egen tipstur — plasser kontrollpunkter på kartet, skriv spørsmål, del en QR-kode.",
+    "page3Title": "Klar til å utforske",
+    "page3Body": "Tips: sjekk biblioteket for turer i nærheten av deg. Eller bla i spørsmålspakker (.tipspack) andre har delt. Ha en fin tur!"
   }
 }

@@ -242,6 +242,9 @@
     "howItWorksHint": "Opas osallistujille ja luojille",
     "createOnWeb": "Luo verkossa",
     "createOnWebHint": "Rakenna tietokävely selaimessa näppäimistöllä",
+    "replayOnboarding": "Näytä esittely uudelleen",
+    "replayOnboardingDoneTitle": "Valmis",
+    "replayOnboardingDoneMessage": "Esittely näytetään seuraavalla kerralla kun käynnistät sovelluksen.",
     "dangerZone": "Vaara-alue",
     "deleteAccount": "Poista tili ja tiedot",
     "deleteAccountHint": "Poistaa sinut sovelluksesta ja kaikki tietokävelysi. Ei voi peruuttaa.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Kun joku on suorittanut tietokävelysi, kokoamme tilastot tähän.",
     "loadFailed": "Tilastoja ei voitu ladata",
     "footnote": "Vedä päivittääksesi"
+  },
+  "onboarding": {
+    "skip": "Ohita",
+    "next": "Seuraava",
+    "done": "Aloita",
+    "page1Title": "Tervetuloa Tipspromenadeniin",
+    "page1Body": "GPS-pohjainen tietokävely ulkona. Kävele paikalle — kysymys avautuu automaattisesti kun olet perillä.",
+    "page2Title": "Kaksi tapaa aloittaa",
+    "page2Body": "Skannaa kaverisi QR-koodi ja aloita kävely heti. Tai kirjaudu Googlella ja luo oma tietokävelysi — sijoita tarkistuspisteet kartalle, kirjoita kysymykset, jaa QR-koodi.",
+    "page3Title": "Valmiina tutkimaan",
+    "page3Body": "Vinkki: katso kirjastosta lähellä olevia tietokävelyjä. Tai selaa kysymyspaketteja (.tipspack), joita muut ovat jakaneet. Hauskaa kävelyä!"
   }
 }

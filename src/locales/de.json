@@ -242,6 +242,9 @@
     "howItWorksHint": "Anleitung für Teilnehmer und Ersteller",
     "createOnWeb": "Im Browser erstellen",
     "createOnWebHint": "Eine Wanderung im Browser mit Tastatur erstellen",
+    "replayOnboarding": "Intro erneut anzeigen",
+    "replayOnboardingDoneTitle": "Fertig",
+    "replayOnboardingDoneMessage": "Das Intro wird beim nächsten App-Start angezeigt.",
     "dangerZone": "Gefahrenzone",
     "deleteAccount": "Konto und Daten löschen",
     "deleteAccountHint": "Entfernt dich aus der App und löscht alle deine Wanderungen. Kann nicht rückgängig gemacht werden.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Sobald jemand deine Wanderung abgeschlossen hat, sammeln wir hier die Statistik.",
     "loadFailed": "Statistik konnte nicht geladen werden",
     "footnote": "Zum Aktualisieren ziehen"
+  },
+  "onboarding": {
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "done": "Loslegen",
+    "page1Title": "Willkommen bei Tipspromenaden",
+    "page1Body": "Eine GPS-basierte Quiz-Wanderung im Freien. Gehe zu einem Ort — die Frage öffnet sich automatisch, wenn du dort bist.",
+    "page2Title": "Zwei Wege zu starten",
+    "page2Body": "Scanne einen QR-Code von einer Freundin und lauf direkt los. Oder melde dich mit Google an und erstelle deine eigene Quiz-Wanderung — platziere Kontrollpunkte auf der Karte, schreibe Fragen, teile einen QR-Code.",
+    "page3Title": "Bereit zu erkunden",
+    "page3Body": "Tipp: Schau in der Bibliothek nach Wanderungen in deiner Nähe. Oder stöbere in den Fragenpaketen (.tipspack), die andere geteilt haben. Viel Spaß beim Wandern!"
   }
 }

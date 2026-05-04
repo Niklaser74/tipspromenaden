@@ -148,6 +148,26 @@ OTA to runtime 1.4.0:
 
 ---
 
+### OTA 2026-05-04 (V) — Onboarding-flöde
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Nytt 3-stegs intro-flöde första gången du öppnar appen — förklarar GPS-konceptet, hur du börjar (skanna QR eller skapa själv) och tipsar om biblioteket.
+• Översatt till alla 8 språk.
+• Vill du se intron igen? Inställningar → Om appen → "Visa intro igen".
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New 3-step intro flow the first time you open the app — explains the GPS concept, how to start (scan a QR or create your own) and points to the library.
+• Translated into all 8 languages.
+• Want to see the intro again? Settings → About → "Show intro again".
+```
+
+---
+
 ### OTA 2026-05-04 (IV) — Fix: avstavad "Aktivitetstyp"-etikett
 
 **Svenska (sv-SE):**

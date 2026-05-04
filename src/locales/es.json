@@ -242,6 +242,9 @@
     "howItWorksHint": "Guía para participantes y creadores",
     "createOnWeb": "Crear en la web",
     "createOnWebHint": "Construir un paseo en el navegador con un teclado",
+    "replayOnboarding": "Ver intro de nuevo",
+    "replayOnboardingDoneTitle": "Listo",
+    "replayOnboardingDoneMessage": "La intro se mostrará la próxima vez que inicies la app.",
     "dangerZone": "Zona de peligro",
     "deleteAccount": "Eliminar cuenta y datos",
     "deleteAccountHint": "Te elimina de la app y borra todos tus paseos. No se puede deshacer.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Cuando alguien complete tu paseo, recopilaremos las estadísticas aquí.",
     "loadFailed": "No se pudieron cargar las estadísticas",
     "footnote": "Tira para actualizar"
+  },
+  "onboarding": {
+    "skip": "Omitir",
+    "next": "Siguiente",
+    "done": "Empezar",
+    "page1Title": "Bienvenido a Tipspromenaden",
+    "page1Body": "Un paseo-cuestionario con GPS al aire libre. Camina a un lugar — la pregunta se abre automáticamente cuando llegas.",
+    "page2Title": "Dos maneras de empezar",
+    "page2Body": "Escanea el código QR de un amigo y empieza a caminar. O inicia sesión con Google y crea tu propio paseo-cuestionario — coloca puntos de control en el mapa, escribe preguntas, comparte un código QR.",
+    "page3Title": "Listo para explorar",
+    "page3Body": "Consejo: mira la biblioteca para paseos cerca de ti. O explora paquetes de preguntas (.tipspack) que otros han compartido. ¡Buen paseo!"
   }
 }

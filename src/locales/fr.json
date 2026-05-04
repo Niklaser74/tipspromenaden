@@ -242,6 +242,9 @@
     "howItWorksHint": "Guide pour participants et créateurs",
     "createOnWeb": "Créer sur le web",
     "createOnWebHint": "Construire une balade dans le navigateur avec un clavier",
+    "replayOnboarding": "Revoir l'intro",
+    "replayOnboardingDoneTitle": "Terminé",
+    "replayOnboardingDoneMessage": "L'intro s'affichera au prochain démarrage de l'application.",
     "dangerZone": "Zone de danger",
     "deleteAccount": "Supprimer le compte et les données",
     "deleteAccountHint": "Vous retire de l'application et supprime toutes vos balades. Irréversible.",
@@ -490,5 +493,16 @@
     "emptyDesc": "Quand quelqu'un aura terminé votre balade, nous regrouperons les statistiques ici.",
     "loadFailed": "Impossible de charger les statistiques",
     "footnote": "Tirez pour actualiser"
+  },
+  "onboarding": {
+    "skip": "Passer",
+    "next": "Suivant",
+    "done": "Commencer",
+    "page1Title": "Bienvenue sur Tipspromenaden",
+    "page1Body": "Une balade-quiz GPS en plein air. Marchez jusqu'à un lieu — la question s'ouvre automatiquement quand vous arrivez.",
+    "page2Title": "Deux façons de commencer",
+    "page2Body": "Scannez le code QR d'un ami et commencez à marcher tout de suite. Ou connectez-vous avec Google et créez votre propre balade-quiz — placez les points de contrôle sur la carte, écrivez les questions, partagez un code QR.",
+    "page3Title": "Prêt à explorer",
+    "page3Body": "Astuce : consultez la bibliothèque pour des balades près de chez vous. Ou parcourez les paquets de questions (.tipspack) partagés par d'autres. Bonne balade !"
   }
 }

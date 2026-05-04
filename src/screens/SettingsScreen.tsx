@@ -24,6 +24,8 @@ import { useAuth } from "../context/AuthContext";
 import { syncMyWalksFromCloud } from "../services/walkSync";
 import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
 import { deleteAccountAndData } from "../services/auth";
+import { ONBOARDED_STORAGE_KEY } from "./OnboardingScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -231,6 +233,30 @@ export default function SettingsScreen() {
             <Text style={styles.rowLabel}>{t("settings.howItWorks")}</Text>
             <Text style={styles.rowHint}>{t("settings.howItWorksHint")}</Text>
           </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={async () => {
+            // Rensa onboarded-flaggan så vi visas igen vid nästa
+            // app-start. Vi navigerar inte direkt — användaren får
+            // se den som intended (vid cold start) eller stänger
+            // appen och öppnar igen. En direkt-trigger skulle kräva
+            // att lyfta state från App.tsx vilket inte är värt det
+            // för en sällan-använd inställning.
+            try {
+              await AsyncStorage.removeItem(ONBOARDED_STORAGE_KEY);
+              Alert.alert(
+                t("settings.replayOnboardingDoneTitle"),
+                t("settings.replayOnboardingDoneMessage")
+              );
+            } catch {
+              Alert.alert(t("common.errorTitle"), t("common.error"));
+            }
+          }}
+          activeOpacity={0.6}
+        >
+          <Text style={styles.rowLabel}>{t("settings.replayOnboarding")}</Text>
           <Text style={styles.rowChevron}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity
