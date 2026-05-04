@@ -92,8 +92,6 @@ export function parseQRData(raw: string): QRData | null {
   const httpsPrefixes = [
     `https://${WEB_HOST}/${WALK_PATH}/`,
     `https://www.${WEB_HOST}/${WALK_PATH}/`,
-    `http://${WEB_HOST}/${WALK_PATH}/`, // tolerant mot bortglömt s
-    `http://www.${WEB_HOST}/${WALK_PATH}/`,
   ];
   const lower = trimmed.toLowerCase();
   for (const prefix of httpsPrefixes) {

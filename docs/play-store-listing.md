@@ -132,6 +132,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (VI) — Säkerhetshärdning
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Säkerhetsfix: appen accepterar nu bara https-länkar till tipspromenader (inte http). Walk-länkar du delat tidigare fungerar precis som vanligt — den rätta formen är https.
+• console-loggar tas bort från produktionsbygget för att inte exponera intern info via systemloggar.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Security fix: the app now only accepts https links to walks (not http). Walk links you've shared before still work — the correct form is https.
+• Console logs are stripped from the production build so internal state isn't exposed via system logs.
+```
+
+---
+
 ### OTA 2026-05-04 (V) — "Mina paket" i biblioteket
 
 **Svenska (sv-SE):**
