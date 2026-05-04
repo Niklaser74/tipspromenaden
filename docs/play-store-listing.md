@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (VIII) — Fix (riktig denna gång): Frågebatterier slutade snurra
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Andra försöket på samma bugg: Bibliotek-fliken kunde fastna i evig laddning eftersom inläsningen avbröts om-och-om vid varje liten omladdning av skärmen. Hård 15-sekunders failsafe lagd till — listan visas nu garanterat (tom om inget hittas) inom 15 s.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Second attempt at the same bug: the Library tab could get stuck loading because the fetch kept being cancelled on every minor screen re-render. Added a hard 15-second failsafe — the list is now guaranteed to appear (empty if nothing found) within 15 s.
+```
+
+---
+
 ### OTA 2026-05-04 (VII) — Fix: Frågebatterier-fliken slutade snurra
 
 **Svenska (sv-SE):**

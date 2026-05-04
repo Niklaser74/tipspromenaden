@@ -81,24 +81,44 @@ export default function LibraryScreen() {
 
   useEffect(() => {
     let cancelled = false;
+    // Hård failsafe: oavsett vad som händer i fetch-koden ska spinnern
+    // sluta snurra inom 15 s. Sätter en tom lista om data fortfarande
+    // saknas vid timeout, så användaren får tom-läget istället för evig
+    // spinner. Effekten har bara []-deps — får inte rerunna varje render
+    // (tidigare [t] gjorde att den loopade pga att useTranslation
+    // returnerar nytt objekt varje gång).
+    const failsafe = setTimeout(() => {
+      if (cancelled) return;
+      setPacks((p) => (p === null ? [] : p));
+      setWalks((w) => (w === null ? [] : w));
+    }, 15000);
+
     getLibraryTipspacks()
       .then((list) => {
         if (!cancelled) setPacks(list);
       })
       .catch((e: any) => {
-        if (!cancelled) setError(e?.message || t("library.fetchError"));
+        if (!cancelled) {
+          setError(e?.message || "Kunde inte hämta biblioteket.");
+          setPacks([]);
+        }
       });
     getPublicWalks()
       .then((list) => {
         if (!cancelled) setWalks(list);
       })
       .catch((e: any) => {
-        if (!cancelled) setError(e?.message || t("library.fetchError"));
+        if (!cancelled) {
+          setError(e?.message || "Kunde inte hämta biblioteket.");
+          setWalks([]);
+        }
       });
     return () => {
       cancelled = true;
+      clearTimeout(failsafe);
     };
-  }, [t]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Hämta mina pack vid mount + varje gång skärmen får fokus, så att
   // ändringar (t.ex. nyuppladdat via webben) syns när användaren kommer
