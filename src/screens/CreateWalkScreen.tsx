@@ -1609,11 +1609,15 @@ const styles = StyleSheet.create({
     marginTop: -1,
   },
 
-  // Floating info pill
+  // Floating info pill — placerad UNDER mapTypeToggle (som ligger på
+  // top:72) så de inte kolliderar i kollapsat läge. På smal skärm är
+  // pill:n centrerad horisontellt så den syns även om toggle ligger i
+  // höger kant.
   infoPill: {
     position: "absolute",
-    top: 72,
+    top: 124,
     alignSelf: "center",
+    maxWidth: "92%",
     backgroundColor: "rgba(27,107,53,0.9)",
     paddingHorizontal: 18,
     paddingVertical: 10,

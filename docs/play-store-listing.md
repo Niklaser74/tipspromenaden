@@ -109,6 +109,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (II) — Fix: hint-text täckte karttyp-knappen i Skapa-vyn
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Buggfix: instruktionen "Tryck på kartan för att lägga till kontrollpunkter" låg ovanpå knappen för att byta karttyp i Skapa-vyn. Hinten flyttad nedanför så båda går att nå.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Bug fix: the "Tap the map to add checkpoints" hint was sitting on top of the map type toggle in the Create view. The hint is now placed below so both are reachable.
+```
+
+---
+
 ### OTA 2026-05-04 — Standard-karta tillbaka till Apple/Google + kompaktare Skapa-vy
 
 **Svenska (sv-SE):**
