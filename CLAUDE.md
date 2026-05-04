@@ -21,7 +21,8 @@ Marknad: Sverige först (svensk UI-default, `sv-SE` i Play Console). App-ID
 - **EAS Build** för Android AAB/APK, `appVersionSource: "remote"`, `autoIncrement: true`
 - **EAS Update** för OTA-patchar (appVersion-policy; native-ändringar kräver manuell `version`-bump)
 - Kartor: `react-native-maps` på native, Leaflet via WebView på web
-- i18n: `expo-localization` + egen hook i `src/i18n/`, locales i `src/locales/{sv,en}.json`
+- i18n: `expo-localization` + egen hook i `src/i18n/`, locales i
+  `src/locales/{sv,en,de,no,da,fi,fr,es}.json` (8 språk; fallback sv)
 - Sensorer: `expo-sensors` (Pedometer för stegräkning),
   `expo-screen-orientation` (telefon låst portrait, surfplatta fri rotation)
 
@@ -38,13 +39,22 @@ src/
 ├── context/AuthContext.tsx     # useAuth() — user + loading; triggar walkSync på login
 ├── types/index.ts              # Walk, Session, Participant, Question, SavedWalk, m.m.
 ├── i18n/                       # useTranslation(), setLanguage(), useLanguageChoice()
-├── locales/                    # sv.json (primär), en.json
-├── constants/                  # languages, deepLinks (APP_SCHEME + buildWalkLink)
+├── locales/                    # 8 språk: sv (primär) + en/de/no/da/fi/fr/es.
+│                               # Fallback till sv om en nyckel saknas.
+├── constants/                  # languages, deepLinks (APP_SCHEME +
+│                               # buildWalkLink), categories (WALK_CATEGORIES),
+│                               # activityType (walk/bike-config: trigger,
+│                               # approachingDistance, initialZoom, badge)
 ├── hooks/
 │   ├── useMapType.ts           # Toggle standard/hybrid/terrain, persistas i AsyncStorage
 │   └── usePedometer.ts         # Pedometer-wrap: tillgänglighet + permission + steps
 ├── utils/                      # location, qr, date, shareWalk
-├── components/                 # MapViewWeb (Leaflet), MapTypeToggle, DateField,
+├── components/                 # MapViewWeb (Leaflet på web; native har en thin
+│                               # wrapper kring react-native-maps som lägger på
+│                               # en OpenTopoMap UrlTile när mapType="terrain".
+│                               # Stödjer Marker, Circle, Polyline.),
+│                               # MapTypeToggle, MapAttribution (©-text för
+│                               # OpenTopoMap-tiles på terrain-vyn), DateField,
 │                               # ErrorBoundary, WalkActionsMenu (bottom-sheet
 │                               # för sekundära walk-actions i HomeScreen)
 ├── services/                   # All extern I/O — inga React-beroenden här
@@ -105,7 +115,11 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 - `tipspackLibrary.ts` — Hämtar curated tipspacks från
   `tipspromenaden.app/tipspack/index.json` + uploaded från Firestore-
   collection `tipspacks` där `isPublic: true`. Mergat resultat används av
-  `LibraryScreen`.
+  `LibraryScreen` (fliken "📚 Frågebatterier"). Innehåller också ägar-
+  helpers (`getMyTipspacks`, `setTipspackPublic`, `deleteMyTipspack`,
+  `getTipspackDownloadUrl`) som driver fliken "📦 Mina paket" — där
+  inloggade användare ser både publika och hemliga pack de laddat upp
+  via webben och kan dela länk / växla synlighet / radera.
 - `stats.ts` — Lokal statistik (antal skapade promenader, m.m.)
 
 ## Datamodell (Firestore)
@@ -114,6 +128,9 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 walks/{walkId}                            # Publik läsning, ägaren skriver
   id, title, createdBy (uid), createdAt,
   language?, event? { startDate, endDate },
+  public?, city?, category?, centroid?,   # Bibliotek-fält (opt-in via skaparen)
+  activityType?: "walk" | "bike",         # Default walk om saknas — styr trigger-
+                                          # tröskel (15 m / 50 m), kartzoom, badge
   questions[] { id, text, options[], correctOptionIndex, coordinate, imageUrl?, order }
 
 sessions/{sessionId}                      # Publik läsning, signed-in kan create/update

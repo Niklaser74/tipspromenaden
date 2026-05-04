@@ -42,11 +42,22 @@ en QR-kod — andra scannar och kan delta direkt.
 
 📦 Färdiga frågebatterier
 Importera professionellt producerade frågeset via .tipspack-filer
-(t.ex. naturkunskap, svensk historia, barnfrågor).
+(t.ex. naturkunskap, svensk historia, barnfrågor). Egna pack du laddat
+upp på webben hittar du under "Mina paket"-fliken.
+
+🚲 Cykelläge
+Välj aktivitetstyp Promenad eller Cykel. Cykelläge ger bredare GPS-
+trigger (50 m), förvarning innan kontrollpunkten och bredare kartzoom
+— anpassat för längre rutter på cykel.
+
+🌍 Appen på 8 språk
+Svenska, engelska, tyska, norsk, dansk, finska, franska och spanska.
+Välj manuellt under Inställningar eller låt appen följa systemspråket.
 
 ✨ Designad för utomhusbruk
-Stora knappar, hög kontrast, fungerar utan hörlurar. Svenska och
-engelska röstuppläsning. Helt gratis under testperioden.
+Stora knappar, hög kontrast, fungerar utan hörlurar. Röstuppläsning
+av frågor. OpenTopoMap-vy visar små stigar och spår. Helt gratis
+under testperioden.
 
 Perfekt för:
 • Familjeutflykten
@@ -81,11 +92,23 @@ Share with a QR code — others scan and join instantly.
 
 📦 Ready-made question packs
 Import professionally produced question sets via .tipspack files
-(nature, Swedish history, kids' trivia, and more).
+(nature, Swedish history, kids' trivia, and more). Find packs you've
+uploaded on the web under the "My packs" tab.
+
+🚲 Bike mode
+Pick activity type Walk or Bike. Bike mode gives a wider GPS trigger
+(50 m), an "approaching" warning before each checkpoint and a wider
+default map zoom — tuned for longer routes on bike.
+
+🌍 The app in 8 languages
+Swedish, English, German, Norwegian, Danish, Finnish, French and
+Spanish. Pick manually under Settings or let the app follow your
+system language.
 
 ✨ Built for the outdoors
-Large buttons, high contrast, works without headphones. Voice-over in
-Swedish and English. Free during the testing period.
+Large buttons, high contrast, works without headphones. Voice-over of
+questions. OpenTopoMap view shows small trails and paths. Free during
+the testing period.
 
 Perfect for:
 • Family outings

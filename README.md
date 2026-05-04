@@ -436,32 +436,43 @@ For EAS-byggen satts samma variabler med `eas secret:create`.
 - Placera kontrollpunkter interaktivt pa en karta (react-native-maps / Leaflet)
 - Lagg till fragor med 3 svarsalternativ per kontrollpunkt
 - Bifoga en bild till valfri fraga (laddas upp till Firebase Storage)
-- Ange sprak pa promenaden (sv/en m.fl.) for korrekt UI hos deltagare
+- Ange sprak pa promenaden (sv/en/de/no/da/fi/fr/es) for korrekt UI hos deltagare
+- Valj **aktivitetstyp** (gang eller cykel). Cykellage: 50 m trigger
+  istallet for 15 m, "narmar dig"-vibration vid 100 m, bredare kartzoom,
+  🚲-badge i listor.
 - Redigera och ta bort kontrollpunkter; andra ordning pa fragor
 - Generera QR-kod for deltagare att skanna
 - Importera fardiga fragebatterier (`.tipspack`-fil) och placera fragorna pa kartan en efter en
 - Visa realtidstopplista under pagaende promenad
 - Eventlage: samla resultat fran flera grupper under ett datumintervall
+- Publicera till bibliotek: opt-in publicering med stad + kategori sa
+  andra hittar din promenad
 - Automatisk molnsynk av egna promenader vid inloggning (terapporterar promenader efter
   ny-installation eller telefonbyte)
+- Hantera uppladdade `.tipspack`-filer (publika + hemliga lankar) via
+  fliken "Mina paket" i biblioteket
 
 ### Deltagare (inget konto kravs)
 
 - Skanna QR-kod med kameran eller via webblasaren
 - Ange valfritt visningsnamn
-- Navigera med GPS till kontrollpunkterna pa en karta
+- Navigera med GPS till kontrollpunkterna pa en karta (visas med rutt-
+  linje mellan kontrollerna)
 - Besvara fragor nar man befinner sig nara en kontrollpunkt
-- Se resultat direkt efter varje svar
+- Se ratt svar i 3,5 sekunder efter varje svar
 - Se slutresultat och ranking nar promenaden ar klar
 - Offline-stod: svar sparas lokalt om internet saknas och synkas nar anslutning aterstalls
 
 ### Allman
 
 - Funkar som webbapp (Chrome/Edge/Firefox) och som nativapp pa Android
-- Stod for svenska och engelska via i18n (`src/locales/`); folja systemets sprak som default
+- Stod for **8 sprak** via i18n (`src/locales/`): svenska, engelska, tyska,
+  norsk, dansk, finska, franska, spanska. Foljer systemets sprak som default.
+- Karttyper: standard (Apple/Google Maps), terrang (OpenTopoMap — visar
+  stigar bra), satellit (Apple/Google)
 - Realtidsuppdateringar i topplistan via Firestore-prenumerationer
 - Bakgrundssynkning av offline-svar var 30:e sekund
-- OTA-uppdateringar via EAS Update (fingerprint-policy, JS-only-patchar utan ombygge)
+- OTA-uppdateringar via EAS Update (appVersion-policy, JS-only-patchar utan ombygge)
 
 ---
 

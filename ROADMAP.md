@@ -1,13 +1,14 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-03
+> Senast uppdaterad: 2026-05-04
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
-> **Aktivt just nu:** Fas 2 — cykelläge. Se sektionen "Cykelläge — pågående
-> implementation" nedan för scope och iterationer.
+> **Aktivt just nu:** Cykelläge MVP är ute (2026-05-03 OTA), väntar på
+> familje-/cykeltest. Nästa kandidater: App Check, iOS-build, eller
+> onboarding-flöde — beroende på humör.
 
 ---
 
@@ -114,7 +115,7 @@ skill.
 
 ---
 
-### Fas 2 — Cykelläge + längre rutter — *påbörjas 2026-05-03*
+### Fas 2 — Cykelläge + längre rutter — ✅ MVP klart 2026-05-03
 **Mål:** Stötta cykling som separat aktivitetsläge — där Tipsrundan är
 svagast och vi kan vara klart bättre.
 
@@ -414,31 +415,40 @@ bredare friluft/discovery-appar för referens när vi tänker UX:
 
 ---
 
-## Cykelläge — pågående implementation (maj 2026)
+## Cykelläge — MVP levererat (maj 2026)
 
-**MVP-scope (en OTA-cykel, runtime 1.4.0):**
+**Levererat 2026-05-03 (runtime 1.4.0 OTA):**
 
-| # | Komponent | Vad |
-|---|-----------|-----|
-| 1 | `Walk`-typ | Lägg till `activityType?: "walk" \| "bike"` (default `"walk"` om saknas — bakåtkompatibelt) |
-| 2 | CreateWalkScreen | Picker för aktivitetstyp i samma stil som event/publish-toggles |
-| 3 | ActiveWalkScreen | Större trigger-tröskel för bike (50 m default mot 15 m för walk) |
-| 4 | ActiveWalkScreen | "Närmar dig"-vibration när inom 2× tröskeln (~100 m) — en gång per kontroll |
-| 5 | MapView | Större initial zoom för bike-walks (latitudeDelta 0.02 mot 0.005) |
-| 6 | MapView | Polyline mellan kontrollpunkter — gäller både walk + bike, hjälper också för walk |
-| 7 | Walk-kort | 🚲-badge bredvid språkflagga på bike-walks (HomeScreen + LibraryScreen) |
-| 8 | i18n | Nya nycklar i alla 8 språk (`activityTypeLabel`, `activityTypeWalk`, `activityTypeBike`, `approachingControl`) |
+| # | Komponent | Status |
+|---|-----------|--------|
+| 1 | `Walk`-typ | ✅ `activityType?: "walk" \| "bike"` (default walk om saknas — bakåtkompatibelt) |
+| 2 | CreateWalkScreen | ✅ Picker för aktivitetstyp, samlat under kollapsbar "⚙️ Inställningar"-sektion |
+| 3 | ActiveWalkScreen | ✅ Dynamisk trigger-tröskel via `getActivityConfig()` (15 m walk, 50 m bike) |
+| 4 | ActiveWalkScreen | ✅ "Närmar dig"-vibration (en puls) vid approaching-tröskeln (100 m bike), en gång per kontroll |
+| 5 | MapView | ✅ Större initial zoom för bike (latitudeDelta 0.02), extra ring som visar approaching-zon |
+| 6 | MapView | ✅ Polyline mellan kontrollpunkter — gäller både walk och bike (streckad grön linje) |
+| 7 | Walk-kort | ✅ 🚲-badge bredvid språkflagga på bike-walks i HomeScreen + LibraryScreen |
+| 8 | i18n | ✅ `create.activityTypeLabel/Walk/Bike/BikeHint` översatt i alla 8 språk |
 
-**Skip för MVP, eventuellt iteration 2:**
+Implementationen ligger i `src/constants/activityType.ts` (config per typ)
++ ändringar i ActiveWalkScreen, CreateWalkScreen, HomeScreen, LibraryScreen,
+MapViewWeb (Polyline-stöd lagt till samtidigt — gäller både plattformar).
+
+**Bonus levererat samtidigt (inte i ursprunglig MVP):**
+- ✅ OpenTopoMap-tiles via `react-native-maps` UrlTile på native när
+  mapType="terrain" — ger samma stigvisning som webbsidan har.
+  MapAttribution-komponent för CC-BY-SA-attribution.
+
+**Iteration 2 (om/när det blir aktuellt):**
 - Pausläge (vid trafikljus) — trickigt UX, vänta tills familjen testat
 - `.tipswalk`-filformat med både frågor OCH koordinater — separat arbete
 - Validering av rutt-längd (5–30 km för bike) — onödigt, låt skaparen bestämma
 - Filter "bara cykel-walks" i biblioteket — lägg till om det blir många bike-walks
 - `"run"` som aktivitetstyp — samma UX som walk, ingen vinst i att lägga till än
 
-**Success-kriterium MVP:** Vi kan skapa en bike-walk i appen, GPS låser
-upp frågor på 50 m istället för 15 m, kartan zoomar ut, polylinjen visar
-rutten, och badgen syns på listan. Sen testar vi själva på cykel.
+**Success-kriterium MVP (att verifiera under cykeltest):** Trigger-zonen
+på 50 m räcker i normal cykelfart (~20 km/h). Approaching-pulsen vid
+100 m kommer i tid att stanna. Polylinjen hjälper navigeringen.
 
 ---
 
@@ -446,6 +456,13 @@ rutten, och badgen syns på listan. Sen testar vi själva på cykel.
 
 Följande är inte beskrivet i fasplanen ovan men har levererats:
 
+- ✅ **Cykelläge MVP** (Fas 2) — `Walk.activityType: "walk" | "bike"`,
+  dynamisk trigger-tröskel, approaching-vibration, bredare zoom,
+  polyline mellan kontroller, 🚲-badge i listor
+- ✅ **OpenTopoMap-tiles på native** för terrain-vyn — samma stigar
+  syns nu i appen som på webbsidan
+- ✅ **"Mina paket"-flik i biblioteket** — inloggade användare ser och
+  hanterar uppladdade tipspacks (publika + hemliga länkar) direkt i appen
 - ✅ **App översatt till 8 språk** (sv/en/de/no/da/fi/fr/es) — i18n-system
   med fallback till svenska, system-språk som default
 - ✅ **Hjälpsida på hemsidan** (`/sa-funkar-det`) bilingual sv/en — guide
@@ -467,11 +484,12 @@ Följande är inte beskrivet i fasplanen ovan men har levererats:
 
 ---
 
-## Nästa konkreta steg (efter cykelläget)
+## Nästa konkreta steg
 
 Plocka det som passar humöret. Förslag i grov ordning:
 
-1. **Cykelläge** (Fas 2) — *aktivt nu*
+1. **Cykeltest av cykelläget** — verifiera 50 m trigger + 100 m approaching
+   i verklig fart. Justera efter behov.
 2. **App Check** — borde gjorts innan biblioteket öppnades, gör det innan
    publik release på Play
 3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
@@ -484,6 +502,7 @@ Plocka det som passar humöret. Förslag i grov ordning:
    V1-signaler känns för svaga)
 9. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
    delning av färdiga rutter (Fas 2 fortsättning, koppla till cykel-rutter)
+10. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback
 
 ---
 
