@@ -6,9 +6,10 @@
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
-> **Aktivt just nu:** Cykelläge MVP är ute (2026-05-03 OTA), väntar på
-> familje-/cykeltest. Nästa kandidater: App Check, iOS-build, eller
-> onboarding-flöde — beroende på humör.
+> **Aktivt just nu:** ingenting — ingen kod påbörjad. Recent leveranser:
+> cykelläge, OpenTopoMap-stigar, "Mina paket"-flik, App Check Stage 1 (web),
+> Google Maps på webben, onboarding-flöde. Väntar på cykeltest-feedback
+> och nästa beslut. Förslag på nästa drag i "Nästa konkreta steg"-listan.
 
 ---
 
@@ -456,6 +457,17 @@ på 50 m räcker i normal cykelfart (~20 km/h). Approaching-pulsen vid
 
 Följande är inte beskrivet i fasplanen ovan men har levererats:
 
+- ✅ **Onboarding-flöde** — 3-stegs intro vid första cold start
+  (vad det är, hur du börjar, tipsar om biblioteket). "Visa intro
+  igen"-knapp i Settings för att trigga manuellt.
+- ✅ **App Check Stage 1 (web)** — reCAPTCHA Enterprise-baserad
+  verifiering av Firestore-/Storage-anrop från webbsidan, monitor mode
+  (loggar utan att blocka). Stage 2 (Play Integrity för native) väntar
+  på nästa EAS-build.
+- ✅ **Google Maps på webben** — `/skapa`:s standard-vy använder nu
+  Google Maps via leaflet.gridlayer.googlemutant istället för OSM,
+  matchar mobilappen. Hybrid (Esri-satellit) och Terräng (OpenTopoMap)
+  är oförändrade.
 - ✅ **Cykelläge MVP** (Fas 2) — `Walk.activityType: "walk" | "bike"`,
   dynamisk trigger-tröskel, approaching-vibration, bredare zoom,
   polyline mellan kontroller, 🚲-badge i listor
@@ -490,19 +502,23 @@ Plocka det som passar humöret. Förslag i grov ordning:
 
 1. **Cykeltest av cykelläget** — verifiera 50 m trigger + 100 m approaching
    i verklig fart. Justera efter behov.
-2. **App Check** — borde gjorts innan biblioteket öppnades, gör det innan
-   publik release på Play
+2. **App Check Stage 2 (native)** — kräver `@react-native-firebase/app-check`
+   eller custom Expo-modul + ny EAS-build. Görs naturligt samtidigt med
+   nästa AAB-cykel. När både web och native har tokens, flippa Firestore
+   + Storage från Monitor till Enforce i Firebase Console.
 3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
-   Universal Links
-4. **Onboarding-flöde** — 3 skärmar första gången appen öppnas
-5. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel
-6. **Mörkt tema** — respektera `useColorScheme()`
-7. **Accessibility-pass** — VoiceOver/TalkBack-labels
-8. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
-   V1-signaler känns för svaga)
-9. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
-   delning av färdiga rutter (Fas 2 fortsättning, koppla till cykel-rutter)
-10. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback
+   Universal Links. Kombinera med Stage 2 ovan.
+4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
+5. **Mörkt tema** — respektera `useColorScheme()`.
+6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
+7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
+   V1-signaler känns för svaga).
+8. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
+   delning av färdiga rutter (Fas 2 fortsättning).
+9. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
+10. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
+    spaces och &-tecken i slug (`djur & natur`) → fula procent-encodade
+    URL:er. Sanitera till hyphen-form vid upload på webben.
 
 ---
 
