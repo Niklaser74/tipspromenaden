@@ -280,6 +280,17 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.row, styles.rowBorder]}
+          onPress={() => Linking.openURL("https://tipspromenaden.app/stod")}
+          activeOpacity={0.6}
+        >
+          <View style={styles.syncLabelWrap}>
+            <Text style={styles.rowLabel}>{t("settings.support")}</Text>
+            <Text style={styles.rowHint}>{t("settings.supportHint")}</Text>
+          </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
           onPress={() => Linking.openURL("https://tipspromenaden.app/villkor")}
           activeOpacity={0.6}
         >

@@ -242,6 +242,8 @@
     "howItWorksHint": "Guide for participants and creators",
     "createOnWeb": "Create on the web",
     "createOnWebHint": "Build a walk in the browser with a keyboard",
+    "support": "Support the project",
+    "supportHint": "Help cover hosting costs (Swish, Sweden only)",
     "replayOnboarding": "Show intro again",
     "replayOnboardingDoneTitle": "Done",
     "replayOnboardingDoneMessage": "The intro will show next time you start the app.",

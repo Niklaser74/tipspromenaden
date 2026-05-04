@@ -242,6 +242,8 @@
     "howItWorksHint": "Guide för deltagare och skapare",
     "createOnWeb": "Skapa på webben",
     "createOnWebHint": "Bygg promenad i webbläsaren med tangentbord",
+    "support": "Stötta projektet",
+    "supportHint": "Bidra via Swish så driften kan fortsätta",
     "replayOnboarding": "Visa intro igen",
     "replayOnboardingDoneTitle": "Klart",
     "replayOnboardingDoneMessage": "Intron visas nästa gång du startar appen.",

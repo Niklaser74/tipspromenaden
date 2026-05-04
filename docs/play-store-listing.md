@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (IX) — Stötta projektet-länk i Inställningar
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Ny rad i Inställningar → Om appen: "Stötta projektet". Öppnar tipspromenaden.app/stod där du kan bidra via Swish om du vill hjälpa till att täcka driftkostnader och möjliggöra en framtida iPhone-version.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• New row in Settings → About: "Support the project". Opens tipspromenaden.app/stod where Swedish users can contribute via Swish to help cover hosting costs and a possible future iPhone version.
+```
+
+---
+
 ### OTA 2026-05-04 (VIII) — Fix (riktig denna gång): Frågebatterier slutade snurra
 
 **Svenska (sv-SE):**
