@@ -1253,7 +1253,7 @@ export default function CreateWalkScreen() {
             och kartzoom under själva promenaden. Kompakt segmented
             control istället för checkbox eftersom det är ett 1-av-2
             val, inte på/av. */}
-        <Text style={styles.dateLabel}>{t("create.activityTypeLabel")}</Text>
+        <Text style={styles.sectionLabel}>{t("create.activityTypeLabel")}</Text>
         <View style={styles.activityTypeRow}>
           {(["walk", "bike"] as const).map((type) => {
             const active = activityType === type;
@@ -1365,7 +1365,7 @@ export default function CreateWalkScreen() {
               />
             </View>
 
-            <Text style={styles.dateLabel}>{t("create.categoryLabel")}</Text>
+            <Text style={styles.sectionLabel}>{t("create.categoryLabel")}</Text>
             <View style={styles.categoryRow}>
               {WALK_CATEGORIES.map((cat) => {
                 const active = category === cat;
@@ -2037,6 +2037,15 @@ const styles = StyleSheet.create({
   settingsBlock: {
     paddingTop: 6,
     paddingBottom: 4,
+  },
+  // Etiketter för fristående sektioner (ovanför chips, picker etc).
+  // Använder INTE dateLabel:s fasta width:70 eftersom långa svenska/
+  // tyska/finska ord (t.ex. "Aktivitetstyp", "Aktivitätstyp") bryts då.
+  sectionLabel: {
+    fontSize: 14,
+    color: "#4A5E4C",
+    fontWeight: "500",
+    marginTop: 4,
   },
   activityTypeRow: {
     flexDirection: "row",

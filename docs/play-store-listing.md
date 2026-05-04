@@ -109,6 +109,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (IV) — Fix: avstavad "Aktivitetstyp"-etikett
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Buggfix: etiketten "Aktivitetstyp" i Skapa-vyn avstavades på två rader pga en gammal layoutregel. Samma fix för "Kategori"-etiketten preventivt.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Bug fix: the "Activity type" label in the Create view was wrapping awkwardly due to an old layout rule. Same fix applied preemptively to the "Category" label.
+```
+
+---
+
 ### OTA 2026-05-04 (III) — Längre tid att se rätt svar
 
 **Svenska (sv-SE):**
