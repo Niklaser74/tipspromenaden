@@ -109,6 +109,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-04 (III) — Längre tid att se rätt svar
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Efter feedback från testarna: tiden som rätt svar visas efter att man svarat har förlängts från 1,5 s till 3,5 s. Hinner nu läsa svaret i lugn och ro.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Based on tester feedback: the correct answer now stays on screen for 3.5 seconds after answering (was 1.5 s). Plenty of time to read the answer.
+```
+
+---
+
 ### OTA 2026-05-04 (II) — Fix: hint-text täckte karttyp-knappen i Skapa-vyn
 
 **Svenska (sv-SE):**

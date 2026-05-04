@@ -321,6 +321,10 @@ export default function ActiveWalkScreen() {
         correctAnswer: activeQuestion.options[activeQuestion.correctOptionIndex],
       });
 
+      // Tid som rätt-svar-bannern visas innan modalen stängs.
+      // Tidigare 1500 ms — testarna tyckte det gick för fort, särskilt
+      // när rätt svar är en längre fras man ska hinna läsa. 3500 ms ger
+      // tid för 2 grundliga genomläsningar utan att kännas långrandigt.
       setTimeout(async () => {
         const answer: Answer = {
           questionId: activeQuestion.id,
@@ -407,7 +411,7 @@ export default function ActiveWalkScreen() {
             }
           }, 500);
         }
-      }, 1500);
+      }, 3500);
     },
     [
       activeQuestion,
