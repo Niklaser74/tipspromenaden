@@ -203,7 +203,7 @@ function isAnonymous() {
 function isAdmin() {
   return request.auth != null
          && request.auth.uid in [
-              // "DIN_UID_HÄR" — fyll i samma värde som i admin.ts
+              "xZCq96Z0BdZKWPFvKXAAwZQXb402",
             ];
 }
 
