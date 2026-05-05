@@ -54,7 +54,10 @@ export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [tab, setTab] = useState<"tipspack" | "walks" | "mine">("tipspack");
+  const [tab, setTab] = useState<"tipspack" | "walks">("tipspack");
+  // Filter inom tipspack-fliken: visar mina egna pack (publika + hemliga)
+  // i samma lista istället för att vara en separat flik.
+  const [showMine, setShowMine] = useState(false);
 
   const [packs, setPacks] = useState<LibraryTipspack[] | null>(null);
   const [walks, setWalks] = useState<Walk[] | null>(null);
@@ -468,26 +471,23 @@ export default function LibraryScreen() {
             🚶 {t("library.tabWalks")}
           </Text>
         </TouchableOpacity>
-        {canSeeMine && (
+      </View>
+
+      {/* "Mina paket"-chip — visas i Frågebatterier-fliken för inloggade.
+          När aktiv visas användarens egna pack (publika + hemliga) i samma
+          listvy med ägar-actions (toggle synlighet, dela, radera). */}
+      {tab === "tipspack" && canSeeMine && (
+        <View style={styles.flagRow}>
           <TouchableOpacity
-            style={[
-              styles.segmentedItem,
-              tab === "mine" && styles.segmentedItemActive,
-            ]}
-            onPress={() => setTab("mine")}
-            activeOpacity={0.7}
+            onPress={() => setShowMine((v) => !v)}
+            style={[styles.flagChip, showMine && styles.flagChipActive]}
           >
-            <Text
-              style={[
-                styles.segmentedText,
-                tab === "mine" && styles.segmentedTextActive,
-              ]}
-            >
+            <Text style={[styles.flagChipText, showMine && styles.flagChipTextActive]}>
               📦 {t("library.tabMine")}
             </Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       <View style={styles.searchRow}>
         <TextInput
@@ -505,7 +505,7 @@ export default function LibraryScreen() {
         />
       </View>
 
-      {tab === "tipspack" && availableLanguages.length > 1 && (
+      {tab === "tipspack" && !showMine && availableLanguages.length > 1 && (
         <View style={styles.flagRow}>
           {availableLanguages.map((lang) => {
             const active = selectedLanguages.has(lang.code);
@@ -580,7 +580,7 @@ export default function LibraryScreen() {
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {tab === "tipspack" && packs === null && !error && (
+      {tab === "tipspack" && !showMine && packs === null && !error && (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#1B6B35" />
           <Text style={styles.loadingText}>{t("library.loading")}</Text>
@@ -594,7 +594,7 @@ export default function LibraryScreen() {
         </View>
       )}
 
-      {tab === "tipspack" && packs !== null && filtered.length === 0 && (
+      {tab === "tipspack" && !showMine && packs !== null && filtered.length === 0 && (
         <Text style={styles.empty}>
           {searchTerm || selectedLanguages.size > 0
             ? t("library.noMatch")
@@ -655,7 +655,7 @@ export default function LibraryScreen() {
         </ScrollView>
       )}
 
-      {tab === "tipspack" && (
+      {tab === "tipspack" && !showMine && (
       <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
         {filtered.map((pack) => {
           const isExpanded = expandedSlug === pack.slug;
@@ -736,7 +736,7 @@ export default function LibraryScreen() {
       </ScrollView>
       )}
 
-      {tab === "mine" && canSeeMine && (
+      {tab === "tipspack" && showMine && canSeeMine && (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {myPacks === null && (
             <ActivityIndicator size="large" color="#1B6B35" style={{ marginTop: 40 }} />

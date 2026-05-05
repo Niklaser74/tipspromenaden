@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (IV) — Bibliotek: Mina paket är nu en chip i Frågebatterier
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• "Mina paket" har slagits ihop med Frågebatterier-fliken som en chip-filter istället för en separat flik. Klicka 📦 Mina paket för att växla mellan curated/publika pack och dina egna (publika + hemliga). Internt har all .tipspack-validering centraliserats till en delad fil mellan app och webb — samma regler, ett ställe att uppdatera.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• "My packs" has been merged into the Question packs tab as a chip filter instead of a separate tab. Tap 📦 My packs to toggle between curated/public packs and your own (public + private). Internally all .tipspack validation has been centralized into a single shared file between app and web — same rules, one place to update.
+```
+
+---
+
 ### OTA 2026-05-05 (III) — Förenklat skapande av nya promenader
 
 **Svenska (sv-SE):**

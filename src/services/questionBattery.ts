@@ -31,36 +31,16 @@ import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { Question } from "../types";
 import { generateId } from "../utils/qr";
+import {
+  validateBattery,
+  MAX_FILE_SIZE_BYTES,
+  type BatteryQuestion,
+  type QuestionBattery,
+} from "./tipspackValidator";
 
-/** En fråga i batteriet — har ingen koordinat eller ordning än. */
-export interface BatteryQuestion {
-  text: string;
-  options: string[];
-  correctOptionIndex: number;
-}
-
-/** Metadata + frågor från en importerad .tipspack-fil. */
-export interface QuestionBattery {
-  format: "tipspack";
-  version: string;
-  name: string;
-  description?: string;
-  author?: string;
-  /**
-   * ISO 639-1-kod för det språk frågorna är skrivna på (t.ex. `"sv"`, `"en"`).
-   * Om fältet finns sätter appen automatiskt promenadspråket vid import,
-   * så att skaparen slipper välja manuellt.
-   */
-  language?: string;
-  questions: BatteryQuestion[];
-}
-
-/** Max filstorlek (bytes) — skyddar mot DoS vid import av uppblåsta filer. */
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-/** Max antal frågor per batteri — skyddar mot enorma arrayer. */
-const MAX_QUESTIONS = 500;
-/** Max längd på frågetext och svarsalternativ. */
-const MAX_TEXT_LENGTH = 1000;
+// Återexport så befintliga callsites (CreateWalkScreen m.fl.) inte behöver
+// uppdatera sina imports.
+export type { BatteryQuestion, QuestionBattery };
 
 /**
  * Resultat från ett importförsök.
@@ -69,66 +49,6 @@ const MAX_TEXT_LENGTH = 1000;
 export type BatteryImportResult =
   | { success: true; battery: QuestionBattery }
   | { success: false; error: string };
-
-/**
- * Validerar att ett okänt JSON-objekt har rätt struktur för ett frågebatteri.
- * Kastar Error med beskrivande meddelande vid problem.
- */
-function validateBattery(data: any): asserts data is QuestionBattery {
-  if (!data || typeof data !== "object") {
-    throw new Error("Filen är inte ett giltigt JSON-objekt.");
-  }
-  if (data.format !== "tipspack") {
-    throw new Error(
-      `Fel filformat. Förväntade "tipspack" men fick "${data.format}".`
-    );
-  }
-  if (typeof data.version !== "string") {
-    throw new Error("Saknar versionsfält.");
-  }
-  if (typeof data.name !== "string" || !data.name.trim()) {
-    throw new Error("Saknar namn på frågebatteriet.");
-  }
-  if (!Array.isArray(data.questions) || data.questions.length === 0) {
-    throw new Error("Frågebatteriet innehåller inga frågor.");
-  }
-  if (data.questions.length > MAX_QUESTIONS) {
-    throw new Error(
-      `Frågebatteriet har för många frågor (max ${MAX_QUESTIONS}).`
-    );
-  }
-
-  data.questions.forEach((q: any, idx: number) => {
-    const prefix = `Fråga ${idx + 1}:`;
-    if (typeof q.text !== "string" || !q.text.trim()) {
-      throw new Error(`${prefix} saknar frågetext.`);
-    }
-    if (q.text.length > MAX_TEXT_LENGTH) {
-      throw new Error(`${prefix} frågetexten är för lång.`);
-    }
-    if (!Array.isArray(q.options) || q.options.length < 2) {
-      throw new Error(`${prefix} måste ha minst 2 svarsalternativ.`);
-    }
-    if (q.options.length > 10) {
-      throw new Error(`${prefix} har för många svarsalternativ (max 10).`);
-    }
-    if (
-      q.options.some(
-        (o: any) =>
-          typeof o !== "string" || !o.trim() || o.length > MAX_TEXT_LENGTH
-      )
-    ) {
-      throw new Error(`${prefix} har tomma eller för långa svarsalternativ.`);
-    }
-    if (
-      typeof q.correctOptionIndex !== "number" ||
-      q.correctOptionIndex < 0 ||
-      q.correctOptionIndex >= q.options.length
-    ) {
-      throw new Error(`${prefix} har ogiltigt rätt-svar-index.`);
-    }
-  });
-}
 
 /**
  * Visar en filväljare och försöker läsa den valda filen som ett frågebatteri.
