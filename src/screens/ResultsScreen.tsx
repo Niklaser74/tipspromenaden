@@ -12,7 +12,7 @@
  * finns i ROADMAP.
  */
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -22,11 +22,14 @@ import {
   Platform,
   Share,
   Alert,
+  Animated,
+  Easing,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Walk, Answer } from "../types";
 import { useTranslation } from "../i18n";
 import { buildWalkLink } from "../constants/deepLinks";
+import Confetti from "../components/Confetti";
 
 export default function ResultsScreen() {
   const route = useRoute<any>();
@@ -42,6 +45,76 @@ export default function ResultsScreen() {
   };
 
   const percentage = Math.round((score / total) * 100);
+
+  // --- Animerad reveal-sekvens (OTA-bart, bygger på RN:s Animated) ---
+  // Spelas upp en gång när skärmen mountas. Score räknas upp från 0,
+  // procent-baren fylls, emoji skalar in och resten av kortet fadar in.
+  // Confetti visas bara vid ≥70% (matchar "🎉/🏆"-emojin).
+  const emojiScale = useRef(new Animated.Value(0)).current;
+  const cardOpacity = useRef(new Animated.Value(0)).current;
+  const cardTranslate = useRef(new Animated.Value(20)).current;
+  const barProgress = useRef(new Animated.Value(0)).current;
+  const restOpacity = useRef(new Animated.Value(0)).current;
+  const scoreAnim = useRef(new Animated.Value(0)).current;
+  const [displayScore, setDisplayScore] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    const id = scoreAnim.addListener(({ value }) => {
+      setDisplayScore(Math.round(value));
+    });
+    Animated.sequence([
+      Animated.spring(emojiScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 80,
+        useNativeDriver: true,
+      }),
+      Animated.parallel([
+        Animated.timing(cardOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.timing(cardTranslate, {
+          toValue: 0,
+          duration: 400,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.parallel([
+        Animated.timing(scoreAnim, {
+          toValue: score,
+          duration: Math.max(600, Math.min(1400, score * 180)),
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+        Animated.timing(barProgress, {
+          toValue: percentage,
+          duration: 900,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: false,
+        }),
+      ]),
+      Animated.timing(restOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      if (percentage >= 70) setShowConfetti(true);
+    });
+    return () => scoreAnim.removeListener(id);
+    // Kör endast en gång på mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const barWidth = barProgress.interpolate({
+    inputRange: [0, 100],
+    outputRange: ["0%", "100%"],
+    extrapolate: "clamp",
+  });
 
   const getEmoji = () => {
     if (percentage === 100) return "🏆";
@@ -94,6 +167,7 @@ export default function ResultsScreen() {
   };
 
   return (
+    <>
     <ScrollView
       style={styles.scrollView}
       contentContainerStyle={styles.container}
@@ -101,26 +175,35 @@ export default function ResultsScreen() {
     >
       {/* Celebration header */}
       <View style={styles.header}>
-        <Text style={styles.emoji}>{getEmoji()}</Text>
-        <Text style={styles.title}>{t("results.done")}</Text>
-        <Text style={styles.name}>{participantName}</Text>
-        <Text style={styles.message}>{getMessage()}</Text>
+        <Animated.Text style={[styles.emoji, { transform: [{ scale: emojiScale }] }]}>
+          {getEmoji()}
+        </Animated.Text>
+        <Animated.View style={{ opacity: cardOpacity, alignItems: "center" }}>
+          <Text style={styles.title}>{t("results.done")}</Text>
+          <Text style={styles.name}>{participantName}</Text>
+          <Text style={styles.message}>{getMessage()}</Text>
+        </Animated.View>
       </View>
 
       {/* Score card */}
-      <View style={styles.scoreCard}>
+      <Animated.View
+        style={[
+          styles.scoreCard,
+          { opacity: cardOpacity, transform: [{ translateY: cardTranslate }] },
+        ]}
+      >
         <View style={styles.scoreCircle}>
-          <Text style={styles.scoreNumber}>{score}</Text>
+          <Text style={styles.scoreNumber}>{displayScore}</Text>
           <Text style={styles.scoreDivider}>
             {t("results.ofTotal", { total })}
           </Text>
         </View>
         <View style={styles.percentageContainer}>
           <View style={styles.percentageBar}>
-            <View
+            <Animated.View
               style={[
                 styles.percentageFill,
-                { width: `${percentage}%` },
+                { width: barWidth },
                 percentage >= 70 && styles.percentageFillGood,
                 percentage < 40 && styles.percentageFillLow,
               ]}
@@ -133,20 +216,22 @@ export default function ResultsScreen() {
             {t("results.stepsLine", { count: steps })}
           </Text>
         )}
-      </View>
+      </Animated.View>
 
       {/* Share button — V1 viral loop */}
-      <TouchableOpacity
-        style={styles.shareButton}
-        onPress={handleShare}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.shareIcon}>📤</Text>
-        <Text style={styles.shareButtonText}>{t("results.share")}</Text>
-      </TouchableOpacity>
+      <Animated.View style={{ opacity: restOpacity, width: "100%" }}>
+        <TouchableOpacity
+          style={styles.shareButton}
+          onPress={handleShare}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.shareIcon}>📤</Text>
+          <Text style={styles.shareButtonText}>{t("results.share")}</Text>
+        </TouchableOpacity>
+      </Animated.View>
 
       {/* Answer breakdown */}
-      <View style={styles.detailSection}>
+      <Animated.View style={[styles.detailSection, { opacity: restOpacity }]}>
         <Text style={styles.detailTitle}>{t("results.yourAnswers")}</Text>
         {walk.questions.map((q, idx) => {
           const answer = answers.find((a) => a.questionId === q.id);
@@ -189,17 +274,21 @@ export default function ResultsScreen() {
             </View>
           );
         })}
-      </View>
+      </Animated.View>
 
       {/* Home button */}
-      <TouchableOpacity
-        style={styles.homeButton}
-        onPress={() => navigation.navigate("Home")}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.homeButtonText}>{t("results.backHome")}</Text>
-      </TouchableOpacity>
+      <Animated.View style={{ opacity: restOpacity }}>
+        <TouchableOpacity
+          style={styles.homeButton}
+          onPress={() => navigation.navigate("Home")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.homeButtonText}>{t("results.backHome")}</Text>
+        </TouchableOpacity>
+      </Animated.View>
     </ScrollView>
+    {showConfetti && <Confetti active />}
+    </>
   );
 }
 

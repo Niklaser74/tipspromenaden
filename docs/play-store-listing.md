@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (II) — Animerad resultatscen
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Resultatskärmen har fått en animerad reveal: poängen räknas upp från 0, procent-baren fylls, och vid 70% rätt eller mer regnar det konfetti över skärmen. Pure RN-animation, ingen prestandakostnad.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The results screen now has an animated reveal: the score counts up from 0, the percentage bar fills, and at 70% correct or higher confetti rains across the screen. Pure RN animation, no performance cost.
+```
+
+---
+
 ### OTA 2026-05-05 (I) — Återanvänd positioner direkt med ett valt frågebatteri
 
 **Svenska (sv-SE):**
