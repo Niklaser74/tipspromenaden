@@ -20,8 +20,6 @@ import {
   StyleSheet,
   ScrollView,
   Platform,
-  Share,
-  Alert,
   Animated,
   Easing,
 } from "react-native";
@@ -29,6 +27,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { Walk, Answer } from "../types";
 import { useTranslation } from "../i18n";
 import { buildWalkLink } from "../constants/deepLinks";
+import { shareContent } from "../utils/shareContent";
 import Confetti from "../components/Confetti";
 
 export default function ResultsScreen() {
@@ -147,23 +146,12 @@ export default function ResultsScreen() {
       title: walk.title,
       emoji,
     });
-    try {
-      await Share.share(
-        {
-          // `message` fungerar på både iOS & Android. Vi inkluderar länken
-          // inline i texten eftersom Android inte stöder `url`-fältet.
-          message: `${message}\n\n${deepLink}`,
-          // iOS använder separat `url` när det finns.
-          url: deepLink,
-          title: t("results.shareTitle"),
-        },
-        { dialogTitle: t("results.shareTitle") }
-      );
-    } catch (e: any) {
-      // Användaren kan avbryta — det är inget fel. Men om systemet kastar
-      // något ovanligt vill vi ändå ge feedback.
-      Alert.alert(t("common.error"), e?.message || "");
-    }
+    await shareContent({
+      kind: "text",
+      message: `${message}\n\n${deepLink}`,
+      url: deepLink,
+      title: t("results.shareTitle"),
+    });
   };
 
   return (

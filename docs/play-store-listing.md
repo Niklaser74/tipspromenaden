@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (III) — Förenklat skapande av nya promenader
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Skapa promenad: Återanvänd positioner-knappen är nu en enda knapp som anpassar sig till om du har ett batteri i kö eller inte. Internt har all delning slagits ihop till en gemensam väg — ingen funktionsskillnad utåt, men enklare att underhålla framåt.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• Create walk: the Reuse positions button is now a single adaptive button that handles both empty walks and queued question packs. Internally all sharing has been unified into one path — no user-visible change, just easier to maintain going forward.
+```
+
+---
+
 ### OTA 2026-05-05 (II) — Animerad resultatscen
 
 **Svenska (sv-SE):**

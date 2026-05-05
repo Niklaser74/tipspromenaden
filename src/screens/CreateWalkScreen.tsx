@@ -1089,22 +1089,26 @@ export default function CreateWalkScreen() {
         nestedScrollEnabled
       >
 
-        {/* Importera frågebatteri + Återanvänd positioner — båda visas bara
-            på fräsch ny promenad (inga frågor, inte redigering). */}
-        {!isEditing && questions.length === 0 && batteryQueue.length === 0 && (
+        {/* Två CTA på fräsch ny promenad (inga frågor, inte redigering):
+            Importera frågebatteri + Återanvänd positioner. Reuse-knappens
+            subtitle byter beskrivning beroende på om ett batteri redan
+            är köat — samma action, två kontexter, en knapp. */}
+        {!isEditing && questions.length === 0 && (
           <>
-            <TouchableOpacity
-              style={styles.importBatteryButton}
-              onPress={handleImportBattery}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.importBatteryIcon}>📋</Text>
-              <View style={styles.importBatteryContent}>
-                <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
-                <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
-              </View>
-              <Text style={styles.importBatteryArrow}>›</Text>
-            </TouchableOpacity>
+            {batteryQueue.length === 0 && (
+              <TouchableOpacity
+                style={styles.importBatteryButton}
+                onPress={handleImportBattery}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.importBatteryIcon}>📋</Text>
+                <View style={styles.importBatteryContent}>
+                  <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
+                  <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
+                </View>
+                <Text style={styles.importBatteryArrow}>›</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={styles.reusePositionsButton}
               onPress={openReusePicker}
@@ -1113,29 +1117,15 @@ export default function CreateWalkScreen() {
               <Text style={styles.importBatteryIcon}>📍</Text>
               <View style={styles.importBatteryContent}>
                 <Text style={styles.reusePositionsTitle}>{t("create.reuseTitle")}</Text>
-                <Text style={styles.reusePositionsSubtitle}>{t("create.reuseDesc")}</Text>
+                <Text style={styles.reusePositionsSubtitle}>
+                  {batteryQueue.length > 0
+                    ? t("create.reuseWithBatteryDesc")
+                    : t("create.reuseDesc")}
+                </Text>
               </View>
               <Text style={styles.reusePositionsArrow}>›</Text>
             </TouchableOpacity>
           </>
-        )}
-
-        {/* Batteri-kö utan placerade frågor → erbjud "Återanvänd positioner"
-            som genväg så skaparen kan få en komplett promenad i ett klick
-            genom att para batteriets frågor mot en tidigare promenads karta. */}
-        {!isEditing && batteryQueue.length > 0 && questions.length === 0 && (
-          <TouchableOpacity
-            style={styles.reusePositionsButton}
-            onPress={openReusePicker}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.importBatteryIcon}>📍</Text>
-            <View style={styles.importBatteryContent}>
-              <Text style={styles.reusePositionsTitle}>{t("create.reuseTitle")}</Text>
-              <Text style={styles.reusePositionsSubtitle}>{t("create.reuseWithBatteryDesc")}</Text>
-            </View>
-            <Text style={styles.reusePositionsArrow}>›</Text>
-          </TouchableOpacity>
         )}
 
         {/* Banner när positioner är återanvända men inga frågor satta än.

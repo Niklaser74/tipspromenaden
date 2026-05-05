@@ -12,10 +12,9 @@ import QRCode from "react-native-qrcode-svg";
 import { useRoute, useNavigation } from "@react-navigation/native";
 // SDK 55: nya File/Directory-API:t är inte stabilt än, så vi använder legacy.
 import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
 import { Walk } from "../types";
 import { useTranslation } from "../i18n";
-import { shareWalk } from "../utils/shareWalk";
+import { shareContent } from "../utils/shareContent";
 
 export default function ShowQRScreen() {
   const route = useRoute<any>();
@@ -212,21 +211,22 @@ export default function ShowQRScreen() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(filePath, {
-          mimeType: "image/png",
-          dialogTitle: t("showQR.shareDialogTitle", { title: walk.title }),
-        });
-      } else {
-        await shareWalk(walk, t);
+      const ok = await shareContent({
+        kind: "fileUri",
+        uri: filePath,
+        mimeType: "image/png",
+        dialogTitle: t("showQR.shareDialogTitle", { title: walk.title }),
+      });
+      if (!ok) {
+        await shareContent({ kind: "walk", walk }, t);
       }
     } catch (e) {
       console.error("Share error:", e);
-      await shareWalk(walk, t);
+      await shareContent({ kind: "walk", walk }, t);
     }
   };
 
-  const handleShareText = () => shareWalk(walk, t);
+  const handleShareText = () => shareContent({ kind: "walk", walk }, t);
 
   return (
     <ScrollView

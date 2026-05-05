@@ -17,7 +17,7 @@ import {
 import { Session, Participant } from "../types";
 import { useTranslation } from "../i18n";
 import { ShareBadge } from "../components/ShareBadge";
-import { shareBadge } from "../utils/shareBadge";
+import { shareContent } from "../utils/shareContent";
 
 export default function LeaderboardScreen() {
   const route = useRoute<any>();
@@ -113,7 +113,8 @@ export default function LeaderboardScreen() {
     if (!me || sharing) return;
     setSharing(true);
     try {
-      const ok = await shareBadge({
+      const ok = await shareContent({
+        kind: "viewAsImage",
         viewRef: badgeRef,
         dialogTitle: t("leaderboard.shareDialogTitle"),
       });

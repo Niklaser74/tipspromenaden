@@ -26,9 +26,9 @@ import {
   StyleSheet,
   Alert,
   Linking,
-  Share,
   Platform,
 } from "react-native";
+import { shareContent } from "../utils/shareContent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "../i18n";
@@ -331,22 +331,19 @@ export default function LibraryScreen() {
   // som universal link för enheter där appen inte är installerad.
   async function shareMyPack(pack: MyTipspack) {
     const url = `https://${WEB_HOST}/tipspack/${pack.slug}`;
-    try {
-      await Share.share({
-        message: t("library.mineShareMessage", { name: pack.name, url }),
-        title: pack.name,
-        url, // iOS lägger till länken som separat fält
-      });
-    } catch (e: any) {
-      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
-    }
+    await shareContent({
+      kind: "text",
+      message: t("library.mineShareMessage", { name: pack.name, url }),
+      title: pack.name,
+      url,
+    });
   }
 
   async function shareMyPackDirectFile(pack: MyTipspack) {
     setMyPacksBusy("dl:" + pack.slug);
     try {
       const url = await getTipspackDownloadUrl(pack.slug);
-      await Share.share({ message: url, url, title: pack.name });
+      await shareContent({ kind: "text", message: url, url, title: pack.name });
     } catch (e: any) {
       Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
     } finally {

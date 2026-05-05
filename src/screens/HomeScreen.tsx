@@ -31,7 +31,7 @@ import {
 } from "../services/walkTags";
 import { getCurrentLocation } from "../utils/location";
 import { distanceToWalk, LatLng } from "../utils/walkGeo";
-import { shareWalk } from "../utils/shareWalk";
+import { shareContent } from "../utils/shareContent";
 import EditTagsModal from "../components/EditTagsModal";
 import { useTranslation } from "../i18n";
 
@@ -689,7 +689,7 @@ export default function HomeScreen() {
                   <View style={styles.walkCardActions}>
                     <TouchableOpacity
                       style={styles.editButton}
-                      onPress={() => shareWalk(item.walk, t)}
+                      onPress={() => shareContent({ kind: "walk", walk: item.walk }, t)}
                       activeOpacity={0.6}
                       accessibilityLabel={t("share.walkButton")}
                     >
