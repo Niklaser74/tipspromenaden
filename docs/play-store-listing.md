@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (V) — Förhandsgranska egna pack + rensad delning
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• "Mina paket": du kan nu förhandsgranska frågorna i dina egna pack (utan att svaren visas) precis som i Frågebatterier-listan. Den dubbla "Ladda ner"-knappen är borttagen — den delade samma typ av länk som "Dela", bara mer rå.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• "My packs": you can now preview the questions in your own packs (answers hidden), just like in the Question packs list. The duplicate "Download" button has been removed — it shared the same kind of link as "Share", just more raw.
+```
+
+---
+
 ### OTA 2026-05-05 (IV) — Bibliotek: Mina paket är nu en chip i Frågebatterier
 
 **Svenska (sv-SE):**

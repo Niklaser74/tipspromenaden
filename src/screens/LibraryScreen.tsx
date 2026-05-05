@@ -342,15 +342,30 @@ export default function LibraryScreen() {
     });
   }
 
-  async function shareMyPackDirectFile(pack: MyTipspack) {
-    setMyPacksBusy("dl:" + pack.slug);
+  /**
+   * Förhandsgranska egna pack — hämtar JSON via Storage download-URL och
+   * lagrar i samma `previewBySlug`-cache som curated/publika pack använder.
+   * Gör det möjligt att se sina egna frågor utan att starta importflödet.
+   */
+  async function expandMyPack(pack: MyTipspack) {
+    if (expandedSlug === pack.slug) {
+      setExpandedSlug(null);
+      return;
+    }
+    setExpandedSlug(pack.slug);
+    if (previewBySlug[pack.slug]) return;
+    setPreviewBySlug((curr) => ({ ...curr, [pack.slug]: "loading" }));
     try {
       const url = await getTipspackDownloadUrl(pack.slug);
-      await shareContent({ kind: "text", message: url, url, title: pack.name });
-    } catch (e: any) {
-      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
-    } finally {
-      setMyPacksBusy(null);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setPreviewBySlug((curr) => ({
+        ...curr,
+        [pack.slug]: { questions: data.questions ?? [] },
+      }));
+    } catch {
+      setPreviewBySlug((curr) => ({ ...curr, [pack.slug]: "error" }));
     }
   }
 
@@ -753,7 +768,8 @@ export default function LibraryScreen() {
           {myPacks?.map((p) => {
             const busyToggle = myPacksBusy === "toggle:" + p.slug;
             const busyDel = myPacksBusy === "del:" + p.slug;
-            const busyDl = myPacksBusy === "dl:" + p.slug;
+            const isExpanded = expandedSlug === p.slug;
+            const preview = previewBySlug[p.slug];
             return (
               <View key={p.slug} style={styles.card}>
                 <View style={styles.mineRowTop}>
@@ -785,22 +801,21 @@ export default function LibraryScreen() {
                 </Text>
                 <View style={styles.mineActionsRow}>
                   <TouchableOpacity
+                    style={styles.previewButton}
+                    onPress={() => expandMyPack(p)}
+                  >
+                    <Text style={styles.previewButtonText}>
+                      {isExpanded
+                        ? t("library.hideQuestions")
+                        : t("library.previewQuestions")}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={[styles.useButton, { flex: 1 }]}
                     onPress={() => shareMyPack(p)}
                     disabled={!!myPacksBusy}
                   >
                     <Text style={styles.useButtonText}>📲 {t("library.mineShareLink")}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.previewButton}
-                    onPress={() => shareMyPackDirectFile(p)}
-                    disabled={!!myPacksBusy}
-                  >
-                    {busyDl ? (
-                      <ActivityIndicator size="small" color="#1B6B35" />
-                    ) : (
-                      <Text style={styles.previewButtonText}>📥</Text>
-                    )}
                   </TouchableOpacity>
                 </View>
                 <View style={styles.mineActionsRow}>
@@ -829,6 +844,30 @@ export default function LibraryScreen() {
                     )}
                   </TouchableOpacity>
                 </View>
+                {isExpanded && (
+                  <View style={styles.preview}>
+                    {preview === "loading" && (
+                      <Text style={styles.previewLoading}>{t("library.loading")}</Text>
+                    )}
+                    {preview === "error" && (
+                      <Text style={styles.previewError}>
+                        {t("library.previewError")}
+                      </Text>
+                    )}
+                    {preview && typeof preview === "object" && (
+                      <View>
+                        <Text style={styles.previewHint}>
+                          {t("library.previewHint")}
+                        </Text>
+                        {preview.questions.map((q, i) => (
+                          <Text key={i} style={styles.previewQuestionText}>
+                            {i + 1}. {q.text}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                )}
               </View>
             );
           })}
