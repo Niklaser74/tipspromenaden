@@ -109,10 +109,32 @@ export async function getPublicWalks(): Promise<Walk[]> {
     where("public", "==", true),
     limit(200)
   );
-  const snap = await getDocs(q);
-  const walks = snap.docs.map((d) => d.data() as Walk);
+  const [snap, hidden] = await Promise.all([
+    getDocs(q),
+    getHiddenWalkIds(),
+  ]);
+  const walks = snap.docs
+    .map((d) => d.data() as Walk)
+    .filter((w) => !hidden.has(w.id));
   walks.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
   return walks;
+}
+
+/**
+ * Hämtar admin-flaggade walk-id:n från `moderation/hidden`-dokumentet.
+ * Tomt set vid läsfel — moderation är best-effort, en hängande nät-
+ * läsning ska inte tysta hela biblioteket.
+ */
+async function getHiddenWalkIds(): Promise<Set<string>> {
+  try {
+    const ref = doc(db, "moderation", "hidden");
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return new Set();
+    const data = snap.data() as { walks?: string[] };
+    return new Set(data.walks ?? []);
+  } catch {
+    return new Set();
+  }
 }
 
 /**

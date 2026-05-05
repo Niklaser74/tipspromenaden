@@ -136,6 +136,18 @@ service cloud.firestore {
       }
     }
 
+    // -------------------- moderation --------------------
+    // Ett enda dokument `moderation/hidden` med arrays av walkId / slug
+    // som ska gömmas från publika listor. Public read (så vi kan filtrera
+    // klient-side i listningarna), endast admin-UID:n får skriva.
+    //
+    // ADMIN_UIDS måste hållas i synk med
+    // `tipspromenaden-web/src/lib/admin.ts` ADMIN_UIDS.
+    match /moderation/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isAdmin();
+    }
+
     // -------------------- tipspacks --------------------
     // Användar-uppladdade .tipspack-filer (frågebatterier) som kan delas
     // via tipspromenaden.app/tipspack. Doc-id == slug (genereras från
@@ -182,6 +194,17 @@ function isSignedIn() {
 function isAnonymous() {
   return request.auth != null
          && request.auth.token.firebase.sign_in_provider == 'anonymous';
+}
+
+// Admin-UIDer för moderation. Måste hållas i synk med
+// `tipspromenaden-web/src/lib/admin.ts` ADMIN_UIDS. Lista är trubbig
+// men räcker för hobby — flytta till custom claims om Cloud Functions
+// blir aktuella.
+function isAdmin() {
+  return request.auth != null
+         && request.auth.uid in [
+              // "DIN_UID_HÄR" — fyll i samma värde som i admin.ts
+            ];
 }
 
 // Sessionsstatus får bara röra sig framåt: waiting -> active -> completed.

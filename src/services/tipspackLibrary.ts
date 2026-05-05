@@ -98,6 +98,21 @@ async function fetchCurated(): Promise<LibraryTipspack[]> {
  * i loop) så ett enskilt Storage-fel inte blockerar resten — och så att en
  * Storage-anrop som hänger inte blockerar hela vyn.
  */
+/**
+ * Hämtar admin-flaggade tipspack-slugs från `moderation/hidden`-doc:et.
+ * Tomt set vid läsfel — moderation är best-effort.
+ */
+async function fetchHiddenTipspacks(): Promise<Set<string>> {
+  try {
+    const snap = await getDoc(doc(db, "moderation", "hidden"));
+    if (!snap.exists()) return new Set();
+    const data = snap.data() as { tipspacks?: string[] };
+    return new Set(data.tipspacks ?? []);
+  } catch {
+    return new Set();
+  }
+}
+
 async function fetchUploaded(): Promise<LibraryTipspack[]> {
   try {
     const q = query(collection(db, "tipspacks"), where("isPublic", "==", true));
@@ -148,20 +163,21 @@ export async function getLibraryTipspacks(): Promise<LibraryTipspack[]> {
   // Hård tids-cap per källa så att en hängande nät-operation inte blockerar
   // spinnern i appen för evigt. 8 s för curated (statisk JSON, normalt ms),
   // 12 s för uploaded (Firestore + N parallella Storage-URL:er).
-  const [curated, uploaded] = await Promise.all([
+  const [curated, uploaded, hidden] = await Promise.all([
     withTimeout(fetchCurated(), 8000, [] as LibraryTipspack[]),
     withTimeout(fetchUploaded(), 12000, [] as LibraryTipspack[]),
+    withTimeout(fetchHiddenTipspacks(), 5000, new Set<string>()),
   ]);
   const seen = new Set<string>();
   const merged: LibraryTipspack[] = [];
   for (const p of curated) {
-    if (!seen.has(p.slug)) {
+    if (!seen.has(p.slug) && !hidden.has(p.slug)) {
       merged.push(p);
       seen.add(p.slug);
     }
   }
   for (const p of uploaded) {
-    if (!seen.has(p.slug)) {
+    if (!seen.has(p.slug) && !hidden.has(p.slug)) {
       merged.push(p);
       seen.add(p.slug);
     }

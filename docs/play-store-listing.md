@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (VI) — Moderationsfilter
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Bibliotek-listorna (Frågebatterier + publika promenader) respekterar nu en gemensam moderation-flagga som administratören kan sätta via tipspromenaden.app/admin. Hela kedjan är "best effort" — om Firestore svajar visas listan oförändrad.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The Library lists (Question packs + public walks) now respect a shared moderation flag the admin can set from tipspromenaden.app/admin. The whole chain is best-effort — if Firestore stalls the list is shown unchanged.
+```
+
+---
+
 ### OTA 2026-05-05 (V) — Förhandsgranska egna pack + rensad delning
 
 **Svenska (sv-SE):**
