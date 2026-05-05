@@ -420,6 +420,8 @@
     "reuseNoneMessage": "You need at least one saved walk with control points to reuse positions.",
     "reuseSuccessTitle": "Positions loaded",
     "reuseSuccessMessage": "{{count}} positions from \"{{name}}\" loaded as empty controls. Import a question pack or fill in the questions manually.",
+    "reuseWithBatteryDesc": "Pair the queued questions with an earlier walk's map — complete walk in one tap",
+    "reuseAndFillSuccessMessage": "{{matched}} questions placed at positions from \"{{name}}\". {{remaining}} questions left in queue, {{extra}} extra positions as empty controls.",
     "reusedBanner": "Positions from \"{{name}}\" — fill in questions manually or import a question pack.",
     "batteryMatchedMessage": "{{matched}} questions from \"{{name}}\" matched existing positions. {{remaining}} remain — tap the map to place them.",
     "showQuestions": "Show & reorder questions",

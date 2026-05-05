@@ -420,6 +420,8 @@
     "reuseNoneMessage": "Du behöver ha minst en sparad promenad med kontrollpunkter för att kunna återanvända positioner.",
     "reuseSuccessTitle": "Positioner inlästa",
     "reuseSuccessMessage": "{{count}} positioner från \"{{name}}\" är inlästa som tomma kontroller. Importera ett frågebatteri eller fyll i frågorna manuellt.",
+    "reuseWithBatteryDesc": "Para batteriets frågor mot en tidigare promenads karta — komplett promenad direkt",
+    "reuseAndFillSuccessMessage": "{{matched}} frågor placerade på positioner från \"{{name}}\". {{remaining}} frågor kvar i kö, {{extra}} extra positioner som tomma kontroller.",
     "reusedBanner": "Positioner från \"{{name}}\" — fyll i frågor manuellt eller importera ett frågebatteri.",
     "batteryMatchedMessage": "{{matched}} frågor från \"{{name}}\" matchades mot befintliga positioner. {{remaining}} frågor återstår — tryck på kartan för att placera dem.",
     "showQuestions": "Visa & ordna frågor",

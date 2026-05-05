@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-05 (I) — Återanvänd positioner direkt med ett valt frågebatteri
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• När du öppnar ett frågebatteri (via Bibliotek eller delad länk) kan du nu välja "Återanvänd positioner" direkt och para batteriets frågor mot en tidigare promenads karta — komplett promenad i ett klick istället för att placera varje fråga manuellt.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• When you open a question pack (from the Library or a shared link) you can now tap "Reuse positions" right away to pair the queued questions with a previous walk's map — a complete walk in a single tap instead of placing each question manually.
+```
+
+---
+
 ### OTA 2026-05-04 (IX) — Stötta projektet-länk i Inställningar
 
 **Svenska (sv-SE):**

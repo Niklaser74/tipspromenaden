@@ -697,21 +697,44 @@ export default function CreateWalkScreen() {
    * via walkIdRef (gäller bara ny promenad, inte redigering).
    */
   const applyReusedPositions = (source: Walk) => {
-    const emptyQuestions: Question[] = source.questions.map((q, i) => ({
-      id: generateId(),
-      text: "",
-      options: ["", "", ""],
-      correctOptionIndex: 0,
-      coordinate: { ...q.coordinate },
-      order: i + 1,
-    }));
-    setQuestions(emptyQuestions);
+    // Om det finns batterifrågor i kö parar vi ihop dem med källans
+    // koordinater så att skaparen får en komplett promenad direkt.
+    // Eventuella överskott (fler positioner än frågor, eller tvärtom)
+    // hanteras: extra positioner blir tomma kontroller, extra frågor
+    // ligger kvar i kön så de kan placeras manuellt på kartan.
+    const sourceCoords = source.questions.map((q) => ({ ...q.coordinate }));
+    const hasBattery = batteryQueue.length > 0;
+    const matchCount = hasBattery
+      ? Math.min(sourceCoords.length, batteryQueue.length)
+      : 0;
+
+    const merged: Question[] = [];
+    for (let i = 0; i < matchCount; i++) {
+      merged.push(
+        batteryQuestionToQuestion(batteryQueue[i], sourceCoords[i], i + 1)
+      );
+    }
+    for (let i = matchCount; i < sourceCoords.length; i++) {
+      merged.push({
+        id: generateId(),
+        text: "",
+        options: ["", "", ""],
+        correctOptionIndex: 0,
+        coordinate: sourceCoords[i],
+        order: i + 1,
+      });
+    }
+
+    setQuestions(merged);
+    if (hasBattery) {
+      setBatteryQueue(batteryQueue.slice(matchCount));
+    }
     setReusedFromTitle(source.title);
     setReusePickerVisible(false);
 
     // Centrera kartan på första positionen så skaparen ser var de landar.
-    if (emptyQuestions.length > 0) {
-      const first = emptyQuestions[0].coordinate;
+    if (merged.length > 0) {
+      const first = merged[0].coordinate;
       setRegion({
         latitude: first.latitude,
         longitude: first.longitude,
@@ -720,13 +743,25 @@ export default function CreateWalkScreen() {
       });
     }
 
-    Alert.alert(
-      t("create.reuseSuccessTitle"),
-      t("create.reuseSuccessMessage", {
-        count: emptyQuestions.length,
-        name: source.title,
-      })
-    );
+    if (hasBattery) {
+      Alert.alert(
+        t("create.reuseSuccessTitle"),
+        t("create.reuseAndFillSuccessMessage", {
+          matched: matchCount,
+          remaining: batteryQueue.length - matchCount,
+          extra: Math.max(0, sourceCoords.length - matchCount),
+          name: source.title,
+        })
+      );
+    } else {
+      Alert.alert(
+        t("create.reuseSuccessTitle"),
+        t("create.reuseSuccessMessage", {
+          count: merged.length,
+          name: source.title,
+        })
+      );
+    }
   };
 
   /** Avbryt batteriläge — släng resterande oplacerade frågor. */
@@ -1083,6 +1118,24 @@ export default function CreateWalkScreen() {
               <Text style={styles.reusePositionsArrow}>›</Text>
             </TouchableOpacity>
           </>
+        )}
+
+        {/* Batteri-kö utan placerade frågor → erbjud "Återanvänd positioner"
+            som genväg så skaparen kan få en komplett promenad i ett klick
+            genom att para batteriets frågor mot en tidigare promenads karta. */}
+        {!isEditing && batteryQueue.length > 0 && questions.length === 0 && (
+          <TouchableOpacity
+            style={styles.reusePositionsButton}
+            onPress={openReusePicker}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.importBatteryIcon}>📍</Text>
+            <View style={styles.importBatteryContent}>
+              <Text style={styles.reusePositionsTitle}>{t("create.reuseTitle")}</Text>
+              <Text style={styles.reusePositionsSubtitle}>{t("create.reuseWithBatteryDesc")}</Text>
+            </View>
+            <Text style={styles.reusePositionsArrow}>›</Text>
+          </TouchableOpacity>
         )}
 
         {/* Banner när positioner är återanvända men inga frågor satta än.
