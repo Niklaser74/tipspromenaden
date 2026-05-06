@@ -1,19 +1,21 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-04
+> Senast uppdaterad: 2026-05-06
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
-> **Aktivt just nu:** ingenting — ingen kod påbörjad. Senaste arbete (2026-05-04):
-> säkerhetspass 2 (CSP/headers, walk-redirect-regex, SRI, QR-https, console-strip,
-> GCP budget alert) + bibliotek-hang fix (useEffect-deps + 15s failsafe).
-> Tidigare leveranser: cykelläge, OpenTopoMap-stigar, "Mina paket"-flik, App
-> Check Stage 1 (web), Google Maps på webben, onboarding-flöde. Väntar på
-> cykeltest-feedback och nästa beslut. iOS-bygge **övervägs** (~1 100 kr/år
-> löpande Apple Developer-avgift — ej beslutat). Förslag på nästa drag i
-> "Nästa konkreta steg"-listan.
+> **Aktivt just nu:** ingenting — allt levererat och deployat. Senaste pass
+> (2026-05-05/06): full webb-admin (`/admin`) med moderation, statistik,
+> batch-upload + skapa/redigera tipspack, walk-mini-karta + flygblad-
+> generator, smart `/get-app`-redirect, engelska översättningar (Fas 1+2),
+> PayPal på /stod, CSP-fix för Firebase Auth-popup. Tidigare (2026-05-04):
+> säkerhetspass 2 + bibliotek-hang fix. Tidigare i april–maj: cykelläge,
+> OpenTopoMap-stigar, "Mina paket"-flik, App Check Stage 1 (web), Google
+> Maps på webben, onboarding. Väntar på cykeltest-feedback och nästa
+> beslut. iOS-bygge **övervägs** (~1 100 kr/år löpande Apple Developer-
+> avgift — ej beslutat). Förslag på nästa drag i "Nästa konkreta steg".
 
 ---
 
@@ -514,6 +516,58 @@ Följande är inte beskrivet i fasplanen ovan men har levererats:
 - ✅ **Score-card-PNG-delning** — Leaderboard + Results har snyggt
   delningskort med QR-kod
 - ✅ **Trigger-tröskel justerad** från ~3 m till 15 m efter fält-tester
+- ✅ **Webb-admin på `/admin`** (2026-05-05) — login-gated på UID, fyra
+  flikar (Översikt / Walks / Tipspacks / Sessioner). Översikt visar
+  counts + topp-10 walks efter sessioner. Walks-fliken: alla walks
+  med expanderbar fråga+facit-vy, mini-karta (Leaflet med 🔍 Granska-
+  toggle som slår på drag/zoom), datum för skapad + senast utförd.
+  Tipspacks-fliken: curated + uppladdade i en lista, expanderbar med
+  facit, redigera/skapa-modal med full frågeeditor, batch-upload-zon
+  (drop N filer, sekvensiell upload med per-fil-status). Sessions-
+  fliken: 50 senaste.
+- ✅ **Moderation-flagga** (2026-05-05) — `moderation/hidden` Firestore-
+  doc med arrays av walkId/slug. App och webb filtrerar bort flaggade
+  items från publika listor (best-effort: tomt set vid läsfel).
+  Admin togglar via 🚩 Göm-knappen i `/admin`.
+- ✅ **Flygblad-generator i admin** (2026-05-05) — A5-printbart
+  flygblad i Friluft Folio-stil per walk. Modal med språkväljare
+  (sv/en), walk-titel + antal kontroller, två QR-kort, print-CSS för
+  pixel-perfekt PDF-output via browserns Skriv ut.
+- ✅ **/get-app smart redirect** (2026-05-05) — Android → testpilot-
+  Google-Group, iPhone → /stod, desktop → val. En enda QR fungerar
+  för båda OS:n istället för två separata.
+- ✅ **Engelska översättningar Fas 1** (2026-05-05) — hela
+  marknadssidan (`/en/`, `/en/support`, `/en/how-it-works`,
+  `/en/tipspack`), språkväxlare top-right, bilingual 404 +
+  walk-redirect.
+- ✅ **Engelska översättningar Fas 2** (2026-05-05) — `/skapa`-
+  creatorn på `/en/skapa`. Login, walks-lista, walk-editor, fråge-
+  formulär, dela/upload-dialoger, "Mina tipspacks". Datum/tid följer
+  locale.
+- ✅ **PayPal på /stod** (2026-05-05) — för utländska supportrar
+  som inte kan Swisha. Egen QR i grön palett + tap-knapp till
+  `paypal.me/niklaser3d`. Visuellt sekundärt jämfört med Swish.
+- ✅ **CSP-fix för Firebase Auth** (2026-05-05) — `apis.google.com`
+  + `accounts.google.com` lagda i CSP så desktop-browsers slutar få
+  `auth/internal-error` vid Google-login. Telefonen funkade redan
+  via en annan kodväg.
+- ✅ **/tipspack inline-script-fix** (2026-05-05) — Astro/Rolldown
+  bundlade `<script>` till en `type="module"` som tystade allt JS
+  på sidan (copy-link + förhandsgranska). Fixad genom byte till
+  `<script is:inline>` med block-kommentarer (Astro kollapsar
+  newlines i raw-scripts → `//`-kommentarer åt upp resten).
+- ✅ **Förhandsgranska tipspack-frågor** (2026-05-05) — på alla
+  tipspack-listor (curated `/tipspack`, publika user-uploaded,
+  Mina paket både i app och webb-admin). Visar bara frågetext
+  utan svar för att inte spoila spelet.
+- ✅ **Förenklingar i delning/import/återanvändning** (2026-05-05)
+  — central `tipspackValidator.ts` (en kopia per repo, byte-för-byte
+  identisk), `shareContent.ts`-fasad för all delning, slå ihop
+  reuse-knappens tre UI-tillstånd till en, slå ihop "Mina paket"
+  till chip-filter i Frågebatterier-fliken.
+- ✅ **Animerad resultatscen** (2026-05-05) — count-up score,
+  fyllande procent-bar, konfetti-overlay vid ≥70%. Pure RN
+  Animated, OTA-bart, ingen prestandakostnad.
 
 ---
 
@@ -530,6 +584,7 @@ Plocka det som passar humöret. Förslag i grov ordning:
 3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
    Universal Links. Kombinera med Stage 2 ovan.
 4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
+   Animerad resultatscen ✅ levererad 2026-05-05; ljud återstår.
 5. **Mörkt tema** — respektera `useColorScheme()`.
 6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
 7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
@@ -553,6 +608,13 @@ Plocka det som passar humöret. Förslag i grov ordning:
 13. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
     är på och vi sett Monitor-läget gå rent ett tag, flippa både
     Firestore och Storage från Monitor till Enforce i Firebase Console.
+14. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
+    slug i edit-läge eftersom byte är en flytt-operation (kopiera +
+    radera + uppdatera referenser). Lägg till om behov uppstår.
+15. **E-post-username-läckage på topplista** — `JoinWalkScreen` föreslår
+    `user.email.split("@")[0]` som default när displayName saknas.
+    Edge case (Google-inlogg sätter normalt displayName) men fixa via
+    tom default eller hjälptext "Detta visas på topplistan".
 
 ---
 
