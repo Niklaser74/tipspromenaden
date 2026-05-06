@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "851934058818",
+    "project_id": "tipspromenaden-491207",
+    "storage_bucket": "tipspromenaden-491207.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:851934058818:android:6e53f1eea6ac6005f610db",
+        "android_client_info": {
+          "package_name": "com.tipspromenaden.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "851934058818-jgd4utk7rv6s2p53pn02u7hudpnb2tvq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tipspromenaden.app",
+            "certificate_hash": "02d46bf3d78e62a4a516e3961c406a35eb34f690"
+          }
+        },
+        {
+          "client_id": "851934058818-jb53rnk0b0tul7lsbqs9p4god6sf80uv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS6EtbE8uSLJdV8oIFpaMPWBqn2aUZgA8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "851934058818-jb53rnk0b0tul7lsbqs9p4god6sf80uv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

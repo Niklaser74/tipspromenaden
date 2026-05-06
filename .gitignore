@@ -42,11 +42,10 @@ lastbuild.json
 # pusha AAB:er till Play Console. Får ALDRIG committas.
 google-service-account.json
 
-# Firebase Android-config — krävs av @react-native-firebase/app under
-# `eas build`. Inte hemlig (apiKey är publik) men gitignored för att
-# matcha tipspromenaden-konventionen + förenkla per-env-overrides via
-# EAS Secrets om det blir aktuellt. Ladda ner från Firebase Console.
-google-services.json
+# Firebase Android-config (google-services.json) committas medvetet.
+# Inga hemligheter — apiKey, appId och projectId är alla publika
+# (säkerhet sköts via Firestore rules + App Check, inte hemlighållning).
+# EAS Build behöver filen under prebuild-steget på cloud-buildern.
 
 # typescript
 *.tsbuildinfo
