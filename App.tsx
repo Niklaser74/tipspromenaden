@@ -12,6 +12,7 @@ import { installWalkTagsSync } from "./src/services/walkTagsSync";
 import OnboardingScreen, {
   ONBOARDED_STORAGE_KEY,
 } from "./src/screens/OnboardingScreen";
+import StartTrailDraws from "./src/components/StartTrailDraws";
 
 // Koppla in taggarnas auto-push till molnet en gång vid modulladdning.
 // Ligger utanför komponentträdet så det inte återupprepas vid re-render.
@@ -250,6 +251,11 @@ export default function App() {
   // true = onboarding redan klar (eller just klar). Tristate undviker
   // blink från fel default vid första render.
   const [onboarded, setOnboarded] = useState<boolean | null>(null);
+  // Start-animationen ("stigen ritas") spelas en gång per cold-start.
+  // Sätts till true när animationens onComplete fyrar ELLER när användaren
+  // tappar för att hoppa över. Återställs aldrig under en session — vi vill
+  // inte att animationen återkommer mitt i ett spel.
+  const [startAnimDone, setStartAnimDone] = useState(false);
 
   useEffect(() => {
     // Läs in sparat språkval + onboarding-status innan vi renderar
@@ -275,6 +281,17 @@ export default function App() {
       >
         <ActivityIndicator color="#1B6B35" />
       </View>
+    );
+  }
+
+  // Start-animation först — varje cold start, tap för att skippa.
+  // Renderas FÖRE både onboarding och navigator så loggan + stigen är det
+  // användaren ser direkt efter splash-ikonen.
+  if (!startAnimDone) {
+    return (
+      <ErrorBoundary>
+        <StartTrailDraws onComplete={() => setStartAnimDone(true)} />
+      </ErrorBoundary>
     );
   }
 

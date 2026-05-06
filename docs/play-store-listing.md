@@ -132,6 +132,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-06 (I) — Välkomstanimation "Stigen ritas"
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Vid varje app-start ritar sig en T-formad stig upp på en mörkgrön panel medan tre röda kontrollpunkter landar i sekvens, följt av wordmark + tagline. Tappa var som helst för att hoppa över. Designkälla: Friluft Folio-handoff.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• On every app launch a T-shaped trail draws itself onto a dark green panel while three red checkpoints land in sequence, followed by the wordmark + tagline. Tap anywhere to skip. Design source: Friluft Folio handoff.
+```
+
+---
+
 ### OTA 2026-05-05 (VI) — Moderationsfilter
 
 **Svenska (sv-SE):**
