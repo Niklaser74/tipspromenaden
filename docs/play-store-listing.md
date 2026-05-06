@@ -150,6 +150,22 @@ Version 1.5.0 (build 15):
 
 ---
 
+### OTA 2026-05-06 (II) — Välkomstanimationen får riktig Lora-typografi
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.4.0:
+• Wordmark, tagline och checkpoint-siffror i välkomstanimationen renderas nu i Lora (serif) istället för system-fallback. Matchar Friluft Folio-brand:n. Bara välkomstanimationen påverkas — resten av appens typografi är oförändrad.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.4.0:
+• The wordmark, tagline and checkpoint numbers in the welcome animation now render in Lora (serif) instead of system fallback. Matches the Friluft Folio brand. Only the welcome animation is affected — the rest of the app's typography is unchanged.
+```
+
+---
+
 ### OTA 2026-05-06 (I) — Välkomstanimation "Stigen ritas"
 
 **Svenska (sv-SE):**

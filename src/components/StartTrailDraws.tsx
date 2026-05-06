@@ -32,7 +32,6 @@ import {
   Easing,
   Pressable,
   useWindowDimensions,
-  Platform,
   Text,
 } from "react-native";
 import Svg, {
@@ -108,9 +107,8 @@ function AnimatedCheckpoint({
         x={cx}
         y={cy + size * 0.18}
         textAnchor="middle"
-        fontFamily={Platform.select({ ios: "Lora", android: "serif", default: "serif" })}
+        fontFamily="Lora_600SemiBold"
         fontSize={size * 0.5}
-        fontWeight="700"
         fill={TP.pinIvory}
       >
         {n}
@@ -280,17 +278,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   wordmark: {
-    // Lora finns inte i appen ännu — system serif som fallback ger ändå
-    // en serif-känsla på både iOS (Times-style) och Android (Noto Serif).
-    fontFamily: Platform.select({ ios: "Times New Roman", android: "serif", default: "serif" }),
+    // Lora_600SemiBold registreras i App.tsx via @expo-google-fonts/lora.
+    // Fallback (system serif) tar över om font-laddningen failar — appen
+    // ska aldrig hänga på fontstadiet.
+    fontFamily: "Lora_600SemiBold",
     fontSize: 30,
-    fontWeight: "600",
     color: TP.bg,
     letterSpacing: -0.3,
   },
   tagline: {
-    fontFamily: Platform.select({ ios: "Times New Roman", android: "serif", default: "serif" }),
-    fontStyle: "italic",
+    // Italic-varianten av Lora 400.
+    fontFamily: "Lora_400Regular_Italic",
     fontSize: 13,
     color: TP.fgMute,
     marginTop: 6,

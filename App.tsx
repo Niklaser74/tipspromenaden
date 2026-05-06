@@ -13,6 +13,12 @@ import OnboardingScreen, {
   ONBOARDED_STORAGE_KEY,
 } from "./src/screens/OnboardingScreen";
 import StartTrailDraws from "./src/components/StartTrailDraws";
+import {
+  useFonts,
+  Lora_400Regular,
+  Lora_400Regular_Italic,
+  Lora_600SemiBold,
+} from "@expo-google-fonts/lora";
 
 // Koppla in taggarnas auto-push till molnet en gång vid modulladdning.
 // Ligger utanför komponentträdet så det inte återupprepas vid re-render.
@@ -257,6 +263,18 @@ export default function App() {
   // inte att animationen återkommer mitt i ett spel.
   const [startAnimDone, setStartAnimDone] = useState(false);
 
+  // Brand-fonter (Lora) registreras via expo-font under app-laddningen så
+  // StartTrailDraws kan rendera wordmark + tagline + checkpoint-siffror i
+  // korrekt typografi enligt Friluft Folio. Phase A: bara välkomstanim:n
+  // använder Lora — resten av appen håller system-defaults oförändrat.
+  // useFonts returnerar [loaded] men appen renderar oavsett efter timeout
+  // så en saknad font aldrig hänger startflödet (vi har system-fallback).
+  const [fontsLoaded] = useFonts({
+    Lora_400Regular,
+    Lora_400Regular_Italic,
+    Lora_600SemiBold,
+  });
+
   useEffect(() => {
     // Läs in sparat språkval + onboarding-status innan vi renderar
     // navigator. Båda är snabba AsyncStorage-läsningar; vi gör dem
@@ -269,7 +287,7 @@ export default function App() {
     ]).finally(() => setReady(true));
   }, []);
 
-  if (!ready || onboarded === null) {
+  if (!ready || onboarded === null || !fontsLoaded) {
     return (
       <View
         style={{
