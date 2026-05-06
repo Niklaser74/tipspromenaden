@@ -261,7 +261,13 @@ export default function App() {
   // Sätts till true när animationens onComplete fyrar ELLER när användaren
   // tappar för att hoppa över. Återställs aldrig under en session — vi vill
   // inte att animationen återkommer mitt i ett spel.
-  const [startAnimDone, setStartAnimDone] = useState(false);
+  //
+  // EMERGENCY 2026-05-06: defaultar till `true` (= hoppa över) eftersom
+  // animationen kraschar appen vid uppstart i build 17. Behöver felsöka
+  // (sannolikt AnimatedG + transform-string-interpolation eller
+  // SVG-Text-fontFamily-resolution på Android med bundlade TTF). Tills
+  // vidare disablad via OTA.
+  const [startAnimDone, setStartAnimDone] = useState(true);
 
   // Brand-fonter (Lora) registreras via expo-font under app-laddningen så
   // StartTrailDraws kan rendera wordmark + tagline + checkpoint-siffror i
