@@ -13,6 +13,11 @@
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
+import {
+  initializeAppCheck,
+  CustomProvider,
+  type AppCheckToken,
+} from "firebase/app-check";
 import { getFirestore } from "firebase/firestore";
 // @ts-ignore — getReactNativePersistence finns i firebase/auth runtime men
 // saknas i typdeklarationerna i firebase v12. Känd öppen issue.
@@ -29,6 +34,49 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// ─── App Check Stage 2: native Play Integrity för Android ────────────
+// JS SDK:n vi använder för Firestore/Auth/Storage skickar en App Check-
+// token som header på varje request. Native-attestationen (Play Integrity)
+// hämtas via @react-native-firebase/app-check och bryggas in via en
+// CustomProvider — JS SDK ber om token, vi ber native, native ber Play
+// Integrity, returvärdet skickas tillbaka.
+//
+// Web: ingen App Check här (tipspromenaden-web kör eget reCAPTCHA
+// Enterprise i src/lib/firebase.ts). iOS: skippas tills DeviceCheck-
+// providern är konfigurerad i Stage 3.
+//
+// Misslyckad init är icke-fatal — appen funkar oförändrat, bara att
+// requests saknar App Check-tokens (= rejectas när Firebase Console
+// flippas till Enforce). Logga warning, gå vidare.
+if (Platform.OS === "android") {
+  (async () => {
+    try {
+      const rnfb = await import("@react-native-firebase/app-check");
+      const provider = new CustomProvider({
+        getToken: async (): Promise<AppCheckToken> => {
+          const result = await rnfb.default().getToken(true);
+          // Native-modulen returnerar bara `{ token: string }` — ingen
+          // expiration. Default Firebase TTL för Play Integrity-tokens
+          // är ~1 h, så vi sätter 50 min för att refresh:as i god tid.
+          return {
+            token: result.token,
+            expireTimeMillis: Date.now() + 50 * 60 * 1000,
+          };
+        },
+      });
+      initializeAppCheck(app, {
+        provider,
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (e) {
+      // Mest sannolika orsaker: native-modulen inte länkad
+      // (= App Check Stage 2 inte byggd ännu, bara JS-koden), eller
+      // Play Integrity API inte aktiverad i Google Cloud Console.
+      console.warn("[firebase] App Check init failed (non-fatal):", e);
+    }
+  })();
+}
 
 /** Firestore-databasinstansen som används för att läsa och skriva promenader, sessioner och deltagare. */
 export const db = getFirestore(app);

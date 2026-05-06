@@ -132,6 +132,24 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.5.0 (build 15) — App Check Stage 2 + Android App Links
+
+**Svenska (sv-SE):**
+```
+Version 1.5.0 (build 15):
+• App Check Stage 2: native Play Integrity-attestation skickas nu med varje request till Firebase. Stage 1 (web) lever vidare som tidigare. Båda kör fortfarande monitor mode — backend rejectar inget än.
+• Android App Links aktiverat: https://tipspromenaden.app/walk/<id>-länkar öppnar nu appen direkt utan "Öppna med…"-dialog när den är installerad. Custom-scheme tipspromenaden:// finns kvar för bakåtkompat.
+```
+
+**English (en-US):**
+```
+Version 1.5.0 (build 15):
+• App Check Stage 2: native Play Integrity attestation now sent with every Firebase request. Stage 1 (web reCAPTCHA) continues as before. Both still in monitor mode — backend rejects nothing yet.
+• Android App Links activated: https://tipspromenaden.app/walk/<id> links now open the app directly without an "Open with…" dialog when installed. Custom-scheme tipspromenaden:// remains for backwards compat.
+```
+
+---
+
 ### OTA 2026-05-06 (I) — Välkomstanimation "Stigen ritas"
 
 **Svenska (sv-SE):**

@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.4.0",
+    version: "1.5.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -58,6 +58,12 @@ module.exports = () => ({
     },
     android: {
       package: "com.tipspromenaden.app",
+      // Firebase Android-config — krävs av @react-native-firebase/app
+      // för att initiera native Firebase-SDK:n. Filen genereras i
+      // Firebase Console → Project Settings → Apps → Android → ladda
+      // ner google-services.json. Filen är gitignore:ad — placera i
+      // repo-roten innan `eas build`.
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         backgroundColor: "#1a5c2e",
         foregroundImage: "./assets/android-icon-foreground.png",
@@ -116,6 +122,13 @@ module.exports = () => ({
       "expo-localization",
       "@react-native-google-signin/google-signin",
       "@react-native-community/datetimepicker",
+      // App Check Stage 2 — Play Integrity-provider för native.
+      // `@react-native-firebase/app` injicerar Firebase-native-SDK:n
+      // (kräver `googleServicesFile` nedan) och `app-check`-plugen
+      // registrerar Play Integrity. JS SDK:n hämtar tokens via en
+      // CustomProvider som bryggar mot native — se src/config/firebase.ts.
+      "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
     ],
     extra: {
       eas: {
