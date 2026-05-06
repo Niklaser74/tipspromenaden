@@ -132,20 +132,27 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
-### AAB 1.5.0 (build 15) — App Check Stage 2 + Android App Links
+### AAB 1.5.0 (build 17) — App Check Stage 2 + App Links + välkomstanimation
+
+Konsoliderad release: AAB:n inkluderar tidigare OTA:er (välkomstanimation
++ Lora-typografi) som nu är permanent inbakade på runtime 1.5.0.
+Build 15 och 16 errored ut (gitignored google-services.json + Windows
+ReadOnly-flagga); build 17 är den som faktiskt landar hos testpiloter.
 
 **Svenska (sv-SE):**
 ```
-Version 1.5.0 (build 15):
+Version 1.5.0 (build 17):
 • App Check Stage 2: native Play Integrity-attestation skickas nu med varje request till Firebase. Stage 1 (web) lever vidare som tidigare. Båda kör fortfarande monitor mode — backend rejectar inget än.
 • Android App Links aktiverat: https://tipspromenaden.app/walk/<id>-länkar öppnar nu appen direkt utan "Öppna med…"-dialog när den är installerad. Custom-scheme tipspromenaden:// finns kvar för bakåtkompat.
+• Välkomstanimation "Stigen ritas" med riktig Lora-typografi visas vid varje cold start. Tappa för att hoppa över.
 ```
 
 **English (en-US):**
 ```
-Version 1.5.0 (build 15):
+Version 1.5.0 (build 17):
 • App Check Stage 2: native Play Integrity attestation now sent with every Firebase request. Stage 1 (web reCAPTCHA) continues as before. Both still in monitor mode — backend rejects nothing yet.
 • Android App Links activated: https://tipspromenaden.app/walk/<id> links now open the app directly without an "Open with…" dialog when installed. Custom-scheme tipspromenaden:// remains for backwards compat.
+• Welcome animation "Trail draws" with proper Lora typography on every cold start. Tap to skip.
 ```
 
 ---
