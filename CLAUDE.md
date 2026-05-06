@@ -48,7 +48,9 @@ src/
 ├── hooks/
 │   ├── useMapType.ts           # Toggle standard/hybrid/terrain, persistas i AsyncStorage
 │   └── usePedometer.ts         # Pedometer-wrap: tillgänglighet + permission + steps
-├── utils/                      # location, qr, date, shareWalk
+├── utils/                      # location, qr, date, shareContent (fasad
+│                               # för all delning), shareBadge (intern helper
+│                               # bakom shareContent.viewAsImage), walkGeo
 ├── components/                 # MapViewWeb (Leaflet på web; native har en thin
 │                               # wrapper kring react-native-maps som lägger på
 │                               # en OpenTopoMap UrlTile när mapType="terrain".
@@ -56,7 +58,9 @@ src/
 │                               # MapTypeToggle, MapAttribution (©-text för
 │                               # OpenTopoMap-tiles på terrain-vyn), DateField,
 │                               # ErrorBoundary, WalkActionsMenu (bottom-sheet
-│                               # för sekundära walk-actions i HomeScreen)
+│                               # för sekundära walk-actions i HomeScreen),
+│                               # Confetti (overlay för animerad reveal i
+│                               # ResultsScreen vid score >= 70%)
 ├── services/                   # All extern I/O — inga React-beroenden här
 └── screens/                    # En fil per skärm, useNavigation() för routing
                                 # WalkInsightsScreen = skaparens statistik per walk
@@ -75,9 +79,13 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
 - `qr.ts` → `parseQRData()` accepterar **tre format**: JSON från QR-kod,
   deep link `tipspromenaden://walk/<id>`, eller rått walkId. Samma kodväg
   hanterar alltså både kameraskanning och inklistring av delade länkar.
-- `shareWalk.ts` → `Share.share()` med en delningsbar text som innehåller
-  titel + deep link + bart walkId (sista är fallback när länken inte är
-  klickbar i Messenger/SMS) + Play Store-länk.
+- `shareContent.ts` → enad fasad för all delning. Discriminated union
+  `{ kind: "walk" | "text" | "viewAsImage" | "fileUri", ... }` så
+  callsidan beskriver VAD som ska delas, inte HUR. Internt delegerar
+  till `Share.share` (text), `captureRef` + `Sharing.shareAsync` (bild),
+  m.m. Lägger man till nya format (mp4 av animerad reveal-video) görs
+  det här centralt. Migrerade callsites: HomeScreen, ResultsScreen,
+  ShowQRScreen, LibraryScreen, LeaderboardScreen.
 - `location.ts` → `watchPosition(callback, tier)` med `tier: "precise" |
   "battery"`. Precise = `BestForNavigation` + 1s, battery = `High` + 5s.
   Används av `ActiveWalkScreen` med zoom-baserad växling: ovan
@@ -93,7 +101,10 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
   via spread/import. Lägg motsvarande scrub i nya save-funktioner.
   Innehåller också `getWalkInsights(walkId)` som aggregerar alla sessioner +
   deltagare till en `WalkInsights`-payload (totals, snittpoäng, snittsteg,
-  per-fråga svarsfördelning). Driver `WalkInsightsScreen`.
+  per-fråga svarsfördelning). Driver `WalkInsightsScreen`. `getPublicWalks`
+  filtrerar nu bort walks vars id finns i `moderation/hidden`-doc:et
+  (best-effort: tomt set vid läsfel, så en hängande nät-läsning aldrig
+  tystar hela biblioteket).
 - `storage.ts` — AsyncStorage: `SavedWalk[]` + offline-kö (`PendingSyncData`,
   som även bär `steps?` så stegräknarvärden överlever offline-tillstånd)
 - `walkDraft.ts` — Autospar för pågående walk-redigering. Debouncad save
@@ -110,15 +121,22 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
   Last-write-wins på doc-nivå via `updatedAt`.
 - `walkRefresh.ts` — Refresh av en enskild walk från molnet (t.ex. efter edit)
 - `offlineSync.ts` — Synkar offline-svar var 30:e sekund
-- `questionBattery.ts` — Validerar och importerar `.tipspack`-filer
+- `tipspackValidator.ts` — Delad validator + typer för `.tipspack`-formatet.
+  **Byte-för-byte identisk** med `tipspromenaden-web/src/lib/tipspackValidator.ts`.
+  Vid formatändring: uppdatera båda filerna i samma PR. Ren TS utan
+  plattforms-deps så filen kan kopieras rakt mellan repona.
+- `questionBattery.ts` — Importerar `.tipspack`-filer via DocumentPicker;
+  delegerar validering till `tipspackValidator.ts`.
 - `questionImage.ts` — Laddar upp frågebilder till Firebase Storage
 - `tipspackLibrary.ts` — Hämtar curated tipspacks från
   `tipspromenaden.app/tipspack/index.json` + uploaded från Firestore-
-  collection `tipspacks` där `isPublic: true`. Mergat resultat används av
-  `LibraryScreen` (fliken "📚 Frågebatterier"). Innehåller också ägar-
-  helpers (`getMyTipspacks`, `setTipspackPublic`, `deleteMyTipspack`,
-  `getTipspackDownloadUrl`) som driver fliken "📦 Mina paket" — där
-  inloggade användare ser både publika och hemliga pack de laddat upp
+  collection `tipspacks` där `isPublic: true`. `getLibraryTipspacks()`
+  filtrerar dessutom mot `moderation/hidden`-doc:et (parallell läsning
+  med 5 s timeout). Mergat resultat används av `LibraryScreen` (fliken
+  "📚 Frågebatterier"). Innehåller också ägar-helpers (`getMyTipspacks`,
+  `setTipspackPublic`, `deleteMyTipspack`, `getTipspackDownloadUrl`)
+  som driver "Mina paket"-chip:en — där inloggade användare ser både
+  publika och hemliga pack de laddat upp
   via webben och kan dela länk / växla synlighet / radera.
 - `stats.ts` — Lokal statistik (antal skapade promenader, m.m.)
 
@@ -179,6 +197,14 @@ serverside-bedömning av varje svar.
 - **Walks är publikt läsbara via id.** `firestore.rules: allow read: if true` på `walks/{walkId}` är medvetet — QR-delning kräver det. Den klient-side `where("public","==",true)` i `getPublicWalks` är endast för listning, inte säkerhet. Konsekvens: vem som helst med en walk-id kan läsa hela walken inkl. facit. ID:n är 96-bit random så fishing av id:n är inte realistiskt.
 - **Score-validering är klient-side.** `firestore.rules` cappar bara `score <= answers.size()`. En motiverad fuskare kan toppa topplistan. Acceptabelt på hobby-skala; flytta till Cloud Function om tävlingar blir aktuella.
 - **Tipspack-storage är publikt läsbar oavsett `isPublic`-flagga.** "Hemlig länk"-läget är obscurity (slug är genererat från filnamn), inte auth.
+
+**Moderation (`moderation/hidden`):**
+Ett enda Firestore-dokument med arrays av walkId / tipspack-slug som
+ska gömmas från publika listor. Public read (så app + webb kan filtrera
+klient-side), endast admin-UID:n får skriva. `firestore.rules` har en
+hardcoded `isAdmin()`-funktion som måste hållas i synk med
+`tipspromenaden-web/src/lib/admin.ts` `ADMIN_UIDS`. Skrivs via webbens
+`/admin`-sidans 🚩 Göm-knapp; inte exponerad i app-UI.
 
 **Återstår att aktivera (manuellt i konsolerna):**
 - **Firebase App Check** — kräver `@react-native-firebase/app-check` (native
