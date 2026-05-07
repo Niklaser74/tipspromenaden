@@ -30,7 +30,7 @@ import {
 } from "react-native";
 import { shareContent } from "../utils/shareContent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/native";
 import { useTranslation } from "../i18n";
 import { LANGUAGES, flagForLanguage } from "../constants/languages";
 import {
@@ -54,7 +54,15 @@ export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [tab, setTab] = useState<"tipspack" | "walks" | "events">("tipspack");
+  const route = useRoute<any>();
+  const initialTab = route.params?.initialTab as
+    | "tipspack"
+    | "walks"
+    | "events"
+    | undefined;
+  const [tab, setTab] = useState<"tipspack" | "walks" | "events">(
+    initialTab ?? "tipspack"
+  );
   // Filter inom tipspack-fliken: visar mina egna pack (publika + hemliga)
   // i samma lista istället för att vara en separat flik.
   const [showMine, setShowMine] = useState(false);

@@ -38,6 +38,9 @@
   "home": {
     "brandTagline": "Quiz & Adventure",
     "subtitle": "Explore. Answer. Win.",
+    "eventBannerToday": "Today",
+    "eventBannerTomorrow": "Tomorrow",
+    "eventBannerInDays": "In {{count}} days",
     "createWalk": "Create walk",
     "createWalkDesc": "Create a new quiz walk with questions",
     "createWalkNeedLogin": "Sign in to create",

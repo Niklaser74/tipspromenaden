@@ -16,7 +16,7 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { getSavedWalks, removeSavedWalk, setWalkAlias, displayWalkTitle } from "../services/storage";
 import { flagForLanguage } from "../constants/languages";
-import { findActiveSession, deleteWalkCompletely } from "../services/firestore";
+import { findActiveSession, deleteWalkCompletely, getPublicWalks } from "../services/firestore";
 import { signOut } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { SavedWalk, Walk } from "../types";
@@ -67,6 +67,16 @@ export default function HomeScreen() {
   const [gpsStatus, setGpsStatus] = useState<
     "idle" | "loading" | "ok" | "denied"
   >("idle");
+
+  // Närmaste kommande event (publik walk med event.startDate inom 14 dagar
+  // OCH centroid inom 20 km — eller utan distans-krav om vi inte fått GPS).
+  // Hämtas i bakgrunden vid mount; inget UI-blocking. Tyst fail om något
+  // går snett — banner försvinner bara.
+  const [nearestEvent, setNearestEvent] = useState<{
+    walk: Walk;
+    distanceM: number | null;
+    daysUntil: number;
+  } | null>(null);
 
   // Tagg-redigeringsmodal. walkId=null betyder stängd.
   const [editTagsFor, setEditTagsFor] = useState<SavedWalk | null>(null);
@@ -129,6 +139,68 @@ export default function HomeScreen() {
       cancelled = true;
     };
   }, [sortMode, gpsStatus]);
+
+  // ─── Närmaste kommande event ────────────────────────────────────
+  // Bakgrunds-fetch vid mount. Filterregler:
+  //   - walks med event.startDate satt
+  //   - startDate är idag eller upp till 14 dagar bort
+  //   - om vi har user-position OCH walken har centroid: kräv ≤ 20 km
+  //   - om vi saknar position: visa ändå (utan distans-info)
+  // Nearest = den med tidigast startDate (= mest "imminent").
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        // Försök hämta position non-blocking — fail tyst om permission saknas.
+        let loc: LatLng | null = null;
+        try {
+          const pos = await getCurrentLocation();
+          loc = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+        } catch {}
+
+        const walks = await getPublicWalks();
+        if (cancelled) return;
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const cutoff = new Date(now);
+        cutoff.setDate(cutoff.getDate() + 14);
+
+        const candidates = walks
+          .filter((w) => {
+            if (!w.event?.startDate) return false;
+            const start = new Date(w.event.startDate).getTime();
+            return start >= now.getTime() && start <= cutoff.getTime();
+          })
+          .map((w) => {
+            const distanceM =
+              loc && w.centroid
+                ? distanceToWalk(loc, w)
+                : null;
+            const daysUntil = Math.round(
+              (new Date(w.event!.startDate).getTime() - now.getTime()) /
+                (1000 * 60 * 60 * 24)
+            );
+            return { walk: w, distanceM, daysUntil };
+          })
+          // Om vi vet position: bara walks inom 20 km (= 20000 m).
+          // Om vi inte vet: släpp igenom alla.
+          .filter((c) => c.distanceM === null || c.distanceM <= 20000)
+          .sort(
+            (a, b) =>
+              new Date(a.walk.event!.startDate).getTime() -
+              new Date(b.walk.event!.startDate).getTime()
+          );
+
+        if (!cancelled) setNearestEvent(candidates[0] ?? null);
+      } catch {
+        // Tyst fail — banner försvinner bara
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Dela upp i två listor (Mina = createdBy == user.uid, Sparade = resten).
   // Anonym/ej inloggad användare har ingen uid → allt räknas som "Sparade".
@@ -419,6 +491,40 @@ export default function HomeScreen() {
             <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
           </View>
         </View>
+
+        {/* Närmaste event-banner — visas bara om vi hittat ett upcoming
+            event inom 14 dagar och (om position känd) 20 km. Tyst fail
+            om något saknas; banner försvinner bara. */}
+        {nearestEvent && (
+          <TouchableOpacity
+            style={styles.eventBanner}
+            onPress={() => navigation.navigate("Library", { initialTab: "events" })}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.eventBannerEmoji}>📅</Text>
+            <View style={styles.eventBannerText}>
+              <Text style={styles.eventBannerLine1}>
+                {nearestEvent.daysUntil === 0
+                  ? t("home.eventBannerToday")
+                  : nearestEvent.daysUntil === 1
+                  ? t("home.eventBannerTomorrow")
+                  : t("home.eventBannerInDays", { count: nearestEvent.daysUntil })}
+                {" · "}
+                {nearestEvent.walk.title}
+              </Text>
+              <Text style={styles.eventBannerLine2}>
+                {nearestEvent.walk.city ? `📍 ${nearestEvent.walk.city}` : ""}
+                {nearestEvent.walk.city && nearestEvent.distanceM !== null ? " · " : ""}
+                {nearestEvent.distanceM !== null
+                  ? nearestEvent.distanceM < 1000
+                    ? `${Math.round(nearestEvent.distanceM)} m bort`
+                    : `${(nearestEvent.distanceM / 1000).toFixed(1)} km bort`
+                  : ""}
+              </Text>
+            </View>
+            <Text style={styles.eventBannerArrow}>›</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Action Cards */}
         <View style={styles.actionsSection}>
@@ -1088,6 +1194,40 @@ const styles = StyleSheet.create({
   },
 
   // Actions
+  eventBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FBF7F0",
+    borderColor: "#1B6B35",
+    borderWidth: 1,
+    borderRadius: 14,
+    marginHorizontal: 16,
+    marginTop: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    gap: 12,
+  },
+  eventBannerEmoji: {
+    fontSize: 24,
+  },
+  eventBannerText: {
+    flex: 1,
+  },
+  eventBannerLine1: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#1B3D2B",
+  },
+  eventBannerLine2: {
+    fontSize: 12,
+    color: "#8A9A8D",
+    marginTop: 2,
+  },
+  eventBannerArrow: {
+    fontSize: 22,
+    color: "#1B6B35",
+    fontWeight: "300",
+  },
   actionsSection: {
     paddingHorizontal: 20,
     marginTop: -16,

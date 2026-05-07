@@ -157,6 +157,22 @@ Version 1.5.0 (build 17):
 
 ---
 
+### OTA 2026-05-07 (II) — Event-banner på hemskärmen
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Hemskärmen visar nu en banner överst när det finns ett kommande event inom 14 dagar (max 20 km bort om position är aktiverad). Klick öppnar Evenemang-fliken i biblioteket. Bannern är diskret och försvinner helt när det inte finns något relevant event.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• The home screen now shows a banner at the top when there's an upcoming event within 14 days (and within 20 km if location is enabled). Tap opens the Events tab in the library. The banner is unobtrusive and disappears entirely when there's no relevant event.
+```
+
+---
+
 ### OTA 2026-05-07 (I) — Kommande evenemang-flik i biblioteket
 
 **Svenska (sv-SE):**
