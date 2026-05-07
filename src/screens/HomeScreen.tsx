@@ -1201,11 +1201,29 @@ const styles = StyleSheet.create({
     borderColor: "#1B6B35",
     borderWidth: 1,
     borderRadius: 14,
-    marginHorizontal: 16,
-    marginTop: 12,
+    marginHorizontal: 20,
+    // -16 matchar actionsSection's marginTop så bannern hamnar på samma
+    // höjd som action-cards skulle ha gjort. Action-cards' negativa
+    // marginTop räknas från BANNERNS kant, inte hero-sektionens, så vi
+    // måste neutralisera den med marginBottom 16 för att undvika att
+    // de drar sig uppåt och överlappar bannern.
+    marginTop: -16,
+    marginBottom: 16,
     paddingVertical: 12,
     paddingHorizontal: 14,
     gap: 12,
+    // Skugga så bannern visuellt sitter ovanpå hero-kanten istället för
+    // att flyta i bakgrundsfärgen.
+    ...Platform.select({
+      ios: {
+        shadowColor: "#1B3D2B",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.12,
+        shadowRadius: 8,
+      },
+      android: { elevation: 2 },
+      web: { boxShadow: "0px 2px 8px rgba(27,61,43,0.12)" },
+    }),
   },
   eventBannerEmoji: {
     fontSize: 24,
