@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://tipspromenaden.app",
+      "https://www.tipspromenaden.app",
+      "http://localhost:4321",
+      "http://localhost:8081"
+    ],
+    "method": ["GET", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Content-Length", "Accept-Ranges"]
+  }
+]
