@@ -41,6 +41,7 @@
     "eventBannerToday": "Today",
     "eventBannerTomorrow": "Tomorrow",
     "eventBannerInDays": "In {{count}} days",
+    "eventBannerMore": "+{{count}} more",
     "createWalk": "Create walk",
     "createWalkDesc": "Create a new quiz walk with questions",
     "createWalkNeedLogin": "Sign in to create",

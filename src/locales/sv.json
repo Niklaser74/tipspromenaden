@@ -41,6 +41,7 @@
     "eventBannerToday": "Idag",
     "eventBannerTomorrow": "Imorgon",
     "eventBannerInDays": "Om {{count}} dagar",
+    "eventBannerMore": "+{{count}} fler",
     "createWalk": "Skapa promenad",
     "createWalkDesc": "Skapa en ny tipspromenad med frågor",
     "createWalkNeedLogin": "Logga in för att skapa",

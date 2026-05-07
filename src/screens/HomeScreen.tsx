@@ -76,6 +76,7 @@ export default function HomeScreen() {
     walk: Walk;
     distanceM: number | null;
     daysUntil: number;
+    moreCount: number; // antal övriga matchande events (inte räknad här)
   } | null>(null);
 
   // Tagg-redigeringsmodal. walkId=null betyder stängd.
@@ -192,7 +193,13 @@ export default function HomeScreen() {
               new Date(b.walk.event!.startDate).getTime()
           );
 
-        if (!cancelled) setNearestEvent(candidates[0] ?? null);
+        if (cancelled) return;
+        const first = candidates[0];
+        if (first) {
+          setNearestEvent({ ...first, moreCount: candidates.length - 1 });
+        } else {
+          setNearestEvent(null);
+        }
       } catch {
         // Tyst fail — banner försvinner bara
       }
@@ -522,6 +529,11 @@ export default function HomeScreen() {
                   : ""}
               </Text>
             </View>
+            {nearestEvent.moreCount > 0 && (
+              <Text style={styles.eventBannerMore}>
+                {t("home.eventBannerMore", { count: nearestEvent.moreCount })}
+              </Text>
+            )}
             <Text style={styles.eventBannerArrow}>›</Text>
           </TouchableOpacity>
         )}
@@ -1245,6 +1257,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: "#1B6B35",
     fontWeight: "300",
+  },
+  eventBannerMore: {
+    fontSize: 11,
+    color: "#1B6B35",
+    fontWeight: "600",
+    textAlign: "right",
   },
   actionsSection: {
     paddingHorizontal: 20,
