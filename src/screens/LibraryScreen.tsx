@@ -54,7 +54,7 @@ export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const [tab, setTab] = useState<"tipspack" | "walks">("tipspack");
+  const [tab, setTab] = useState<"tipspack" | "walks" | "events">("tipspack");
   // Filter inom tipspack-fliken: visar mina egna pack (publika + hemliga)
   // i samma lista istället för att vara en separat flik.
   const [showMine, setShowMine] = useState(false);
@@ -326,6 +326,67 @@ export default function LibraryScreen() {
     return `${Math.round(m / 1000)} km`;
   }
 
+  // ─── Kommande evenemang ──────────────────────────────────────────
+  // Filter: walks med event.startDate >= idag, sorterade på datum.
+  // Ingen separat data-källa — använder samma `walks`-state som
+  // Promenader-fliken, bara filtrerad/sorterad annorlunda.
+  const upcomingEvents = useMemo(() => {
+    if (!walks) return [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayMs = today.getTime();
+    const items = walks
+      .filter((w) => {
+        if (!w.event?.startDate) return false;
+        // ISO YYYY-MM-DD parses som UTC i Date-konstruktorn vilket räcker
+        // för dag-jämförelse i sv-SE (UTC + 1 eller 2 ger samma kalenderdag).
+        const ms = new Date(w.event.startDate).getTime();
+        return Number.isFinite(ms) && ms >= todayMs;
+      })
+      .map((w) => {
+        const distance =
+          userLocation && w.centroid
+            ? getDistanceInMeters(
+                userLocation.latitude,
+                userLocation.longitude,
+                w.centroid.latitude,
+                w.centroid.longitude
+              )
+            : null;
+        return { walk: w, distance };
+      });
+    items.sort(
+      (a, b) =>
+        new Date(a.walk.event!.startDate).getTime() -
+        new Date(b.walk.event!.startDate).getTime()
+    );
+    return items;
+  }, [walks, userLocation]);
+
+  /**
+   * Relativ datum-text för event-kort. Idag/Imorgon/veckodag (om <7
+   * dagar bort)/datum (annars). Svensk locale, ingen klockslag.
+   */
+  function formatEventDate(iso: string): string {
+    const target = new Date(iso);
+    target.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = Math.round(
+      (target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    if (days === 0) return t("library.eventToday");
+    if (days === 1) return t("library.eventTomorrow");
+    if (days > 0 && days < 7) {
+      const weekday = target.toLocaleDateString("sv-SE", { weekday: "long" });
+      return weekday.charAt(0).toUpperCase() + weekday.slice(1);
+    }
+    return target.toLocaleDateString("sv-SE", {
+      day: "numeric",
+      month: "long",
+    });
+  }
+
   // ─── "Mina paket" handlers ────────────────────────────────────────
   // App-länk = `tipspromenaden://tipspack/<slug>` — fungerar både för
   // publika och hemliga pack eftersom Storage-rules tillåter public read
@@ -486,6 +547,23 @@ export default function LibraryScreen() {
             🚶 {t("library.tabWalks")}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentedItem,
+            tab === "events" && styles.segmentedItemActive,
+          ]}
+          onPress={() => setTab("events")}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.segmentedText,
+              tab === "events" && styles.segmentedTextActive,
+            ]}
+          >
+            📅 {t("library.tabEvents")}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* "Mina paket"-chip — visas i Frågebatterier-fliken för inloggade.
@@ -623,6 +701,65 @@ export default function LibraryScreen() {
             ? t("library.noMatch")
             : t("library.emptyWalks")}
         </Text>
+      )}
+
+      {/* Evenemang-fliken — egen rendering så vi kan visa datum prominent
+          + sortera efter datum istället för popularitet. Använder samma
+          walks-state som Promenader-fliken. */}
+      {tab === "events" && walks === null && !error && (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#1B6B35" />
+          <Text style={styles.loadingText}>{t("library.loading")}</Text>
+        </View>
+      )}
+      {tab === "events" && walks !== null && upcomingEvents.length === 0 && (
+        <Text style={styles.empty}>{t("library.eventsEmpty")}</Text>
+      )}
+      {tab === "events" && upcomingEvents.length > 0 && (
+        <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+          {upcomingEvents.map(({ walk, distance }) => (
+            <View key={walk.id} style={styles.card}>
+              <Text style={styles.eventDate}>
+                📅 {formatEventDate(walk.event!.startDate)}
+              </Text>
+              <Text style={styles.cardTitle}>
+                {flagForLanguage(walk.language)}
+                {walk.activityType === "bike" ? " 🚲" : ""}{" "}
+                {walk.title}
+              </Text>
+              {walk.description ? (
+                <Text style={styles.cardDescription}>{walk.description}</Text>
+              ) : null}
+              <Text style={styles.cardMeta}>
+                {walk.questions.length}{" "}
+                {walk.questions.length === 1
+                  ? t("library.checkpoint")
+                  : t("library.checkpoints")}
+                {walk.city ? ` · 📍 ${walk.city}` : ""}
+                {distance !== null
+                  ? ` · ${walk.activityType === "bike" ? "🚲" : "🚶"} ${formatDistance(distance)}`
+                  : ""}
+              </Text>
+              <View style={styles.actionsRow}>
+                <TouchableOpacity
+                  style={[styles.useButton, { flex: 1 }]}
+                  onPress={() => joinWalk(walk)}
+                >
+                  <Text style={styles.useButtonText}>
+                    {t("library.playWalk")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.reportButton}
+                  onPress={() => reportContent("walk", walk.id, walk.title)}
+                  accessibilityLabel={t("library.reportWalk")}
+                >
+                  <Text style={styles.reportButtonText}>⚐</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
       )}
 
       {tab === "walks" && (
@@ -990,6 +1127,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1B3D2B",
     marginBottom: 6,
+  },
+  eventDate: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#1B6B35",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginBottom: 4,
   },
   cardDescription: {
     fontSize: 14,

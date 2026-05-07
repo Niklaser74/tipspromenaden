@@ -615,6 +615,21 @@ Plocka det som passar humöret. Förslag i grov ordning:
     `user.email.split("@")[0]` som default när displayName saknas.
     Edge case (Google-inlogg sätter normalt displayName) men fixa via
     tom default eller hjälptext "Detta visas på topplistan".
+16. **Evenemang Fas 2 — påminnelse-notiser** — när en användare tappar
+    "Påminn mig" på ett event-kort, schemalägg en lokal notification
+    24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
+    Lokal-only (ingen Cloud Function-backend) håller det enkelt.
+17. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
+    för en walk under sitt event-fönster (event.startDate–endDate).
+    Visar deltagare som spelat under den tiden, sorterat på score → tid.
+    Kan landa antingen som ny topplista i appen eller delningsbar
+    `tipspromenaden.app/event/<walkId>`-sida på webben. OTA-bart
+    om vi gör det i appen, eller kräver bara nya routes på webben.
+18. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
+    besvaras i ordning". När på: bara fråga 1 är aktiv tills den är
+    besvarad, sedan unlockas 2, osv. Bra för storytelling-walks där
+    ordningen bär narrativet. OTA-bart, ny `sequential?: boolean`
+    på Walk + ändring i ActiveWalkScreens trigger-logik.
 
 ---
 

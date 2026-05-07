@@ -157,6 +157,22 @@ Version 1.5.0 (build 17):
 
 ---
 
+### OTA 2026-05-07 (I) — Kommande evenemang-flik i biblioteket
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Bibliotek: ny "📅 Evenemang"-flik visar publika promenader med inställt event-datum, sorterade efter datum (närmast först). Varje kort visar relativt datum (Idag/Imorgon/veckodag/datum), titel, plats, antal kontroller och avstånd från dig om position är aktiverad. Skapare aktiverar evenemang via "Evenemang med datum" när promenaden skapas eller redigeras.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• Library: new "📅 Events" tab shows public walks with an event date, sorted by date (closest first). Each card shows relative date (Today/Tomorrow/weekday/date), title, location, control count, and distance from you when location is enabled. Creators enable events via "Event with date" when creating or editing a walk.
+```
+
+---
+
 ### OTA 2026-05-06 (II) — Välkomstanimationen får riktig Lora-typografi
 
 **Svenska (sv-SE):**
