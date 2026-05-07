@@ -1208,7 +1208,7 @@ const styles = StyleSheet.create({
     // måste neutralisera den med marginBottom 16 för att undvika att
     // de drar sig uppåt och överlappar bannern.
     marginTop: -16,
-    marginBottom: 16,
+    marginBottom: 28,
     paddingVertical: 12,
     paddingHorizontal: 14,
     gap: 12,
