@@ -6,17 +6,29 @@
  * tre röda checkpoints landar staggrat, wordmark + tagline tonar in.
  * Tappa var som helst för att hoppa över.
  *
- * **Designkälla:** Claude Design-handoff 2026-05-06 (se
- * docs/marketing/animations-handoff/ om paketet ligger kvar). Originalet
- * är skrivet i Reanimated 3 — den här porten använder RN:s inbyggda
- * `Animated`-API för att hålla ändringen OTA-bar (Reanimated kräver native
- * dep + ny AAB-build).
+ * **Designkälla:** Claude Design-handoff (Friluft Folio).
  *
- * **Stack:** `react-native-svg` (redan installerad transitive via Expo)
- * + classic `Animated`. SVG-props kan inte useNativeDriver så
- * `useNativeDriver: false` på allt som binder mot SVG.
+ * **Krasch-fix v2 (2026-05-07):**
+ * Den tidigare versionen kraschade på Android i build 17. Tre samtidiga
+ * problem i SVG-rendering:
+ *   1. `<AnimatedG transform={string-interpolation}>` är fragilt på
+ *      Android via react-native-svg.
+ *   2. `<SvgText fontFamily="Lora_600SemiBold">` resolvar inte
+ *      expo-font-registrerade fonter på Android (kräver native build-tids
+ *      asset-mapp, inte JS runtime-registrering).
+ *   3. Animated.Value på opacity + transform på samma G samtidigt får
+ *      bridgen att flippa.
  *
- * **Tids­linje:**
+ * Den här versionen följer RN-mönstret: **SVG ritar statiska former,
+ * `Animated.View` wrappar dem och sköter transformer/opacity utanför
+ * SVG:n**. Trail-stroken behåller stroke-dashoffset-animationen (det
+ * mönstret är välbeprövat och säkert).
+ *
+ * **Stack:** `react-native-svg` + classic `Animated`. SVG-props kan inte
+ * useNativeDriver så `useNativeDriver: false` på trail-strokens animering;
+ * checkpoint-View:erna och text-elementen kör native driver.
+ *
+ * **Tids­linje:** oförändrad sedan v1
  *   0–1.6s   Stigen ritar sig
  *   1.4–1.8s Checkpoints landar (200 ms stagger)
  *   2.4s     Wordmark fadar in (700 ms)
@@ -34,42 +46,46 @@ import {
   useWindowDimensions,
   Text,
 } from "react-native";
-import Svg, {
-  Circle,
-  G,
-  Path,
-  Polygon,
-  Text as SvgText,
-} from "react-native-svg";
+import Svg, { G, Path, Polygon } from "react-native-svg";
 import { TP } from "../theme/colors";
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
-const AnimatedG = Animated.createAnimatedComponent(G);
 
 const VIEWBOX = 380;
-/**
- * stroke-dashoffset behöver matcha den faktiska path-längden.
- * T-stem (160) + T-bar (200) ≈ 360, plus rundade kapar (~22) ger 382.
- * Vi cap:ar uppåt till 400 så animationen alltid slutar med fully drawn
- * även om en plattform räknar något annorlunda.
- */
+/** stroke-dashoffset behöver matcha path-längden + linecap-kapar; 400 är safe over-cap. */
 const TRAIL_LEN = 400;
+
+/** Kontrollpunkt-positioner i viewBox-koordinater (380×380). */
+const CHECKPOINTS: Array<{ cx: number; cy: number; n: number }> = [
+  { cx: 190, cy: 215, n: 1 },
+  { cx: 130, cy: 130, n: 2 },
+  { cx: 290, cy: 130, n: 3 },
+];
+const CHECKPOINT_SIZE_VB = 42; // i viewBox-koordinater
 
 interface Props {
   onComplete?: () => void;
 }
 
+/**
+ * Checkpoint som View ovanpå SVG (inte SvgText/SvgCircle inuti animerad G).
+ * scale + opacity körs på native driver — säkert och prestandavänligt.
+ *
+ * Cirklarna ritas med borderRadius istället för SVG. Lora-fonten på
+ * `<Text>` resolveras genom RN:s vanliga font-registrering (= fungerar
+ * eftersom App.tsx kallar useFonts på Lora_600SemiBold).
+ */
 function AnimatedCheckpoint({
   cx,
   cy,
   n,
-  size,
+  scaleVb,
   delay,
 }: {
-  cx: number;
-  cy: number;
+  cx: number; // viewBox-x
+  cy: number; // viewBox-y
   n: number;
-  size: number;
+  scaleVb: number; // viewBox→pixel-skala
   delay: number;
 }) {
   const t = useRef(new Animated.Value(0)).current;
@@ -81,39 +97,62 @@ function AnimatedCheckpoint({
         toValue: 1,
         duration: 500,
         easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
     ]).start();
   }, [delay, t]);
 
-  // Spring-känsla via två-stegs scale (0.6 → 1.05 → 1) hade varit fint
-  // men classic Animated.interpolate tar bara monotont input. Vi nöjer oss
-  // med en mjuk easeOut som README:n också specat.
-  const transform = t.interpolate({
+  const sizePx = CHECKPOINT_SIZE_VB * scaleVb;
+  const halfPx = sizePx / 2;
+  const left = cx * scaleVb - halfPx;
+  const top = cy * scaleVb - halfPx;
+
+  const scale = t.interpolate({
     inputRange: [0, 1],
-    outputRange: [
-      `translate(${cx} ${cy}) scale(0.6) translate(${-cx} ${-cy})`,
-      `translate(${cx} ${cy}) scale(1) translate(${-cx} ${-cy})`,
-    ],
+    outputRange: [0.6, 1],
   });
 
-  const r = size / 2;
-
   return (
-    <AnimatedG opacity={t} transform={transform as unknown as string}>
-      <Circle cx={cx} cy={cy} r={r - 1} fill={TP.pinIvory} />
-      <Circle cx={cx} cy={cy} r={r - 4} fill={TP.pin} />
-      <SvgText
-        x={cx}
-        y={cy + size * 0.18}
-        textAnchor="middle"
-        fontFamily="Lora_600SemiBold"
-        fontSize={size * 0.5}
-        fill={TP.pinIvory}
+    <Animated.View
+      style={[
+        styles.checkpoint,
+        {
+          left,
+          top,
+          width: sizePx,
+          height: sizePx,
+          borderRadius: halfPx,
+          opacity: t,
+          transform: [{ scale }],
+        },
+      ]}
+    >
+      <View
+        style={{
+          position: "absolute",
+          left: 3,
+          top: 3,
+          right: 3,
+          bottom: 3,
+          borderRadius: halfPx - 3,
+          backgroundColor: TP.pin,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        {n}
-      </SvgText>
-    </AnimatedG>
+        <Text
+          style={{
+            fontFamily: "Lora_600SemiBold",
+            fontSize: sizePx * 0.5,
+            color: TP.pinIvory,
+            includeFontPadding: false,
+            lineHeight: sizePx * 0.6,
+          }}
+        >
+          {n}
+        </Text>
+      </View>
+    </Animated.View>
   );
 }
 
@@ -132,6 +171,7 @@ function ForestEdges() {
 export default function StartTrailDraws({ onComplete }: Props) {
   const { width, height } = useWindowDimensions();
   const renderSize = Math.min(width, height, 480);
+  const scaleVb = renderSize / VIEWBOX;
 
   const trailDraw = useRef(new Animated.Value(0)).current;
   const wordOpacity = useRef(new Animated.Value(0)).current;
@@ -139,7 +179,7 @@ export default function StartTrailDraws({ onComplete }: Props) {
   const tagOpacity = useRef(new Animated.Value(0)).current;
   const tagTranslate = useRef(new Animated.Value(6)).current;
 
-  // En ref-baserad guard så vi inte kallar onComplete två gånger
+  // Guard så vi inte kallar onComplete två gånger
   // (timeout-utlöst + tap-skip kapplöpning).
   const completedRef = useRef(false);
   const finish = () => {
@@ -223,10 +263,21 @@ export default function StartTrailDraws({ onComplete }: Props) {
             strokeDasharray={TRAIL_LEN}
             strokeDashoffset={strokeDashoffset as unknown as number}
           />
-          <AnimatedCheckpoint cx={190} cy={215} n={1} size={42} delay={1400} />
-          <AnimatedCheckpoint cx={130} cy={130} n={2} size={42} delay={1600} />
-          <AnimatedCheckpoint cx={290} cy={130} n={3} size={42} delay={1800} />
         </Svg>
+        {/* Checkpoints renderas som Animated.View ovanpå SVG:n istället för
+            SvgCircle/SvgText inuti en animerad G. Detta löser kraschen som
+            uppstod när react-native-svg på Android fick både animerad
+            transform-string och unresolverad SvgText-fontFamily samtidigt. */}
+        {CHECKPOINTS.map((cp, i) => (
+          <AnimatedCheckpoint
+            key={i}
+            cx={cp.cx}
+            cy={cp.cy}
+            n={cp.n}
+            scaleVb={scaleVb}
+            delay={1400 + i * 200}
+          />
+        ))}
       </View>
 
       <View style={styles.wordmarkWrap}>
@@ -254,7 +305,6 @@ export default function StartTrailDraws({ onComplete }: Props) {
         </Animated.Text>
       </View>
 
-      {/* Tap-to-skip-hint — diskret, tonas in efter att animationen börjat. */}
       <Animated.View style={[styles.skipHint, { opacity: wordOpacity }]}>
         <Text style={styles.skipText}>Tryck för att hoppa över</Text>
       </Animated.View>
@@ -272,22 +322,24 @@ const styles = StyleSheet.create({
   canvas: {
     overflow: "hidden",
   },
+  checkpoint: {
+    position: "absolute",
+    backgroundColor: TP.pinIvory, // ytterring
+    alignItems: "center",
+    justifyContent: "center",
+  },
   wordmarkWrap: {
     alignItems: "center",
     marginTop: 24,
     paddingHorizontal: 24,
   },
   wordmark: {
-    // Lora_600SemiBold registreras i App.tsx via @expo-google-fonts/lora.
-    // Fallback (system serif) tar över om font-laddningen failar — appen
-    // ska aldrig hänga på fontstadiet.
     fontFamily: "Lora_600SemiBold",
     fontSize: 30,
     color: TP.bg,
     letterSpacing: -0.3,
   },
   tagline: {
-    // Italic-varianten av Lora 400.
     fontFamily: "Lora_400Regular_Italic",
     fontSize: 13,
     color: TP.fgMute,

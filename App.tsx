@@ -262,12 +262,10 @@ export default function App() {
   // tappar för att hoppa över. Återställs aldrig under en session — vi vill
   // inte att animationen återkommer mitt i ett spel.
   //
-  // EMERGENCY 2026-05-06: defaultar till `true` (= hoppa över) eftersom
-  // animationen kraschar appen vid uppstart i build 17. Behöver felsöka
-  // (sannolikt AnimatedG + transform-string-interpolation eller
-  // SVG-Text-fontFamily-resolution på Android med bundlade TTF). Tills
-  // vidare disablad via OTA.
-  const [startAnimDone, setStartAnimDone] = useState(true);
+  // 2026-05-07: animationen omskriven (checkpoints som Animated.View utanför
+  // SVG istället för animerad SvgG med SvgText). Aktiverad igen efter
+  // emergency-disable i build 17.
+  const [startAnimDone, setStartAnimDone] = useState(false);
 
   // Brand-fonter (Lora) registreras via expo-font under app-laddningen så
   // StartTrailDraws kan rendera wordmark + tagline + checkpoint-siffror i
