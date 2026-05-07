@@ -416,6 +416,31 @@ export default function LibraryScreen() {
    * lagrar i samma `previewBySlug`-cache som curated/publika pack använder.
    * Gör det möjligt att se sina egna frågor utan att starta importflödet.
    */
+  /**
+   * Använd-knapp på Mina paket: hämta JSON via Storage download-URL,
+   * parse:a frågorna och starta CreateWalkScreen med batteriet förladdat
+   * (samma flöde som usePack på Frågebatterier-fliken, bara att vi
+   * använder MyTipspack istället för LibraryTipspack).
+   */
+  async function useMyPack(pack: MyTipspack) {
+    setMyPacksBusy("use:" + pack.slug);
+    try {
+      const url = await getTipspackDownloadUrl(pack.slug);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      navigation.replace("CreateWalk", {
+        pendingBattery: data.questions,
+        pendingBatteryName: pack.name,
+        pendingBatteryLanguage: pack.language,
+      });
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || t("common.error"));
+    } finally {
+      setMyPacksBusy(null);
+    }
+  }
+
   async function expandMyPack(pack: MyTipspack) {
     if (expandedSlug === pack.slug) {
       setExpandedSlug(null);
@@ -957,10 +982,25 @@ export default function LibraryScreen() {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.useButton, { flex: 1 }]}
+                    onPress={() => useMyPack(p)}
+                    disabled={!!myPacksBusy}
+                  >
+                    <Text style={styles.useButtonText}>
+                      {myPacksBusy === "use:" + p.slug
+                        ? t("library.loading")
+                        : t("library.use")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.mineActionsRow}>
+                  <TouchableOpacity
+                    style={[styles.mineSecondaryButton, { flex: 1 }]}
                     onPress={() => shareMyPack(p)}
                     disabled={!!myPacksBusy}
                   >
-                    <Text style={styles.useButtonText}>📲 {t("library.mineShareLink")}</Text>
+                    <Text style={styles.mineSecondaryText}>
+                      📲 {t("library.mineShareLink")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
                 <View style={styles.mineActionsRow}>
