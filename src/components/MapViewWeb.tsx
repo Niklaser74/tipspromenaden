@@ -44,6 +44,12 @@ interface WebMapProps {
   showsUserLocation?: boolean;
   showsMyLocationButton?: boolean;
   followsUserLocation?: boolean;
+  /**
+   * Anropas när användaren drar kartan manuellt (motsvarighet till
+   * react-native-maps `onPanDrag`). Används för att stänga av automatisk
+   * följ-läge så kartan inte rycker tillbaka när man pannar bort.
+   */
+  onPanDrag?: () => void;
   mapType?: WebMapType;
   children?: React.ReactNode;
 }
@@ -130,6 +136,7 @@ const WebMapView = forwardRef(
       initialRegion,
       onPress,
       showsUserLocation,
+      onPanDrag,
       mapType = "standard",
       children,
     }: WebMapProps,
@@ -139,6 +146,8 @@ const WebMapView = forwardRef(
     const [iframeReady, setIframeReady] = useState(false);
     const onPressRef = useRef(onPress);
     onPressRef.current = onPress;
+    const onPanDragRef = useRef(onPanDrag);
+    onPanDragRef.current = onPanDrag;
 
     // Store marker callbacks by index
     const markerCallbacksRef = useRef<{
@@ -148,7 +157,25 @@ const WebMapView = forwardRef(
       ids: string[];
     }>({ onDragEnd: [], onCalloutPress: [], onPress: [], ids: [] });
 
-    useImperativeHandle(ref, () => ({}));
+    // Expose imperativa metoder så ActiveWalkScreen kan kalla samma API
+    // som på native (mapRef.current.animateCamera). På web går anropet
+    // via postMessage in i Leaflet-iframen.
+    useImperativeHandle(ref, () => ({
+      animateCamera: (camera: {
+        center: { latitude: number; longitude: number };
+      }) => {
+        if (!iframeRef.current?.contentWindow) return;
+        iframeRef.current.contentWindow.postMessage(
+          {
+            source: "react-app",
+            type: "centerOn",
+            lat: camera.center.latitude,
+            lng: camera.center.longitude,
+          },
+          "*"
+        );
+      },
+    }));
 
     // Listen for messages from the iframe
     useEffect(() => {
@@ -191,6 +218,8 @@ const WebMapView = forwardRef(
           const calloutCb = markerCallbacksRef.current.onCalloutPress[payload.index];
           if (pressCb) pressCb();
           else if (calloutCb) calloutCb();
+        } else if (type === "userDrag") {
+          onPanDragRef.current?.();
         }
       };
 
@@ -405,12 +434,43 @@ const WebMapView = forwardRef(
     }, '*');
   });
 
+  // Användaren drar kartan manuellt → notifiera React så den kan stänga
+  // av auto-följning. dragstart fyrar bara på touch/mus-drag, inte på
+  // våra programmatiska setView-anrop.
+  map.on('dragstart', function() {
+    window.parent.postMessage({
+      source: 'leaflet-map',
+      type: 'userDrag',
+      payload: {}
+    }, '*');
+  });
+
   // Listen for messages from parent
   window.addEventListener('message', function(event) {
     if (!event.data || event.data.source !== 'react-app') return;
 
     if (event.data.type === 'setMapType') {
       setMapType(event.data.mapType);
+      return;
+    }
+
+    // Centrera kartan på given position + uppdatera user-marker. Behåller
+    // nuvarande zoomnivå (animateCamera utan zoom-fält i React-API:t).
+    if (event.data.type === 'centerOn') {
+      var lat = event.data.lat;
+      var lng = event.data.lng;
+      map.setView([lat, lng], map.getZoom(), { animate: true, duration: 0.5 });
+      var userIcon = L.divIcon({
+        className: '',
+        html: '<div class="user-marker"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+      if (userMarker) {
+        userMarker.setLatLng([lat, lng]);
+      } else {
+        userMarker = L.marker([lat, lng], { icon: userIcon, interactive: false }).addTo(map);
+      }
       return;
     }
 
