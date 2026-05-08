@@ -132,6 +132,98 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-08 (II) — Kartan följer dig under aktiv promenad
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Kartan centrerar sig nu automatiskt på dig under en aktiv promenad — den glider mjukt med när du går så du slipper panna efter dig själv.
+• Pannar du manuellt pausas följningen så du kan kolla rutten framåt utan att kartan rycker tillbaka. En 🎯-knapp dyker upp i högra hörnet — tryck så återupptar kartan följningen och hoppar tillbaka till din position.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• The map now automatically centers on you during an active walk — it slides smoothly along as you go so you no longer need to pan after yourself.
+• If you pan manually, following pauses so you can check the route ahead without the map snapping back. A 🎯 button appears in the top right — tap it and the map resumes following and snaps back to your position.
+```
+
+---
+
+### OTA 2026-05-08 (I) — Hem-banner: "+N fler" events
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Hem-bannern visar nu "+N fler" när flera kommande events matchar (t.ex. flera evenemang inom 14 dagar och 20 km). Tidigare syntes bara det närmaste — nu får du en tydligare signal att det finns mer att utforska.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• The home banner now shows "+N more" when multiple upcoming events match (e.g. several events within 14 days and 20 km). Previously only the closest event showed — now you get a clearer cue that there's more to explore.
+```
+
+---
+
+### OTA 2026-05-07 (V) — "Använd"-knapp på Mina paket
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Mina paket: ny "Använd"-knapp på dina egna tipspack — startar Skapa-promenad-flödet med batteriet förladdat direkt från listan. Tidigare behövde du först ladda ner och importera; nu är det ett enda klick.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• My packs: new "Use" button on your own tipspacks — starts the Create-walk flow with the pack preloaded straight from the list. Previously you had to download and import first; now it's a single tap.
+```
+
+---
+
+### OTA 2026-05-07 (IV) — Event-banner: justeringar mot överlapp
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Buggfix: event-bannern på hemskärmen kunde lägga sig ovanpå "Skapa promenad"-knappen på vissa skärmstorlekar. Bannern är nu ordentligt åtskild från action-korten med extra luft.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• Bug fix: the event banner on the home screen could overlap the "Create walk" button on some screen sizes. The banner now sits clearly separated from the action cards with extra spacing.
+```
+
+---
+
+### OTA 2026-05-06/07 — Akut-fix: build 17-kraschar + Welcome animation v2
+
+Konsoliderad post-mortem-entry. Användarna fick tre separata akut-OTA:er
+i snabb följd när build 17 visade sig krascha på flera Android-enheter
+direkt efter Play Console-rollout:
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.5.0:
+• Akut OTA-kedja efter att build 17 vägrade starta på flera Android-enheter:
+  1. App Check-init på native stängdes av (krockade med Firebase-init vid kallstart).
+  2. Välkomstanimationen "Stigen ritas" stängdes av tillfälligt (kraschade på Android).
+  3. Animationen är nu tillbaka i en omskriven Android-säker variant — samma utseende, ingen krasch.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.5.0:
+• Emergency OTA chain after build 17 refused to start on several Android devices:
+  1. App Check init on native turned off (clashed with Firebase init at cold start).
+  2. Welcome animation "Trail draws" temporarily disabled (crashed on Android).
+  3. Animation is now back in a rewritten Android-safe variant — same look, no crash.
+```
+
+---
+
 ### AAB 1.5.0 (build 17) — App Check Stage 2 + App Links + välkomstanimation
 
 Konsoliderad release: AAB:n inkluderar tidigare OTA:er (välkomstanimation
