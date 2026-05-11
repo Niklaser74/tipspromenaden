@@ -27,6 +27,17 @@ import type { LanguageCode } from "../i18n";
 const PLAY_STORE_FALLBACK =
   "https://play.google.com/store/apps/details?id=com.tipspromenaden.app";
 
+/**
+ * Försvar-på-djupet mot komprometterat admin-konto: om någon lyckas ändra
+ * `playStoreUrl` i Firestore till en phishing-/javascript-URL ska vi vägra
+ * öppna den. Endast `https://play.google.com/`-URL:er accepteras.
+ */
+function sanitizePlayStoreUrl(raw: unknown): string {
+  if (typeof raw !== "string") return PLAY_STORE_FALLBACK;
+  if (!raw.startsWith("https://play.google.com/")) return PLAY_STORE_FALLBACK;
+  return raw;
+}
+
 /** Doc-form i Firestore (`config/appUpdate`). */
 export type AppUpdateConfig = {
   latestBuild?: number;
@@ -76,10 +87,7 @@ export async function checkNativeUpdate(): Promise<NativeUpdateStatus> {
     return {
       kind: current < min ? "required" : "optional",
       latestVersion: data.latestVersion,
-      playStoreUrl:
-        typeof data.playStoreUrl === "string" && data.playStoreUrl
-          ? data.playStoreUrl
-          : PLAY_STORE_FALLBACK,
+      playStoreUrl: sanitizePlayStoreUrl(data.playStoreUrl),
       releaseNotes: data.releaseNotes,
     };
   } catch {
