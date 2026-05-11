@@ -47,7 +47,7 @@ import {
 import { getPublicWalks } from "../services/firestore";
 import { useAuth } from "../context/AuthContext";
 import { WEB_HOST } from "../constants/deepLinks";
-import { getCurrentLocation, getDistanceInMeters } from "../utils/location";
+import { getCurrentLocation, getDistanceInMeters, formatDistance } from "../utils/location";
 import { WALK_CATEGORIES } from "../constants/categories";
 import { Walk } from "../types";
 import MyWalksList from "../components/MyWalksList";
@@ -345,12 +345,6 @@ export default function LibraryScreen() {
     }
     return items;
   }, [filteredWalks, nearMe, userLocation]);
-
-  function formatDistance(m: number): string {
-    if (m < 1000) return `${Math.round(m)} m`;
-    if (m < 10000) return `${(m / 1000).toFixed(1)} km`;
-    return `${Math.round(m / 1000)} km`;
-  }
 
   // ─── Kommande evenemang ──────────────────────────────────────────
   // Filter: walks med event.startDate >= idag, sorterade på datum.
@@ -1317,11 +1311,6 @@ const styles = StyleSheet.create({
   },
   minePillTextSecret: {
     color: "#A05A1F",
-  },
-  mineSlug: {
-    fontFamily: Platform.select({ ios: "Menlo", android: "monospace", web: "monospace" }),
-    fontSize: 12,
-    color: "#8A9A8D",
   },
   mineActionsRow: {
     flexDirection: "row",

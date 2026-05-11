@@ -39,9 +39,7 @@ import {
 export default function UpdateNotifier() {
   const { t } = useTranslation();
   const choice = useLanguageChoice();
-  // Förenkla: vi mappar "system" till sv om systemspråket inte är en av
-  // våra två stödda release-notes-språk. För release notes är det 1) sv
-  // primärt, 2) en för icke-svenskar. Övriga locale-flaggor finns inte.
+  // Release notes finns bara på sv + en — övriga locales mappas till sv.
   const lang: "sv" | "en" = choice === "en" ? "en" : "sv";
 
   const [native, setNative] = useState<NativeUpdateStatus>({ kind: "none" });
@@ -93,8 +91,7 @@ export default function UpdateNotifier() {
     }).start();
     const timer = setTimeout(() => dismissOta(), 8000);
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [otaNotes]);
+  }, [otaNotes, slideAnim]);
 
   function dismissOta() {
     Animated.timing(slideAnim, {

@@ -26,7 +26,7 @@ import { signOut } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { Walk } from "../types";
 import { syncPendingData } from "../services/offlineSync";
-import { getCurrentLocation } from "../utils/location";
+import { getCurrentLocation, formatDistance } from "../utils/location";
 import { distanceToWalk, LatLng } from "../utils/walkGeo";
 import { useTranslation } from "../i18n";
 
@@ -70,17 +70,20 @@ export default function HomeScreen() {
     let cancelled = false;
     (async () => {
       try {
-        let loc: LatLng | null = null;
-        try {
-          const pos = await getCurrentLocation();
-          loc = {
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          };
-        } catch {}
-
-        const walks = await getPublicWalks();
+        // GPS-fix och publika-walks-läsning är oberoende — kör parallellt
+        // så cold-start inte väntar på GPS innan Firestore-anropet startar.
+        // GPS:n får felchanserna; vi krymper till null vid avslag.
+        const [locResult, walks] = await Promise.all([
+          getCurrentLocation()
+            .then((pos): LatLng | null => ({
+              latitude: pos.coords.latitude,
+              longitude: pos.coords.longitude,
+            }))
+            .catch((): LatLng | null => null),
+          getPublicWalks(),
+        ]);
         if (cancelled) return;
+        const loc = locResult;
 
         const now = new Date();
         now.setHours(0, 0, 0, 0);
@@ -262,9 +265,7 @@ export default function HomeScreen() {
                   ? " · "
                   : ""}
                 {nearestEvent.distanceM !== null
-                  ? nearestEvent.distanceM < 1000
-                    ? `${Math.round(nearestEvent.distanceM)} m bort`
-                    : `${(nearestEvent.distanceM / 1000).toFixed(1)} km bort`
+                  ? `${formatDistance(nearestEvent.distanceM)} bort`
                   : ""}
               </Text>
             </View>

@@ -72,6 +72,7 @@ export async function saveWalk(walk: Walk): Promise<void> {
   // utan att jämföra hela dokumentet.
   const stamped: Walk = stripUndefined({ ...walk, updatedAt: Date.now() });
   await setDoc(doc(db, WALKS_COLLECTION, walk.id), stamped);
+  invalidatePublicWalksCache();
 }
 
 /**
@@ -103,21 +104,51 @@ export async function getMyWalks(userId: string): Promise<Walk[]> {
  * när vi närmar oss capet kommer äldre walks droppas slumpmässigt.
  * Då är det dags att byta till indexerad server-query med pagination.
  */
+// Modul-scoped cache: HomeScreen, LibraryScreen och MyWalksList kan alla
+// trigga getPublicWalks() vid mount. Utan cache blir det 200-dok-läsningar
+// per skärm. TTL 15 min — biblioteket uppdateras inte ofta, banner-event:n
+// kan vara något stale utan UX-impact.
+const PUBLIC_WALKS_TTL_MS = 15 * 60 * 1000;
+let publicWalksCache: { walks: Walk[]; fetchedAt: number } | null = null;
+let publicWalksInflight: Promise<Walk[]> | null = null;
+
 export async function getPublicWalks(): Promise<Walk[]> {
-  const q = query(
-    collection(db, WALKS_COLLECTION),
-    where("public", "==", true),
-    limit(200)
-  );
-  const [snap, hidden] = await Promise.all([
-    getDocs(q),
-    getHiddenWalkIds(),
-  ]);
-  const walks = snap.docs
-    .map((d) => d.data() as Walk)
-    .filter((w) => !hidden.has(w.id));
-  walks.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-  return walks;
+  if (
+    publicWalksCache &&
+    Date.now() - publicWalksCache.fetchedAt < PUBLIC_WALKS_TTL_MS
+  ) {
+    return publicWalksCache.walks;
+  }
+  if (publicWalksInflight) return publicWalksInflight;
+
+  publicWalksInflight = (async () => {
+    try {
+      const q = query(
+        collection(db, WALKS_COLLECTION),
+        where("public", "==", true),
+        limit(200)
+      );
+      const [snap, hidden] = await Promise.all([
+        getDocs(q),
+        getHiddenWalkIds(),
+      ]);
+      const walks = snap.docs
+        .map((d) => d.data() as Walk)
+        .filter((w) => !hidden.has(w.id));
+      walks.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+      publicWalksCache = { walks, fetchedAt: Date.now() };
+      return walks;
+    } finally {
+      publicWalksInflight = null;
+    }
+  })();
+  return publicWalksInflight;
+}
+
+/** Tvinga om-läsning vid nästa anrop — kalla efter mutationer som vi vet
+ * påverkar publika listan (ny walk publicerad, walk borttagen, m.m.). */
+export function invalidatePublicWalksCache(): void {
+  publicWalksCache = null;
 }
 
 /**
@@ -459,6 +490,7 @@ export async function deleteAllDataForUser(userId: string): Promise<void> {
     // Radera själva promenaden
     try {
       await deleteDoc(doc(db, WALKS_COLLECTION, walk.id));
+      invalidatePublicWalksCache();
     } catch (e) {
       console.log("Kunde inte radera promenad", walk.id, e);
     }

@@ -55,6 +55,12 @@ import { useTranslation } from "../i18n";
 type WalkTab = "mine" | "saved";
 type SortMode = "recent" | "name" | "distance";
 
+// Throttle refresh-från-molnet till max var 5:e minut. Tidigare fyrade den
+// på varje focus (= varje gång man swipade tillbaka till Library), vilket
+// gav en Firestore-läsning per sparad walk per swipe.
+const REFRESH_THROTTLE_MS = 5 * 60 * 1000;
+let lastRefreshAt = 0;
+
 export default function MyWalksList() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
@@ -92,9 +98,12 @@ export default function MyWalksList() {
       setAllTags(tags);
       setTagsByWalk(byWalk);
 
+      const now = Date.now();
+      const shouldRefresh = now - lastRefreshAt > REFRESH_THROTTLE_MS;
+      if (shouldRefresh) lastRefreshAt = now;
       const [, refreshed] = await Promise.all([
         syncPendingData().catch(() => {}),
-        refreshAllSavedWalks().catch(() => null),
+        shouldRefresh ? refreshAllSavedWalks().catch(() => null) : null,
       ]);
       if (!cancelled && refreshed) setSavedWalks(refreshed);
     };

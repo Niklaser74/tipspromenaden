@@ -153,3 +153,17 @@ export async function watchPosition(
     callback
   );
 }
+
+/**
+ * Formaterar ett avstånd i meter till en kort, läsbar sträng.
+ * < 1000 m: "850 m". 1–10 km: "1.4 km" (en decimal). >= 10 km: "12 km".
+ *
+ * Används i listor och banners där ett avstånd ska visas kort.
+ * Hård fallback "?" för icke-finita värden så vi aldrig renderar "NaN m".
+ */
+export function formatDistance(meters: number): string {
+  if (!Number.isFinite(meters)) return "?";
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  if (meters < 10000) return `${(meters / 1000).toFixed(1)} km`;
+  return `${Math.round(meters / 1000)} km`;
+}

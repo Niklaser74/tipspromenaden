@@ -18,11 +18,13 @@
 import { Platform } from "react-native";
 import { doc, getDoc } from "firebase/firestore";
 import * as Application from "expo-application";
-import * as Updates from "expo-updates";
 import Constants from "expo-constants";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { db } from "../config/firebase";
 import type { LanguageCode } from "../i18n";
+
+/** Release notes per språk — sv är primärt, en faller in för icke-svenskar. */
+export type ReleaseNotes = Partial<Record<"sv" | "en", string>>;
 
 const PLAY_STORE_FALLBACK =
   "https://play.google.com/store/apps/details?id=com.tipspromenaden.app";
@@ -44,7 +46,7 @@ export type AppUpdateConfig = {
   minBuild?: number;
   latestVersion?: string;
   playStoreUrl?: string;
-  releaseNotes?: Partial<Record<"sv" | "en", string>>;
+  releaseNotes?: ReleaseNotes;
 };
 
 export type NativeUpdateStatus =
@@ -53,7 +55,7 @@ export type NativeUpdateStatus =
       kind: "optional" | "required";
       latestVersion?: string;
       playStoreUrl: string;
-      releaseNotes?: Partial<Record<"sv" | "en", string>>;
+      releaseNotes?: ReleaseNotes;
     };
 
 function getNativeBuildNumber(): number | null {
@@ -100,18 +102,16 @@ export async function checkNativeUpdate(): Promise<NativeUpdateStatus> {
  * `app.config.js` `extra.releaseNotes` i samma commit som triggar `eas update`,
  * så följer noterna med bundeln automatiskt.
  */
-export function getEmbeddedReleaseNotes(): Partial<
-  Record<"sv" | "en", string>
-> | null {
+export function getEmbeddedReleaseNotes(): ReleaseNotes | null {
   const notes = (Constants.expoConfig?.extra as Record<string, unknown> | undefined)
     ?.releaseNotes;
   if (!notes || typeof notes !== "object") return null;
-  return notes as Partial<Record<"sv" | "en", string>>;
+  return notes as ReleaseNotes;
 }
 
 /** Plocka rätt språkversion av release notes, med sv-fallback. */
 export function pickNotes(
-  notes: Partial<Record<"sv" | "en", string>> | null | undefined,
+  notes: ReleaseNotes | null | undefined,
   language: LanguageCode
 ): string | null {
   if (!notes) return null;
@@ -138,10 +138,3 @@ export async function markOtaUpdateShown(updateId: string): Promise<void> {
   }
 }
 
-/** True om en OTA är aktiv (Updates.updateId finns och vi inte visat den än). */
-export async function shouldShowOtaBanner(): Promise<boolean> {
-  const id = Updates.updateId;
-  if (!id) return false;
-  const last = await getLastShownOtaUpdateId();
-  return last !== id;
-}
