@@ -1658,7 +1658,7 @@ const styles = StyleSheet.create({
   // höger kant.
   infoPill: {
     position: "absolute",
-    top: 124,
+    top: 12,
     alignSelf: "center",
     maxWidth: "92%",
     backgroundColor: "rgba(27,107,53,0.9)",

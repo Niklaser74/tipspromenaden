@@ -414,7 +414,7 @@
     "cancelBatteryTitle": "Avbryt batteriläge",
     "cancelBatteryMessage": "{{count}} oplacerade frågor kommer att slängas. Är du säker?",
     "cancelBatteryYes": "Ja, avbryt",
-    "tapToAddHint": "Tryck på kartan för att lägga till kontrollpunkter",
+    "tapToAddHint": "Tryck för kontroller",
     "controlsAdded": {
       "one": "{{count}} kontroll tillagd",
       "other": "{{count}} kontroller tillagda"
