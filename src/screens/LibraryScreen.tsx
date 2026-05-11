@@ -561,7 +561,12 @@ export default function LibraryScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
       {/* Segmented control: Mina · Upptäck · Event · Frågebatterier */}
       <View style={styles.segmented}>
         <TouchableOpacity

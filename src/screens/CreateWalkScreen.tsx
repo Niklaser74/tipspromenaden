@@ -59,6 +59,7 @@ import {
   type WalkDraft,
 } from "../services/walkDraft";
 import { useTranslation } from "../i18n";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
  * Lyssnar på tangentbordets visning och returnerar dess pixel-höjd
@@ -321,6 +322,7 @@ export default function CreateWalkScreen() {
   const { mapType, cycleMapType } = useMapType();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const { t } = useTranslation();
   const mapRef = useRef<any>(null);
@@ -1084,7 +1086,10 @@ export default function CreateWalkScreen() {
           har egen maxHeight (220px) så nestade scroll-fall undviks. */}
       <ScrollView
         style={[styles.bottomPanel, isWide && styles.sidePanel]}
-        contentContainerStyle={styles.bottomPanelContent}
+        contentContainerStyle={[
+          styles.bottomPanelContent,
+          { paddingBottom: 32 + insets.bottom },
+        ]}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
       >

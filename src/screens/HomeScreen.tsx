@@ -19,6 +19,7 @@ import {
   Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getSavedWalks } from "../services/storage";
 import { getPublicWalks } from "../services/firestore";
 import { signOut } from "../services/auth";
@@ -33,6 +34,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   // Antal sparade promenader (för badge på Bibliotek-knappen).
   // Laddas vid mount + på navigation-focus så badgen alltid är aktuell.
@@ -135,7 +137,10 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + insets.bottom },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero */}
