@@ -132,6 +132,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-11 — Bantad startsida + Bibliotek med 4 flikar
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.6.0:
+• Startsidan är ombyggd. Bara Skapa, Scanna och Bibliotek nu — den var rörig och svår att hitta i. Bibliotek-knappen har en räknare som visar hur många sparade promenader du har.
+• Biblioteket har fyra flikar: Mina · Upptäck · Event · Paket. "Mina" innehåller dina egna och sparade promenader med taggar, filter och sortering — allt som tidigare låg på startsidan.
+• Svep till vänster på startsidan = bibliotek, svep till höger = statistik.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.6.0:
+• Home screen rebuilt. Just Create, Scan and Library now — it had become cluttered and hard to navigate. The Library button shows a count of your saved walks.
+• Library now has four tabs: Mine · Discover · Events · Packs. "Mine" holds your own and saved walks with tags, filters and sort — everything that used to live on the home screen.
+• Swipe left on the home screen for library, swipe right for stats.
+```
+
+---
+
 ### AAB 1.6.0 — Uppdaterings-notiser (native + OTA)
 
 Ny native-build krävs (lade till `expo-application` som native dep).

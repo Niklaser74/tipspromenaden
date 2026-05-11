@@ -49,20 +49,33 @@ import { WEB_HOST } from "../constants/deepLinks";
 import { getCurrentLocation, getDistanceInMeters } from "../utils/location";
 import { WALK_CATEGORIES } from "../constants/categories";
 import { Walk } from "../types";
+import MyWalksList from "../components/MyWalksList";
+import { getSavedWalks } from "../services/storage";
+
+type LibraryTab = "mine" | "walks" | "events" | "tipspack";
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { user } = useAuth();
   const route = useRoute<any>();
-  const initialTab = route.params?.initialTab as
-    | "tipspack"
-    | "walks"
-    | "events"
-    | undefined;
-  const [tab, setTab] = useState<"tipspack" | "walks" | "events">(
-    initialTab ?? "tipspack"
-  );
+  const initialTab = route.params?.initialTab as LibraryTab | undefined;
+  // Default: "mine" om användaren har sparade promenader, annars "walks"
+  // (= Upptäck). Detta gör att skapare som ofta vill tillbaka till sina
+  // egna promenader inte behöver byta flik varje gång.
+  const [tab, setTab] = useState<LibraryTab>(initialTab ?? "mine");
+  useEffect(() => {
+    if (initialTab) return;
+    let cancelled = false;
+    getSavedWalks().then((walks) => {
+      if (cancelled) return;
+      if (walks.length === 0) setTab("walks");
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Filter inom tipspack-fliken: visar mina egna pack (publika + hemliga)
   // i samma lista istället för att vara en separat flik.
   const [showMine, setShowMine] = useState(false);
@@ -544,23 +557,23 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Segmented control: Frågebatterier vs Promenader */}
+      {/* Segmented control: Mina · Upptäck · Event · Frågebatterier */}
       <View style={styles.segmented}>
         <TouchableOpacity
           style={[
             styles.segmentedItem,
-            tab === "tipspack" && styles.segmentedItemActive,
+            tab === "mine" && styles.segmentedItemActive,
           ]}
-          onPress={() => setTab("tipspack")}
+          onPress={() => setTab("mine")}
           activeOpacity={0.7}
         >
           <Text
             style={[
               styles.segmentedText,
-              tab === "tipspack" && styles.segmentedTextActive,
+              tab === "mine" && styles.segmentedTextActive,
             ]}
           >
-            📚 {t("library.tabTipspacks")}
+            📂 {t("library.tabMyWalks")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -577,7 +590,7 @@ export default function LibraryScreen() {
               tab === "walks" && styles.segmentedTextActive,
             ]}
           >
-            🚶 {t("library.tabWalks")}
+            🌍 {t("library.tabDiscover")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -597,7 +610,31 @@ export default function LibraryScreen() {
             📅 {t("library.tabEvents")}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.segmentedItem,
+            tab === "tipspack" && styles.segmentedItemActive,
+          ]}
+          onPress={() => setTab("tipspack")}
+          activeOpacity={0.7}
+        >
+          <Text
+            style={[
+              styles.segmentedText,
+              tab === "tipspack" && styles.segmentedTextActive,
+            ]}
+          >
+            📦 {t("library.tabTipspacks")}
+          </Text>
+        </TouchableOpacity>
       </View>
+
+      {/* "Mina"-fliken: extraherad lista över egna + sparade walks */}
+      {tab === "mine" && (
+        <ScrollView style={styles.list} contentContainerStyle={{ paddingBottom: 24 }}>
+          <MyWalksList />
+        </ScrollView>
+      )}
 
       {/* "Mina paket"-chip — visas i Frågebatterier-fliken för inloggade.
           När aktiv visas användarens egna pack (publika + hemliga) i samma
@@ -1080,13 +1117,14 @@ const styles = StyleSheet.create({
   segmentedItem: {
     flex: 1,
     paddingVertical: 10,
+    paddingHorizontal: 4,
     alignItems: "center",
   },
   segmentedItemActive: {
     backgroundColor: "#1B6B35",
   },
   segmentedText: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#4A5E4C",
     fontWeight: "600",
   },

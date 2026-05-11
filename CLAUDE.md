@@ -366,6 +366,18 @@ AAB:n kan publiceras:
   chart-bar-knappen på egna walks i HomeScreen. Visar sessioner, deltagare,
   snittpoäng, snittsteg + per-fråga svarsfördelning med grön höjdpunkt på
   rätt option. One-shot-fetch på focus, inte realtid (refresh via pull).
+- **Startsida + Bibliotek (2026-05-11 redesign)** — HomeScreen är bantad
+  till bara hero, event-banner och 3 action cards (Skapa, Scanna, Bibliotek).
+  All walk-list-logik flyttade till `components/MyWalksList.tsx` som
+  LibraryScreen monterar i sin "Mina"-flik. LibraryScreen har nu 4 flikar
+  i ordning: **Mina · Upptäck · Event · Paket**. HomeTabs har också byggts
+  om: ordning Library ← HomeMain → Stats, så swipe-vänster från hemskärmen
+  öppnar Biblioteket och swipe-höger öppnar Stats. Biblioteket är inte
+  längre en egen stack-skärm utan en sibling-tab till HomeMain — navigation
+  via `navigate("Library", { initialTab: "events" })` byter flik istället
+  för att pusha. Library-knappen på startsidan visar en badge med
+  `getSavedWalks().length` så aktiva skapare ser sina egna promenader
+  räknas direkt utan att öppna fliken.
 - **Overflow-meny på walk-rader** — `components/WalkActionsMenu.tsx` är
   ett bottom-sheet med sekundära actions (Insights, Topplista, Tags,
   Byt namn, Ta bort). Synliga primära knappar i kortet är bara Dela +

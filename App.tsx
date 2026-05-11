@@ -58,7 +58,6 @@ import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import OpenWalkScreen from "./src/screens/OpenWalkScreen";
 import OpenTipspackScreen from "./src/screens/OpenTipspackScreen";
-import LibraryScreen from "./src/screens/LibraryScreen";
 import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import WalkInsightsScreen from "./src/screens/WalkInsightsScreen";
 import {
@@ -220,15 +219,12 @@ function AppNavigator() {
           component={OpenTipspackScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="Library"
-          component={LibraryScreen}
-          options={{
-            title: t("nav.library"),
-            headerStyle: { backgroundColor: "#F5F0E8" },
-            headerTintColor: "#2C3E2D",
-          }}
-        />
+        {/* Library är inte längre en egen stack-skärm — den bor som en
+            top-tab-flik inom HomeTabs (sibling till HomeMain + Stats).
+            Navigationskommandot `navigate("Library")` från en sibling-tab
+            byter flik istället för att pusha ny skärm. Eventuella params
+            (t.ex. `initialTab: "events"` från event-bannern) propageras
+            till LibraryScreen. */}
         <Stack.Screen
           name="ManageTags"
           component={ManageTagsScreen}

@@ -47,8 +47,9 @@
     "createWalkNeedLogin": "Logga in för att skapa",
     "scanQR": "Scanna QR-kod",
     "scanQRDesc": "Gå med i en promenad via QR",
-    "library": "Hitta frågor",
-    "libraryDesc": "Bläddra färdiga frågebatterier",
+    "library": "Bibliotek",
+    "libraryDesc": "Dina promenader, publika walks, event och paket",
+    "swipeHint": "← Svep för bibliotek · Svep för statistik →",
     "yourWalks": "Dina promenader",
     "questions": {
       "one": "{{count}} fråga",
@@ -168,9 +169,11 @@
   "library": {
     "title": "Bibliotek",
     "subtitle": "Färdiga frågebatterier",
-    "tabTipspacks": "Frågebatterier",
+    "tabMyWalks": "Mina",
+    "tabDiscover": "Upptäck",
+    "tabTipspacks": "Paket",
     "tabWalks": "Promenader",
-    "tabEvents": "Evenemang",
+    "tabEvents": "Event",
     "eventToday": "Idag",
     "eventTomorrow": "Imorgon",
     "eventsEmpty": "Inga kommande evenemang. Skapare som vill arrangera ett evenemang aktiverar 'Evenemang med datum' när de skapar eller redigerar promenaden.",
@@ -527,6 +530,6 @@
     "page2Title": "Två sätt att börja",
     "page2Body": "Skanna en QR-kod från en vän och börja gå direkt. Eller logga in med Google och skapa en egen tipspromenad — placera kontrollpunkter på kartan, skriv frågor, dela en QR-kod.",
     "page3Title": "Färdig att utforska",
-    "page3Body": "Tips: kolla biblioteket för färdiga promenader nära dig. Eller bläddra bland frågebatterier (.tipspack) som andra delat. Trevlig promenad!"
+    "page3Body": "Svep till vänster på startsidan för att öppna Biblioteket — där hittar du dina egna promenader, publika walks nära dig, kommande event och färdiga frågebatterier. Svep till höger för din personliga statistik. Trevlig promenad!"
   }
 }

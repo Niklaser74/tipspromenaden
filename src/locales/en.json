@@ -47,8 +47,9 @@
     "createWalkNeedLogin": "Sign in to create",
     "scanQR": "Scan QR code",
     "scanQRDesc": "Join a walk via QR",
-    "library": "Find questions",
-    "libraryDesc": "Browse ready-made question packs",
+    "library": "Library",
+    "libraryDesc": "Your walks, public walks, events and packs",
+    "swipeHint": "← Swipe for library · Swipe for stats →",
     "yourWalks": "Your walks",
     "questions": {
       "one": "{{count}} question",
@@ -168,7 +169,9 @@
   "library": {
     "title": "Library",
     "subtitle": "Ready-made question packs",
-    "tabTipspacks": "Question packs",
+    "tabMyWalks": "Mine",
+    "tabDiscover": "Discover",
+    "tabTipspacks": "Packs",
     "tabWalks": "Walks",
     "tabEvents": "Events",
     "eventToday": "Today",
@@ -527,6 +530,6 @@
     "page2Title": "Two ways to start",
     "page2Body": "Scan a QR code from a friend and start walking right away. Or sign in with Google and create your own quiz walk — place checkpoints on the map, write questions, share a QR code.",
     "page3Title": "Ready to explore",
-    "page3Body": "Tip: check the library for walks near you. Or browse question packs (.tipspack files) others have shared. Have a great walk!"
+    "page3Body": "Swipe left on the start screen to open the Library — that's where you'll find your own walks, public walks near you, upcoming events and ready-made question packs. Swipe right for your personal stats. Have a great walk!"
   }
 }
