@@ -31,6 +31,7 @@ import {
 import { shareContent } from "../utils/shareContent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "../i18n";
 import { LANGUAGES, flagForLanguage } from "../constants/languages";
 import {
@@ -59,6 +60,10 @@ export default function LibraryScreen() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const route = useRoute<any>();
+  // Top inset: utan stack-header bor segmented control under status-/notch-
+  // raden. Lägg på enhetens safe-area-top som padding så flikarna alltid
+  // syns oavsett hur djup notch enheten har.
+  const insets = useSafeAreaInsets();
   const initialTab = route.params?.initialTab as LibraryTab | undefined;
   // Default: "mine" om användaren har sparade promenader, annars "walks"
   // (= Upptäck). Detta gör att skapare som ofta vill tillbaka till sina
@@ -556,7 +561,7 @@ export default function LibraryScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Segmented control: Mina · Upptäck · Event · Frågebatterier */}
       <View style={styles.segmented}>
         <TouchableOpacity
