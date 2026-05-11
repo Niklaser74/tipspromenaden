@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "",
-        en: "",
+        sv: "Kartan följer dig nu automatiskt under en aktiv promenad. Pannar du manuellt pausas följningen — tryck på 🎯-knappen i högra hörnet för att snäppa tillbaka till din position.",
+        en: "The map now follows you automatically during an active walk. If you pan manually, following pauses — tap the 🎯 button in the top corner to snap back to your position.",
       },
     },
   },
