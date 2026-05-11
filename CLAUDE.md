@@ -261,6 +261,36 @@ AAB:n kan publiceras:
   (3) submit/update, (4) påminn användaren att klistra in i Play Console
   vid AAB-uppladdning.
 
+- **Uppdatera `config/appUpdate` vid VARJE release (HÅRT KRAV)**: efter
+  varje native-release (AAB submittad till Play) MÅSTE Firestore-docen
+  `config/appUpdate` bumpas, annars vet ingen klient att en ny version
+  finns. Kör:
+
+  ```
+  node scripts/set-app-update.mjs \
+    --latestBuild <nya versionCode> \
+    --latestVersion "<x.y.z>" \
+    --notesSv "<svenska release notes>" \
+    --notesEn "<engelska release notes>"
+  ```
+
+  Lägg till `--minBuild <N>` om alla under build N ska tvingas
+  uppdatera (icke-dismissable modal). Default 0 = aldrig tvingande.
+
+  Vid **OTA**-release: fyll i `extra.releaseNotes.{sv,en}` i
+  `app.config.js` i samma commit som triggar `npm run update:all`,
+  så följer noterna med bundeln och `UpdateNotifier` visar bannern.
+  `config/appUpdate` ska INTE uppdateras vid OTA — den styr bara
+  native-gaten.
+
+  **Komplett release-flöde** (native AAB):
+  1. Bumpa `version` i `app.config.js` (om native-ändring).
+  2. Skriv release notes i `docs/play-store-listing.md` + commit.
+  3. `npm run build:internal` (eller `:production`).
+  4. När bygget är klart: `eas submit -p android --profile internal --latest --non-interactive`.
+  5. Kör `set-app-update.mjs` med ny `latestBuild` + release notes.
+  6. Klistra in noterna i Play Console "What's new" (manuellt steg).
+
 ## Funktioner värda att veta om
 
 - **Karttyp-toggle** — knapp på `ActiveWalkScreen` och `CreateWalkScreen`
