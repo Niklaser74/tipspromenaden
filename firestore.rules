@@ -136,6 +136,16 @@ service cloud.firestore {
       }
     }
 
+    // -------------------- config --------------------
+    // Globala app-konfig-dokument. Just nu bara `config/appUpdate` som
+    // styr native-uppdaterings-gaten (latestBuild, minBuild, playStoreUrl,
+    // releaseNotes). Public read så alla klienter kan läsa vid app-start,
+    // endast admins får skriva.
+    match /config/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isAdmin();
+    }
+
     // -------------------- moderation --------------------
     // Ett enda dokument `moderation/hidden` med arrays av walkId / slug
     // som ska gömmas från publika listor. Public read (så vi kan filtrera

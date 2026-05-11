@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.5.0",
+    version: "1.6.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -133,6 +133,17 @@ module.exports = () => ({
     extra: {
       eas: {
         projectId: "c2f369b6-e07e-401c-a53b-1dc69443e4b7",
+      },
+      // Release notes som följer med varje JS-bundle. Vid varje `eas update`/
+      // `npm run update:all`: uppdatera detta block i samma commit som
+      // triggar OTA-publiceringen. När bundeln aktiveras på enheten
+      // läser UpdateNotifier denna text och visar en banner en gång per
+      // updateId. Max ~4 rader text — håll det användarorienterat.
+      // För AAB-uppdateringar styrs notes istället från Firestore-docen
+      // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
+      releaseNotes: {
+        sv: "",
+        en: "",
       },
     },
   },

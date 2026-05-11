@@ -506,6 +506,17 @@
     "loadFailed": "Kunde inte ladda statistiken",
     "footnote": "Dra för att uppdatera"
   },
+  "updates": {
+    "nativeRequiredTitle": "Uppdatering krävs",
+    "nativeOptionalTitle": "En ny version finns",
+    "nativeRequiredBody": "Den här versionen stöds inte längre. Hämta den senaste från Google Play för att fortsätta.",
+    "nativeOptionalBody": "Vi har släppt en uppdaterad version av appen med nya funktioner och fixar.",
+    "releaseNotesHeader": "Det här är nytt",
+    "openPlayStore": "Öppna Google Play",
+    "later": "Inte nu",
+    "otaBannerTitle": "Appen har uppdaterats",
+    "tapToDismiss": "Tryck för att stänga"
+  },
   "onboarding": {
     "skip": "Hoppa över",
     "next": "Nästa",

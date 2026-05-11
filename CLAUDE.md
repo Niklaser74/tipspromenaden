@@ -347,6 +347,19 @@ AAB:n kan publiceras:
   layout till split (karta vänster + 380 px sidopanel höger) när
   `useWindowDimensions().width >= 900`; fråge­listan auto-expanderas i det
   läget. Andra skärmar är portrait-tunade men funktionellt OK i landscape.
+- **Uppdaterings-notiser** — `components/UpdateNotifier.tsx` monteras inuti
+  `AuthProvider` i `App.tsx` och visar två separata UI:n. (1) Native-modal
+  vid app-start om `expo-application.nativeBuildVersion < latestBuild` i
+  Firestore-docen `config/appUpdate` (skrivs av admin). `minBuild` ger
+  tvingande läge (icke-dismissable, bara "Öppna Google Play"-knapp);
+  annars visas även "Inte nu". (2) OTA-banner när `Updates.updateId` är
+  satt och en update-id inte visats förut (AsyncStorage-key
+  `app.ota.lastShownUpdateId`). Release notes för OTA läses från
+  `Constants.expoConfig.extra.releaseNotes.{sv,en}` i `app.config.js` —
+  uppdatera det fältet i samma commit som `npm run update:all`. Native
+  release notes ligger på Firestore-docen (`releaseNotes.sv / .en`).
+  Tjänsten i `services/appUpdate.ts` exponerar `checkNativeUpdate()` och
+  `getEmbeddedReleaseNotes()`.
 - **Swipe-down dismiss** — frågeredigerings-modalen i CreateWalkScreen
   stängs genom att dra handle/header nedåt (>120 px eller snabb flick).
   PanResponder triggar bara på tydligt vertikal nedåt-gest så form-fält

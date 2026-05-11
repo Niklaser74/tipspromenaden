@@ -13,6 +13,7 @@ import OnboardingScreen, {
   ONBOARDED_STORAGE_KEY,
 } from "./src/screens/OnboardingScreen";
 import StartTrailDraws from "./src/components/StartTrailDraws";
+import UpdateNotifier from "./src/components/UpdateNotifier";
 import {
   useFonts,
   Lora_400Regular,
@@ -332,6 +333,7 @@ export default function App() {
     <ErrorBoundary>
       <AuthProvider>
         <AppNavigator />
+        <UpdateNotifier />
       </AuthProvider>
     </ErrorBoundary>
   );

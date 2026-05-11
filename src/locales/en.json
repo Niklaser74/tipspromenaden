@@ -506,6 +506,17 @@
     "loadFailed": "Couldn't load insights",
     "footnote": "Pull to refresh"
   },
+  "updates": {
+    "nativeRequiredTitle": "Update required",
+    "nativeOptionalTitle": "A new version is available",
+    "nativeRequiredBody": "This version is no longer supported. Please update from Google Play to continue.",
+    "nativeOptionalBody": "We've shipped a fresh version of the app with new features and fixes.",
+    "releaseNotesHeader": "What's new",
+    "openPlayStore": "Open Google Play",
+    "later": "Not now",
+    "otaBannerTitle": "App updated",
+    "tapToDismiss": "Tap to dismiss"
+  },
   "onboarding": {
     "skip": "Skip",
     "next": "Next",

@@ -132,6 +132,32 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.6.0 — Uppdaterings-notiser (native + OTA)
+
+Ny native-build krävs (lade till `expo-application` som native dep).
+Featuren visar en modal vid app-start när en nyare AAB finns i Play
+(styrs via `config/appUpdate`-doc i Firestore) och en banner med
+release notes när en ny OTA-bundle just aktiverats (läses från
+`extra.releaseNotes` i bundeln). Push av OTA-noter framöver: fyll i
+`extra.releaseNotes.sv` + `.en` i `app.config.js` i samma commit
+som triggar `npm run update:all`.
+
+**Svenska (sv-SE):**
+```
+Version 1.6.0:
+• Appen säger nu till dig när en uppdatering finns. En modal vid start med knapp direkt till Google Play när en ny version släppts, plus en diskret banner med "Det här är nytt" när du fått en mindre uppdatering i bakgrunden.
+• Ingen mer gissning kring om du kör senaste versionen.
+```
+
+**English (en-US):**
+```
+Version 1.6.0:
+• The app now tells you when an update is available. A start-up modal with a direct Google Play button when a new version ships, plus a discreet "What's new" banner when you've received a smaller background update.
+• No more guessing whether you're on the latest version.
+```
+
+---
+
 ### AAB 1.5.0 (build 17) — App Check Stage 2 + App Links + välkomstanimation
 
 Konsoliderad release: AAB:n inkluderar tidigare OTA:er (välkomstanimation
