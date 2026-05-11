@@ -485,7 +485,8 @@
     "speakOption": "Option {{index}}: {{option}}",
     "correctAnswerSimple": "Correct answer!",
     "correctAnswerWith": "Correct answer: {{answer}}",
-    "gpsError": "GPS error"
+    "gpsError": "GPS error",
+    "centerOnMeLabel": "Center map on me"
   },
   "share": {
     "walkMessage": "Check out my quiz walk: {{title}} 🌳\n\n{{link}}",

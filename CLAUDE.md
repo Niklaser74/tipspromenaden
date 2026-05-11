@@ -433,7 +433,7 @@ Backup av gammal state innan flytt: `C:/Users/niklas.eriksson/_archive/`.
 ### OTA: appVersion-policy + båda branches
 
 `runtimeVersion.policy: "appVersion"` i `app.config.js` — runtime läses
-dynamiskt från `version`-fältet (just nu `"1.3.0"`). Tidigare körde vi `"fingerprint"`
+dynamiskt från `version`-fältet (just nu `"1.5.0"`, build 17). Tidigare körde vi `"fingerprint"`
 men det drev isär: EAS-build-servern och `eas update` lokalt hashade
 olika filuppsättningar, så varje build/publicering fick olika runtime-
 hash och OTA:er nådde aldrig fram. appVersion ger deterministisk

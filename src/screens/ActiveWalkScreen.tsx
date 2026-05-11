@@ -93,6 +93,16 @@ export default function ActiveWalkScreen() {
   // Karttyp (standard/hybrid/terrain), persisterad mellan sessioner.
   const { mapType, cycleMapType } = useMapType();
 
+  // Karta-följer-användaren. Default på — kartan animerar mjukt till
+  // användarens nya position vid varje GPS-tick (behåller zoomnivå).
+  // När användaren pannar manuellt (onPanDrag) stängs detta av tillfälligt
+  // så de kan kolla rutten framåt utan att kartan rycker tillbaka. 🎯-
+  // knappen återupptar följningen.
+  const mapRef = useRef<any>(null);
+  const [followUser, setFollowUser] = useState(true);
+  const followUserRef = useRef(followUser);
+  followUserRef.current = followUser;
+
   // Stegräkning — startar när vi har en session och stannar när vi unmountar.
   // Värdet sparas på Participant vid varje answer-update så att Results,
   // Leaderboard och Insights kan visa det. På enheter utan sensor eller
@@ -170,6 +180,21 @@ export default function ActiveWalkScreen() {
       const lng = loc.coords.longitude;
       setUserLat(lat);
       setUserLng(lng);
+
+      // Auto-centrera kartan på användaren när följning är på. Behåller
+      // zoomnivå (animateCamera utan zoom-fält rör inte den) så batteri-
+      // tier-logiken inte påverkas. Tystar ev. exceptions från native-
+      // ref:n så GPS-callbacken aldrig dör pga animationsfel.
+      if (followUserRef.current && mapRef.current?.animateCamera) {
+        try {
+          mapRef.current.animateCamera(
+            { center: { latitude: lat, longitude: lng } },
+            { duration: 500 }
+          );
+        } catch {
+          // ignore — animationsfel ska inte stoppa GPS-spårning
+        }
+      }
 
       let minDist = Infinity;
       let closest: Question | null = null;
@@ -266,6 +291,33 @@ export default function ActiveWalkScreen() {
     },
     []
   );
+
+  // Användaren drog kartan manuellt → pausa auto-följning. onPanDrag fyrar
+  // bara på faktiska touchgester (inte på våra animateCamera-anrop), så
+  // ingen risk för loop. setState används med funktionsform för att inte
+  // re-rendera om värdet redan är false.
+  const handleUserPan = useCallback(() => {
+    setFollowUser((cur) => (cur ? false : cur));
+  }, []);
+
+  // 🎯-knappen: återuppta följning + animera direkt till nuvarande position.
+  const handleCenterOnMe = useCallback(() => {
+    setFollowUser(true);
+    if (
+      userLat != null &&
+      userLng != null &&
+      mapRef.current?.animateCamera
+    ) {
+      try {
+        mapRef.current.animateCamera(
+          { center: { latitude: userLat, longitude: userLng } },
+          { duration: 500 }
+        );
+      } catch {
+        // ignore
+      }
+    }
+  }, [userLat, userLng]);
 
   /**
    * Läser upp frågetexten + svarsalternativen på svenska via TTS.
@@ -457,14 +509,15 @@ export default function ActiveWalkScreen() {
     <View style={styles.container}>
       {/* Full-screen map */}
       <MapView
+        ref={mapRef}
         style={styles.map}
         showsUserLocation
-        followsUserLocation
         initialRegion={getInitialRegion()}
         mapType={mapType}
         onRegionChangeComplete={
           Platform.OS !== "web" ? handleRegionChange : undefined
         }
+        onPanDrag={handleUserPan}
       >
         {/* Rutt-linje mellan kontrollpunkter — hjälper deltagaren se
             sammanhanget och nästa kontroll. Bara om vi har ≥ 2 frågor
@@ -549,6 +602,21 @@ export default function ActiveWalkScreen() {
         style={styles.mapTypeToggle}
       />
       <MapAttribution mapType={mapType} />
+
+      {/* 🎯-knapp för att åter-centrera kartan på användaren. Visas bara när
+          följning är AV — när den är på är användaren redan centrerad,
+          så knappen skulle vara onödigt brus. Klick: slår på följning +
+          animerar direkt till user-position. */}
+      {!followUser && (
+        <TouchableOpacity
+          onPress={handleCenterOnMe}
+          style={styles.centerOnMeButton}
+          activeOpacity={0.7}
+          accessibilityLabel={t("active.centerOnMeLabel")}
+        >
+          <Text style={styles.centerOnMeIcon}>🎯</Text>
+        </TouchableOpacity>
+      )}
 
       {/* Distance indicator - floating pill */}
       <View style={styles.distancePill}>
@@ -882,6 +950,31 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: Platform.OS === "web" ? 16 : 120,
     right: 16,
+  },
+
+  centerOnMeButton: {
+    position: "absolute",
+    top: Platform.OS === "web" ? 64 : 168,
+    right: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(255,255,255,0.95)",
+    justifyContent: "center",
+    alignItems: "center",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+      },
+      android: { elevation: 4 },
+      web: { boxShadow: "0px 2px 6px rgba(0,0,0,0.15)" },
+    }),
+  },
+  centerOnMeIcon: {
+    fontSize: 20,
   },
 
   // Distance pill

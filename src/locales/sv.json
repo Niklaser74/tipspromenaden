@@ -485,7 +485,8 @@
     "speakOption": "Alternativ {{index}}: {{option}}",
     "correctAnswerSimple": "Rätt svar!",
     "correctAnswerWith": "Rätt svar: {{answer}}",
-    "gpsError": "GPS-fel"
+    "gpsError": "GPS-fel",
+    "centerOnMeLabel": "Centrera kartan på mig"
   },
   "share": {
     "walkMessage": "Kolla in min tipspromenad: {{title}} 🌳\n\n{{link}}",
