@@ -132,7 +132,71 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
-### OTA 2026-05-11 — Bantad startsida + Bibliotek med 4 flikar
+### OTA 2026-05-11 (V) — Safe-area-bottom på Library, Home, CreateWalk
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.6.0:
+• Bottenpadding läggs nu på enhetens gesturefält så sista raden i listorna och Spara-knappen i Skapa-promenad inte längre sitter klistrade i kanten.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.6.0:
+• Bottom padding now respects the device's gesture bar, so the last list row and the Save button in Create-walk are no longer flush against the edge.
+```
+
+---
+
+### OTA 2026-05-11 (IV) — "Tryck för att placera kontroller"
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.6.0:
+• Info-pillen i Skapa-promenad ändrad till "Tryck för att placera kontroller" — kortare och tydligare än tidigare.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.6.0:
+• Info pill in Create-walk now reads "Tap to place controls" — shorter and clearer.
+```
+
+---
+
+### OTA 2026-05-11 (III) — Info-pillen flyttad till toppen av kartan
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.6.0:
+• "Tryck för kontroller"-pillen i Skapa-promenad sitter nu längst upp i kartan istället för mitt på, så den inte skymmer den plats där du faktiskt vill rita.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.6.0:
+• The hint pill in Create-walk now sits at the top of the map instead of dead-centre, so it doesn't obscure the spot you actually want to tap.
+```
+
+---
+
+### OTA 2026-05-11 (II) — Safe-area-top på Bibliotek-flikarna
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.6.0:
+• Bibliotekets flikar respekterar nu enhetens notch/notisrad — tidigare skyms de översta pixlarna på telefoner med kamera-cut-out.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.6.0:
+• Library tabs now respect the device's notch/status bar — previously the top pixels were obscured on phones with a camera cut-out.
+```
+
+---
+
+### OTA 2026-05-11 (I) — Bantad startsida + Bibliotek med 4 flikar
 
 **Svenska (sv-SE):**
 ```
