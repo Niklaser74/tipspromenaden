@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Startsidan är ombyggd. Bara Skapa, Scanna och Bibliotek nu — allt annat (dina egna promenader, publika walks, event och paket) ligger i Biblioteket. Svep till vänster för att öppna det, höger för din statistik.",
-        en: "Home screen rebuilt. Just Create, Scan and Library now — everything else (your own walks, public walks, events and packs) lives in the Library. Swipe left to open it, right for your stats.",
+        sv: "Sammanfattning av småfixar sen senaste banner: safe-area runt notch + gesturefält, info-pillen i Skapa-promenad flyttad upp och kortad, snabbare cold-start (parallell GPS+Firestore och cachning av publika listor) samt säkerhetshärdning av Play Store-länken.",
+        en: "Roll-up of recent tweaks since the last banner: safe-area around notch + gesture bar, info pill in Create-walk moved up and shortened, faster cold-start (parallel GPS+Firestore and caching of public lists), and security hardening of the Play Store link.",
       },
     },
   },

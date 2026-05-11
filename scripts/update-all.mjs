@@ -33,6 +33,36 @@ if (message.includes('"')) {
   process.exit(1);
 }
 
+// Gate: extra.releaseNotes MÅSTE ha rörts i HEAD-commiten, annars visar
+// UpdateNotifier-bannern fel text för den här OTA:n. Tidigare missades
+// detta på fem OTA:er i rad — bannern stannade på första texten.
+// Bypass med --skip-release-notes-check om du medvetet vill OTA:a utan
+// nya noter (t.ex. en pure security-fix där noterna i föregående OTA
+// fortfarande gäller).
+const skipNotesCheck = argv.includes("--skip-release-notes-check");
+if (!skipNotesCheck) {
+  try {
+    const diff = execSync(
+      "git diff HEAD~1 HEAD -- app.config.js"
+    ).toString();
+    if (!diff.includes("releaseNotes")) {
+      console.error(
+        "\n✗ extra.releaseNotes uppdaterades inte i senaste commit.\n" +
+          "  UpdateNotifier-bannern skulle visa fel text för denna OTA.\n" +
+          "  Uppdatera `app.config.js` extra.releaseNotes.{sv,en} och committa,\n" +
+          "  eller kör med --skip-release-notes-check om du medvetet vill skippa.\n"
+      );
+      process.exit(1);
+    }
+  } catch (e) {
+    console.error(
+      "✗ Kunde inte verifiera release notes via git diff:",
+      e.message
+    );
+    process.exit(1);
+  }
+}
+
 for (const branch of BRANCHES) {
   console.log(`\n=== Publicerar till branch "${branch}" ===`);
   const cmd = `eas update --branch ${branch} --environment production --message "${message}" --non-interactive`;
