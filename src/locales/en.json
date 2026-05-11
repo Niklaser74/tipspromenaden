@@ -414,7 +414,7 @@
     "cancelBatteryTitle": "Cancel pack mode",
     "cancelBatteryMessage": "{{count}} unplaced questions will be discarded. Are you sure?",
     "cancelBatteryYes": "Yes, cancel",
-    "tapToAddHint": "Tap to add controls",
+    "tapToAddHint": "Tap to place controls",
     "controlsAdded": {
       "one": "{{count}} control added",
       "other": "{{count}} controls added"
