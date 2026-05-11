@@ -42,6 +42,10 @@ lastbuild.json
 # pusha AAB:er till Play Console. Får ALDRIG committas.
 google-service-account.json
 
+# Firebase Admin SDK-nyckel — används av `scripts/set-app-update.mjs` för
+# att skriva `config/appUpdate`-docen. Får ALDRIG committas (full admin).
+firebase-admin-key.json
+
 # Firebase Android-config (google-services.json) committas medvetet.
 # Inga hemligheter — apiKey, appId och projectId är alla publika
 # (säkerhet sköts via Firestore rules + App Check, inte hemlighållning).
