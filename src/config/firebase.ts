@@ -35,21 +35,49 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-// ─── App Check Stage 2: TILLFÄLLIGT AVSTÄNGD ────────────────────────
-// Build 17 startade upp men kraschade på testpilot-enheter. App Check
-// init är mest troliga boven (enda nya native-modulen). Disablad här
-// som emergency OTA på runtime 1.5.0 så appen kommer igång; permanent
-// fix kräver att vi reproducerar och felsöker native-laddningen.
+// ─── App Check Stage 2: native Play Integrity för Android ────────────
+// JS SDK:n vi använder för Firestore/Auth/Storage skickar en App Check-
+// token som header på varje request. Native-attestationen (Play Integrity)
+// hämtas via @react-native-firebase/app-check och bryggas in via en
+// CustomProvider — JS SDK ber om token, vi ber native, native ber Play
+// Integrity, returvärdet skickas tillbaka.
 //
-// För att återinföra: ta bort early-return:en nedan + den tomma re-
-// importen, och kolla diff:en i git mot commit 5880a89 för att se
-// CustomProvider-koden.
-const APP_CHECK_DISABLED = true;
-if (!APP_CHECK_DISABLED && Platform.OS === "android") {
-  // Tidigare App Check-init här. Kommenterat ut tills vi vet
-  // varför Play Integrity-providern kraschar appen vid uppstart.
-  void initializeAppCheck;
-  void CustomProvider;
+// Web: ingen App Check här (tipspromenaden-web kör eget reCAPTCHA
+// Enterprise i src/lib/firebase.ts). iOS: skippas tills DeviceCheck-
+// providern är konfigurerad i Stage 3.
+//
+// Reaktiverad 2026-05-13 för 1.8.0 efter att build 17-kraschen
+// reattribuerats till välkomst-animationen (SVG-text på Android), inte
+// App Check. Misslyckad init är icke-fatal — appen funkar oförändrat,
+// bara att requests saknar App Check-tokens (= rejectas först när
+// Firebase Console flippas till Enforce). Logga warning, gå vidare.
+if (Platform.OS === "android") {
+  (async () => {
+    try {
+      const rnfb = await import("@react-native-firebase/app-check");
+      const provider = new CustomProvider({
+        getToken: async (): Promise<AppCheckToken> => {
+          const result = await rnfb.default().getToken(true);
+          // Native-modulen returnerar bara `{ token: string }` — ingen
+          // expiration. Default Firebase TTL för Play Integrity-tokens
+          // är ~1 h, så vi sätter 50 min för att refresh:as i god tid.
+          return {
+            token: result.token,
+            expireTimeMillis: Date.now() + 50 * 60 * 1000,
+          };
+        },
+      });
+      initializeAppCheck(app, {
+        provider,
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (e) {
+      // Mest sannolika orsaker: native-modulen inte länkad
+      // (= App Check Stage 2 inte byggd ännu, bara JS-koden), eller
+      // Play Integrity API inte aktiverad i Google Cloud Console.
+      console.warn("[firebase] App Check init failed (non-fatal):", e);
+    }
+  })();
 }
 
 /** Firestore-databasinstansen som används för att läsa och skriva promenader, sessioner och deltagare. */
