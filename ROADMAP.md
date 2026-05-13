@@ -1,21 +1,27 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-06
+> Senast uppdaterad: 2026-05-13
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
 > **Aktivt just nu:** ingenting — allt levererat och deployat. Senaste pass
+> (2026-05-11/13, runtime 1.7.0): automatiskt offline-läge iter 1 (NetInfo,
+> banner, frågebild-cache, graceful session-fallback) — kart-tiles offline
+> återstår som separat iter. Tidigare (2026-05-11): bantad startsida +
+> 4-flikars bibliotek (Mina · Upptäck · Event · Paket), HomeTabs Library
+> ← HomeMain → Stats swipe, update-notifier (native modal + OTA banner)
+> via `config/appUpdate`-doc, perf-pass (cache `getPublicWalks`, parallell
+> cold-start, throttle refresh), OTA-gate i `update-all.mjs` mot glömda
+> release notes, säkerhetshärdning av `playStoreUrl`. Tidigare
 > (2026-05-05/06): full webb-admin (`/admin`) med moderation, statistik,
-> batch-upload + skapa/redigera tipspack, walk-mini-karta + flygblad-
-> generator, smart `/get-app`-redirect, engelska översättningar (Fas 1+2),
-> PayPal på /stod, CSP-fix för Firebase Auth-popup. Tidigare (2026-05-04):
-> säkerhetspass 2 + bibliotek-hang fix. Tidigare i april–maj: cykelläge,
-> OpenTopoMap-stigar, "Mina paket"-flik, App Check Stage 1 (web), Google
-> Maps på webben, onboarding. Väntar på cykeltest-feedback och nästa
-> beslut. iOS-bygge **övervägs** (~1 100 kr/år löpande Apple Developer-
-> avgift — ej beslutat). Förslag på nästa drag i "Nästa konkreta steg".
+> batch-upload + skapa/redigera tipspack, flygblad-generator, smart
+> `/get-app`-redirect, engelska översättningar (Fas 1+2), PayPal på /stod,
+> CSP-fix för Firebase Auth-popup. Tidigare (2026-05-04): säkerhetspass 2 +
+> bibliotek-hang fix. iOS-bygge **övervägs** (~1 100 kr/år löpande Apple
+> Developer-avgift — ej beslutat). Förslag på nästa drag i "Nästa
+> konkreta steg".
 
 ---
 
@@ -568,6 +574,38 @@ Följande är inte beskrivet i fasplanen ovan men har levererats:
 - ✅ **Animerad resultatscen** (2026-05-05) — count-up score,
   fyllande procent-bar, konfetti-overlay vid ≥70%. Pure RN
   Animated, OTA-bart, ingen prestandakostnad.
+- ✅ **Update-notifier** (2026-05-11, AAB 1.6.0) — Firestore-doc
+  `config/appUpdate` styr en native-modal vid app-start om
+  `nativeBuildVersion < latestBuild`, `minBuild` ger tvingande läge
+  (icke-dismissable). OTA-banner med release notes från
+  `extra.releaseNotes` i bundeln. Admin-script `set-app-update.mjs`
+  bumpar docen + release notes per release. Krävs `firebase-admin-key.json`
+  lokalt (gitignored, Firebase Admin SDK-nyckel).
+- ✅ **Startsida + 4-flikars bibliotek** (2026-05-11 OTA på 1.6.0) —
+  HomeScreen bantad från 1781 → 523 rader, all walk-list-logik flyttad
+  till `components/MyWalksList.tsx`. LibraryScreen har nu **Mina ·
+  Upptäck · Event · Paket** i tabs. HomeTabs reorderad till Library ←
+  HomeMain → Stats. Bibliotek-knappen på startsidan visar badge med
+  antal sparade promenader.
+- ✅ **Perf-pass** (2026-05-11 OTA) — `getPublicWalks` får 15-min
+  TTL-cache + inflight-dedup, parallell GPS+Firestore-fetch på HomeScreen
+  cold-start, `refreshAllSavedWalks` throttlad till 1×/5 min,
+  delad `formatDistance`-util mellan Home + Library.
+- ✅ **OTA-gate i `update-all.mjs`** (2026-05-11) — vägrar publicera
+  om `extra.releaseNotes` inte rörts i HEAD-commiten. Adresserar
+  bug där bannern stannade på första texten vid 5+ OTA:er i rad.
+  Bypass-flagga finns för medvetna undantag.
+- ✅ **Säkerhetspass 3** (2026-05-11) — validering av
+  `config/appUpdate.playStoreUrl` mot prefix `https://play.google.com/`
+  innan `Linking.openURL` (försvar-på-djupet mot komprometterat
+  admin-konto).
+- ✅ **Automatiskt offline-läge iter 1** (2026-05-13, AAB 1.7.0) —
+  `@react-native-community/netinfo` + `useOnlineStatus()`-hook + gul
+  `OfflineBanner` med antal köade svar, pre-cachning av frågebilder
+  till `FileSystem.documentDirectory` vid `saveWalkLocally()`,
+  graceful `findActiveSession()` (returnerar null vid `unavailable`/
+  `deadline-exceeded` istället för throw). Kart-tiles offline återstår
+  som iter 2.
 
 ---
 
@@ -577,10 +615,14 @@ Plocka det som passar humöret. Förslag i grov ordning:
 
 1. **Cykeltest av cykelläget** — verifiera 50 m trigger + 100 m approaching
    i verklig fart. Justera efter behov.
-2. **App Check Stage 2 (native)** — kräver `@react-native-firebase/app-check`
-   eller custom Expo-modul + ny EAS-build. Görs naturligt samtidigt med
-   nästa AAB-cykel. När både web och native har tokens, flippa Firestore
-   + Storage från Monitor till Enforce i Firebase Console.
+2. **App Check Stage 2 (native) — DELVIS gjort, ej aktiverat** —
+   `@react-native-firebase/app-check` är installerad och plugin är i
+   `app.config.js`. **MEN** init:en är `APP_CHECK_DISABLED = true` i
+   `src/config/firebase.ts` sen build 17 kraschade. Behöver:
+   reaktivera init:en, bygga 1.8.0, fältverifiera att kraschen inte
+   återkommer, sen flippa Firestore + Storage från Monitor till
+   Enforce i Firebase Console (när web Stage 1 också gått rent i
+   monitor en stund).
 3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
    Universal Links. Kombinera med Stage 2 ovan.
 4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
@@ -619,13 +661,18 @@ Plocka det som passar humöret. Förslag i grov ordning:
     "Påminn mig" på ett event-kort, schemalägg en lokal notification
     24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
     Lokal-only (ingen Cloud Function-backend) håller det enkelt.
-17. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
+17. **Offline iter 2 — kart-tiles offline** — nuvarande native Google
+    Maps cachar inte tiles, så kartan blir grå i skog/nödlägen.
+    Byte till MapLibre native (vector tiles) eller Leaflet+expo-file-
+    system tile-cache. 1–2 dagars jobb, påverkar ActiveWalkScreen,
+    CreateWalkScreen och MapViewWeb. Kräver ny AAB.
+18. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
     för en walk under sitt event-fönster (event.startDate–endDate).
     Visar deltagare som spelat under den tiden, sorterat på score → tid.
     Kan landa antingen som ny topplista i appen eller delningsbar
     `tipspromenaden.app/event/<walkId>`-sida på webben. OTA-bart
     om vi gör det i appen, eller kräver bara nya routes på webben.
-18. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
+19. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
     besvaras i ordning". När på: bara fråga 1 är aktiv tills den är
     besvarad, sedan unlockas 2, osv. Bra för storytelling-walks där
     ordningen bär narrativet. OTA-bart, ny `sequential?: boolean`
