@@ -10,7 +10,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.6.0",
+    version: "1.7.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Sammanfattning av småfixar sen senaste banner: safe-area runt notch + gesturefält, info-pillen i Skapa-promenad flyttad upp och kortad, snabbare cold-start (parallell GPS+Firestore och cachning av publika listor) samt säkerhetshärdning av Play Store-länken.",
-        en: "Roll-up of recent tweaks since the last banner: safe-area around notch + gesture bar, info pill in Create-walk moved up and shortened, faster cold-start (parallel GPS+Firestore and caching of public lists), and security hardening of the Play Store link.",
+        sv: "Ny: automatiskt offline-läge. Appen märker när du tappat nätet och visar en gul banner högst upp. Svaren sparas lokalt och synkas automatiskt när du är online igen. Frågebilder pre-cachas när du sparar en promenad.",
+        en: "New: automatic offline mode. The app detects when you lose connection and shows a yellow banner at the top. Answers are saved locally and sync automatically when you're back online. Question images are pre-cached when you save a walk.",
       },
     },
   },

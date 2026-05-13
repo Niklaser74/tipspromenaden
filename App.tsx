@@ -14,6 +14,7 @@ import OnboardingScreen, {
 } from "./src/screens/OnboardingScreen";
 import StartTrailDraws from "./src/components/StartTrailDraws";
 import UpdateNotifier from "./src/components/UpdateNotifier";
+import OfflineBanner from "./src/components/OfflineBanner";
 import {
   useFonts,
   Lora_400Regular,
@@ -328,6 +329,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <OfflineBanner />
         <AppNavigator />
         <UpdateNotifier />
       </AuthProvider>

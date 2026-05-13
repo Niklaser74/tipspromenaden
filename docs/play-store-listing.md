@@ -132,6 +132,39 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.7.0 — Automatiskt offline-läge (iteration 1)
+
+Ny native-build krävs (lade till `@react-native-community/netinfo` som
+native dep). Featuren:
+- `useOnlineStatus()`-hook med NetInfo-events
+- `<OfflineBanner />` högst upp som visar antalet köade svar
+- Frågebilder pre-cachas till `FileSystem.documentDirectory` vid
+  `saveWalkLocally()` så de fungerar offline
+- `findActiveSession()` returnerar nu null vid `unavailable` /
+  `deadline-exceeded` istället för att kasta — anroparen kan starta
+  en lokal session istället för att fastna
+
+Karttiles är fortfarande online-only — det blir nästa iteration
+(byte från Google Maps native till MapLibre eller Leaflet-cache).
+
+**Svenska (sv-SE):**
+```
+Version 1.7.0:
+• Automatiskt offline-läge. Appen visar en gul banner när nätet tappas, sparar svar lokalt och synkar automatiskt när du är online igen.
+• Frågebilder pre-cachas när du sparar en promenad så de funkar offline.
+• Karttiles är fortfarande online — vi adresserar det i nästa iteration.
+```
+
+**English (en-US):**
+```
+Version 1.7.0:
+• Automatic offline mode. The app shows a yellow banner when you lose connection, saves answers locally and syncs automatically when you're back.
+• Question images are pre-cached when you save a walk so they work offline.
+• Map tiles are still online — we'll address that in the next iteration.
+```
+
+---
+
 ### OTA 2026-05-11 (V) — Safe-area-bottom på Library, Home, CreateWalk
 
 **Svenska (sv-SE):**

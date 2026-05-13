@@ -510,6 +510,14 @@
     "loadFailed": "Couldn't load insights",
     "footnote": "Pull to refresh"
   },
+  "offline": {
+    "bannerTitle": "Offline",
+    "bannerNoQueue": "You can keep going — answers are saved and synced when you're back online.",
+    "bannerQueued": {
+      "one": "{{count}} answer waiting to sync",
+      "other": "{{count}} answers waiting to sync"
+    }
+  },
   "updates": {
     "nativeRequiredTitle": "Update required",
     "nativeOptionalTitle": "A new version is available",

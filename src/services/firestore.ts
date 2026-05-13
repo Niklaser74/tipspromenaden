@@ -431,19 +431,32 @@ export function subscribeToSession(
 export async function findActiveSession(
   walkId: string
 ): Promise<Session | null> {
-  const q = query(
-    collection(db, SESSIONS_COLLECTION),
-    where("walkId", "==", walkId),
-    where("status", "in", ["waiting", "active"])
-  );
-  const snap = await getDocs(q);
-  if (snap.empty) return null;
-  const sessions = snap.docs.map((d) => {
-    const data = d.data() as Session;
-    return { ...data, participants: [] };
-  });
-  sessions.sort((a, b) => b.createdAt - a.createdAt);
-  return sessions[0];
+  try {
+    const q = query(
+      collection(db, SESSIONS_COLLECTION),
+      where("walkId", "==", walkId),
+      where("status", "in", ["waiting", "active"])
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const sessions = snap.docs.map((d) => {
+      const data = d.data() as Session;
+      return { ...data, participants: [] };
+    });
+    sessions.sort((a, b) => b.createdAt - a.createdAt);
+    return sessions[0];
+  } catch (e: any) {
+    // Offline → returnera null så anroparen kan starta en lokal session.
+    // Firestore kastar "unavailable" eller "deadline-exceeded" vid offline.
+    if (
+      e?.code === "unavailable" ||
+      e?.code === "deadline-exceeded" ||
+      e?.message?.includes("network")
+    ) {
+      return null;
+    }
+    throw e;
+  }
 }
 
 /**

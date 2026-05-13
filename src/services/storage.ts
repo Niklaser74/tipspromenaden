@@ -71,6 +71,15 @@ export async function saveWalkLocally(savedWalk: SavedWalk): Promise<void> {
   const updated = existing.filter((w) => w.walk.id !== savedWalk.walk.id);
   updated.push(savedWalk);
   await AsyncStorage.setItem(SAVED_WALKS_KEY, JSON.stringify(updated));
+  // Best-effort: pre-cacha frågebilder så promenaden funkar offline.
+  // Importera dynamiskt för att undvika cirkulär dep — storage importeras
+  // tidigt i app-uppstarten och questionImageCache drar in expo-file-system.
+  try {
+    const { cacheWalkImages } = await import("./questionImageCache");
+    cacheWalkImages(savedWalk.walk).catch(() => {});
+  } catch {
+    // Ingen panik — cache är opt-in offline-optimering
+  }
 }
 
 /**
@@ -104,6 +113,13 @@ export async function removeSavedWalk(walkId: string): Promise<void> {
   const existing = await getSavedWalks();
   const updated = existing.filter((w) => w.walk.id !== walkId);
   await AsyncStorage.setItem(SAVED_WALKS_KEY, JSON.stringify(updated));
+  // Rensa cachade frågebilder så vi inte läcker disk vid många save/remove.
+  try {
+    const { clearWalkImages } = await import("./questionImageCache");
+    clearWalkImages(walkId).catch(() => {});
+  } catch {
+    // Tyst fail
+  }
 }
 
 /**

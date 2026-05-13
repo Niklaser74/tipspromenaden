@@ -510,6 +510,14 @@
     "loadFailed": "Kunde inte ladda statistiken",
     "footnote": "Dra för att uppdatera"
   },
+  "offline": {
+    "bannerTitle": "Offline",
+    "bannerNoQueue": "Du kan fortsätta — svar sparas och synkas när nätet är tillbaka.",
+    "bannerQueued": {
+      "one": "{{count}} svar väntar på att synkas",
+      "other": "{{count}} svar väntar på att synkas"
+    }
+  },
   "updates": {
     "nativeRequiredTitle": "Uppdatering krävs",
     "nativeOptionalTitle": "En ny version finns",

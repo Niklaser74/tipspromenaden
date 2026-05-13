@@ -389,6 +389,16 @@ AAB:n kan publiceras:
   layout till split (karta vänster + 380 px sidopanel höger) när
   `useWindowDimensions().width >= 900`; fråge­listan auto-expanderas i det
   läget. Andra skärmar är portrait-tunade men funktionellt OK i landscape.
+- **Automatiskt offline-läge (iter 1, 2026-05-11)** — `hooks/useOnlineStatus.ts`
+  prenumererar på `NetInfo`-events (web: `navigator.onLine`). Driver
+  `<OfflineBanner />` som monteras högst upp i AuthProvider och visar
+  antal köade svar (`getPendingSyncs()`). Frågebilder pre-cachas
+  best-effort via `services/questionImageCache.ts` → `cacheWalkImages(walk)`
+  triggas automatiskt från `saveWalkLocally()`; rensas via
+  `clearWalkImages(walkId)` från `removeSavedWalk()`. `findActiveSession()`
+  returnerar nu `null` vid `unavailable`/`deadline-exceeded` istället
+  för att kasta. Karttiles är fortfarande online-only — nästa iteration
+  kräver byte från native Google Maps till MapLibre/Leaflet-cache.
 - **Uppdaterings-notiser** — `components/UpdateNotifier.tsx` monteras inuti
   `AuthProvider` i `App.tsx` och visar två separata UI:n. (1) Native-modal
   vid app-start om `expo-application.nativeBuildVersion < latestBuild` i
