@@ -207,12 +207,15 @@ hardcoded `isAdmin()`-funktion som måste hållas i synk med
 `/admin`-sidans 🚩 Göm-knapp; inte exponerad i app-UI.
 
 **Återstår att aktivera (manuellt i konsolerna):**
-- **Firebase App Check** — kräver `@react-native-firebase/app-check` (native
-  Play Integrity-provider, inte JS SDK). Webbappen är inte deployad så
-  reCAPTCHA-vägen är irrelevant just nu. Lägg till i nästa build-cykel som
-  kräver ny AAB ändå. Se roadmappen nedan. **Hot utan App Check:** anonyma
-  klienter kan spamma `participants` eller skapa endless sessions →
-  Firestore-kostnadsbomb. Sätt budget-alert i GCP som mitigation.
+- **Firebase App Check — Enforce** — Stage 2 (native Play Integrity via
+  `@react-native-firebase/app-check`) är AKTIVERAT i 1.8.0/build 21 och
+  skickar tokens på varje request, men Firebase Console står i **Monitor**-
+  läge (rejectar inget än). Återstår: verifiera att legit trafik syns som
+  *verified* i konsolen, sen flippa Firestore + Storage till **Enforce**.
+  Init:en finns i `src/config/firebase.ts` (CustomProvider-brygga, icke-
+  fatal try-catch). **Hot tills Enforce:** anonyma klienter kan spamma
+  `participants` / skapa endless sessions → Firestore-kostnadsbomb. GCP
+  budget-alert är satt som mitigation.
 - **Cloud Function för 90-dagars auto-radering** av anonyma sessioner —
   privacy-policyn lovade detta tidigare; lovade nu UI-knappen istället för
   att inte hänga ut oimplementerade löften.

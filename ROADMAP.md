@@ -599,6 +599,13 @@ Följande är inte beskrivet i fasplanen ovan men har levererats:
   `config/appUpdate.playStoreUrl` mot prefix `https://play.google.com/`
   innan `Linking.openURL` (försvar-på-djupet mot komprometterat
   admin-konto).
+- ✅ **App Check Stage 2 (native Play Integrity)** (2026-05-15, AAB
+  1.8.0/build 21) — `@react-native-firebase/app-check` CustomProvider-
+  brygga reaktiverad i `src/config/firebase.ts` efter att build 17-
+  kraschen reattribuerats till välkomst-animationen. Smoke-testad via
+  preview APK före submit. Monitor-läge tills legit trafik verifierats,
+  sen Enforce. Kontakt-mejl bytt till @tipspromenaden.app-domänen
+  (support@ / privacy@ / legal@) samtidigt.
 - ✅ **Automatiskt offline-läge iter 1** (2026-05-13, AAB 1.7.0) —
   `@react-native-community/netinfo` + `useOnlineStatus()`-hook + gul
   `OfflineBanner` med antal köade svar, pre-cachning av frågebilder
@@ -615,14 +622,14 @@ Plocka det som passar humöret. Förslag i grov ordning:
 
 1. **Cykeltest av cykelläget** — verifiera 50 m trigger + 100 m approaching
    i verklig fart. Justera efter behov.
-2. **App Check Stage 2 (native) — DELVIS gjort, ej aktiverat** —
-   `@react-native-firebase/app-check` är installerad och plugin är i
-   `app.config.js`. **MEN** init:en är `APP_CHECK_DISABLED = true` i
-   `src/config/firebase.ts` sen build 17 kraschade. Behöver:
-   reaktivera init:en, bygga 1.8.0, fältverifiera att kraschen inte
-   återkommer, sen flippa Firestore + Storage från Monitor till
-   Enforce i Firebase Console (när web Stage 1 också gått rent i
-   monitor en stund).
+2. **App Check Stage 2 (native) — AKTIVERAT i 1.8.0 (build 21), Monitor-läge.**
+   Reaktiverad 2026-05-15 efter att build 17-kraschen reattribuerats
+   till välkomst-animationen (inte App Check). Smoke-testad via preview
+   APK — ingen krasch. Play Integrity-tokens skickas nu på varje
+   Firestore/Storage-request. **Återstår:** verifiera i Firebase Console
+   att legitim trafik syns som *verified* i Monitor en stund, sen flippa
+   Firestore + Storage till **Enforce** (samordnas med web Stage 1, se
+   punkt 13).
 3. **iOS-build** (~1 vecka) — Apple Developer Program, TestFlight,
    Universal Links. Kombinera med Stage 2 ovan.
 4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
