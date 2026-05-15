@@ -176,7 +176,7 @@ doc.font("sans-it").fontSize(9).fillColor(COLORS.sage)
    });
 y += 14;
 doc.font("sans-bold").fontSize(9).fillColor(COLORS.green)
-   .text("tipspromenaden.app@gmail.com", MARGIN, y, {
+   .text("support@tipspromenaden.app", MARGIN, y, {
      width: CONTENT_W, align: "center"
    });
 
@@ -389,7 +389,7 @@ ctx.fillText("— Niklas Eriksson", PW / 2, cy + px(8));
 cy += px(14);
 ctx.fillStyle = COLORS.green;
 ctx.font = `${px(9)}px InstSansBold`;
-ctx.fillText("tipspromenaden.app@gmail.com", PW / 2, cy + px(8));
+ctx.fillText("support@tipspromenaden.app", PW / 2, cy + px(8));
 
 function roundRect(c, x, y, w, h, r) {
   c.beginPath();

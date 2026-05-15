@@ -15,7 +15,7 @@ tipspromenaden.app) godkänner du dessa användarvillkor.
 
 Tipspromenaden drivs av **Niklas Eriksson** som privatperson, hemmahörande
 i Sverige. Kontakt:
-**[tipspromenaden.app@gmail.com](mailto:tipspromenaden.app@gmail.com)**.
+**[legal@tipspromenaden.app](mailto:legal@tipspromenaden.app)**.
 
 Tjänsten är ett **gratis hobbyprojekt**. Vi tar inte betalt, har ingen
 prenumeration och säljer ingenting i appen.
@@ -84,7 +84,7 @@ upprepat bryter villkoren.
 
 Om du upptäcker olämpligt innehåll i biblioteket — använd
 **rapportera-knappen** på pack/walk:s rad, eller skicka e-post till
-tipspromenaden.app@gmail.com.
+legal@tipspromenaden.app.
 
 ## 5. Vad du får inte göra
 
@@ -178,4 +178,4 @@ routes), you keep copyright on content you upload but grant us a
 license to display it, we may moderate inappropriate content, no
 warranty, liability capped at 0 SEK (free service). Swedish law and
 courts apply. Contact:
-**[tipspromenaden.app@gmail.com](mailto:tipspromenaden.app@gmail.com)**.
+**[legal@tipspromenaden.app](mailto:legal@tipspromenaden.app)**.

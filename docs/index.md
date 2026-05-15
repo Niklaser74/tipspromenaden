@@ -11,7 +11,7 @@ i kartan, svara på frågor, kämpa om topplatsen.
 
 ## Kontakt
 
-E-post: [tipspromenaden.app@gmail.com](mailto:tipspromenaden.app@gmail.com)
+E-post: [support@tipspromenaden.app](mailto:support@tipspromenaden.app)
 
 ## Juridik
 

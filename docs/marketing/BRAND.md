@@ -361,7 +361,7 @@ Print-flöde:
 ## Kontakt & support
 
 Frågor om hur du applicerar guidelines på en specifik feature eller
-ett innehåll: tipspromenaden.app@gmail.com.
+ett innehåll: support@tipspromenaden.app.
 
 Brand-källfiler:
 - Designtokens: `tipspromenaden-web/src/styles/global.css`

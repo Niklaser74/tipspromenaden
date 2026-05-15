@@ -211,7 +211,7 @@ function render4x5() {
   y += 26;
   ctx.fillStyle = COLORS.green;
   ctx.font = `20px InstSansBold`;
-  ctx.fillText("tipspromenaden.app@gmail.com", W / 2, y + 20);
+  ctx.fillText("support@tipspromenaden.app", W / 2, y + 20);
 
   return r.canvas;
 }
@@ -334,7 +334,7 @@ function renderSquare() {
   y += 22;
   ctx.fillStyle = COLORS.green;
   ctx.font = `18px InstSansBold`;
-  ctx.fillText("tipspromenaden.app@gmail.com", W / 2, y + 16);
+  ctx.fillText("support@tipspromenaden.app", W / 2, y + 16);
 
   return r.canvas;
 }
@@ -456,7 +456,7 @@ function renderStory() {
   y += 30;
   ctx.fillStyle = COLORS.green;
   ctx.font = `22px InstSansBold`;
-  ctx.fillText("tipspromenaden.app@gmail.com", W / 2, y + 22);
+  ctx.fillText("support@tipspromenaden.app", W / 2, y + 22);
 
   return r.canvas;
 }

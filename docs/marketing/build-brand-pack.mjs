@@ -31,7 +31,7 @@ const README = `Tipspromenaden — Brand Pack
 ============================
 Genererad: ${today}
 Källa:     https://github.com/Niklaser74/tipspromenaden
-Kontakt:   tipspromenaden.app@gmail.com
+Kontakt:   support@tipspromenaden.app
 
 Innehåll
 --------
@@ -84,7 +84,7 @@ Licens
 ------
 Dessa filer är upphovsrättsskyddade av projektet Tipspromenaden.
 Användning för partnersamarbeten och redaktionellt material som
-beskriver Tipspromenaden är OK; kontakta tipspromenaden.app@gmail.com
+beskriver Tipspromenaden är OK; kontakta support@tipspromenaden.app
 för andra användningsområden.
 `;
 

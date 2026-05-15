@@ -12,7 +12,7 @@ engelska som "English (United States)").
 - **Kort beskrivning (80 tecken):** Digital tipspromenad med GPS, frågor och topplista — skapa eller delta.
 - **Kategori:** Underhållning (alt. Utbildning, Spel → Trivia)
 - **Taggar:** tipspromenad, quiz, GPS, utomhus, familj, friskvård
-- **Kontakt-e-post:** tipspromenaden.app@gmail.com
+- **Kontakt-e-post:** support@tipspromenaden.app
 - **Webbplats:** https://tipspromenaden.app
 - **Integritetspolicy-URL:** https://tipspromenaden.app/integritet
 - **Användarvillkor-URL:** https://tipspromenaden.app/villkor (klistra in i Play Console-fältet "Terms of Service")
@@ -1064,7 +1064,7 @@ Inget av nedanstående förekommer i appen — alla svar: **Nej**.
 **Användargenererat innehåll delat publikt: JA** — sedan v1.4.0 har biblioteket
 en publik flik med användar-uppladdade tipspack och promenader användare opt-in:at
 publicera. Moderationsmekanism: rapport-knapp på varje publik post i biblioteket
-mejlar tipspromenaden.app@gmail.com. Användarvillkoren ger oss rätt att utan
+mejlar support@tipspromenaden.app. Användarvillkoren ger oss rätt att utan
 förvarning ta bort innehåll som bryter mot reglerna.
 
 Platsdata (GPS) ska markeras: **används endast under pågående promenad, sparas inte på server**.

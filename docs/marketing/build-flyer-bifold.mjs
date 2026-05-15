@@ -129,7 +129,7 @@ function drawFront(x) {
 
   // Bottom signature
   doc.font("sans-bold").fontSize(9).fillColor(C.green)
-     .text("tipspromenaden.app@gmail.com", x + PAD, PANEL_H - 14 * PT_PER_MM, {
+     .text("support@tipspromenaden.app", x + PAD, PANEL_H - 14 * PT_PER_MM, {
        width: PANEL_W - 2 * PAD, align: "center",
      });
 }
@@ -191,7 +191,7 @@ function drawBack(x) {
        width: PANEL_W - 2 * PAD, align: "center",
      });
   doc.font("sans-bold").fontSize(9).fillColor(C.cream)
-     .text("tipspromenaden.app@gmail.com", x + PAD, PANEL_H - 22 * PT_PER_MM, {
+     .text("support@tipspromenaden.app", x + PAD, PANEL_H - 22 * PT_PER_MM, {
        width: PANEL_W - 2 * PAD, align: "center",
      });
   doc.font("sans").fontSize(8).fillColor(C.sage)

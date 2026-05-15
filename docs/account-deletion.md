@@ -55,7 +55,7 @@ Googles retention-policy (typiskt max 180 dagar enligt deras
 Om du inte längre har tillgång till appen (t.ex. har bytt telefon) kan du
 begära radering genom att mejla:
 
-**tipspromenaden.app@gmail.com**
+**privacy@tipspromenaden.app**
 
 Skicka från samma e-postadress du använde för Google-inloggningen, eller
 ange ditt UID (visas i appen under Inställningar) om du var anonym.
@@ -71,6 +71,6 @@ radera sessionen, eller kontakta oss via e-post ovan med ditt UID.
 
 - **App:** Tipspromenaden
 - **Personuppgiftsansvarig:** Niklas Eriksson, Sverige
-- **E-post:** tipspromenaden.app@gmail.com
+- **E-post:** privacy@tipspromenaden.app
 - **Integritetspolicy:** [privacy-policy](privacy-policy)
 - **Klagomål till tillsynsmyndighet:** [IMY](https://www.imy.se/privatperson/utfora-arende/lamna-ett-klagomal/)

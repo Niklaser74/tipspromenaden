@@ -163,7 +163,7 @@ doc.font("sans-it").fontSize(9).fillColor(C.sage)
      width: CONTENT_W, align: "center",
    });
 doc.font("sans-bold").fontSize(9).fillColor(C.green)
-   .text("tipspromenaden.app@gmail.com", MARGIN, H - 12 * PT_PER_MM, {
+   .text("support@tipspromenaden.app", MARGIN, H - 12 * PT_PER_MM, {
      width: CONTENT_W, align: "center",
    });
 
@@ -330,7 +330,7 @@ ctx.font = `${px(9)}px InstSansIt`;
 ctx.fillText("— Niklas Eriksson", PW/2, PH - px(22 * PT_PER_MM) + px(8));
 ctx.fillStyle = C.green;
 ctx.font = `${px(9)}px InstSansBold`;
-ctx.fillText("tipspromenaden.app@gmail.com", PW/2, PH - px(12 * PT_PER_MM) + px(8));
+ctx.fillText("support@tipspromenaden.app", PW/2, PH - px(12 * PT_PER_MM) + px(8));
 
 fs.writeFileSync(PNG_PATH, canvas.toBuffer("image/png"));
 console.log("OK:", PNG_PATH);

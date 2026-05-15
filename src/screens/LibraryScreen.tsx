@@ -288,7 +288,7 @@ export default function LibraryScreen() {
         `Anledning:\n[Beskriv kort varför]\n`
     );
     Linking.openURL(
-      `mailto:tipspromenaden.app@gmail.com?subject=${subject}&body=${body}`
+      `mailto:support@tipspromenaden.app?subject=${subject}&body=${body}`
     );
   }
 
