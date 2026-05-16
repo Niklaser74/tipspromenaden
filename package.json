@@ -14,7 +14,9 @@
     "update:preview": "eas update --channel preview",
     "update:internal": "eas update --channel internal",
     "update:production": "eas update --channel production",
-    "update:all": "node scripts/update-all.mjs"
+    "update:all": "node scripts/update-all.mjs",
+    "submit:internal": "node scripts/preflight-release.mjs && eas submit -p android --profile internal --latest --non-interactive",
+    "submit:production": "node scripts/preflight-release.mjs && eas submit -p android --profile production --latest --non-interactive"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",

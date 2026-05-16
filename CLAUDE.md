@@ -288,9 +288,14 @@ AAB:n kan publiceras:
 
   **Komplett release-flöde** (native AAB):
   1. Bumpa `version` i `app.config.js` (om native-ändring).
-  2. Skriv release notes i `docs/play-store-listing.md` + commit.
+  2. Skriv release notes i `docs/play-store-listing.md` som en
+     `### AAB <version> — ...`-rubrik + commit. (Rubrik-formatet är
+     vad `preflight-release.mjs` letar efter — håll det exakt.)
   3. `npm run build:internal` (eller `:production`).
-  4. När bygget är klart: `eas submit -p android --profile internal --latest --non-interactive`.
+  4. När bygget är klart: `npm run submit:internal` (eller
+     `:production`). Detta kör `preflight-release.mjs` som VÄGRAR
+     submit:a om steg 2 saknas — motsvarigheten till OTA-gaten i
+     `update-all.mjs`. Bypass: `SKIP_RELEASE_NOTES_CHECK=1`.
   5. Kör `set-app-update.mjs` med ny `latestBuild` + release notes.
   6. Klistra in noterna i Play Console "What's new" (manuellt steg).
 
