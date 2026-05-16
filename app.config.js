@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Viktig fix: dina svar kunde i vissa fall inte sparas till servern under en promenad, vilket gjorde att resultatet saknades på topplistan och i statistiken. Svar synkas nu korrekt — köade svar från tidigare promenader skickas automatiskt vid nästa synk.",
-        en: "Important fix: your answers could in some cases fail to save to the server during a walk, making results missing from the leaderboard and stats. Answers now sync correctly — queued answers from earlier walks are sent automatically on next sync.",
+        sv: "Fix: i biblioteket kunde en fliks text försvinna när man valde den (Android), tills appen startades om. Flikarna renderas nu korrekt.",
+        en: "Fix: in the library a tab's text could disappear when selected (Android) until the app was restarted. Tabs now render correctly.",
       },
     },
   },

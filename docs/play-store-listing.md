@@ -209,6 +209,31 @@ Version 1.8.0:
 
 ---
 
+### OTA 2026-05-17 (III) — Fix: bibliotekets flik-text försvann (Android)
+
+JS-only OTA på runtime 1.8.0. Segmented-kontrollen i LibraryScreen
+hade emoji + etikett i SAMMA `<Text>` med dynamisk `color` vid
+aktiv-växling. På Android korrumperade det den native text-viewns
+glyf-cache när man aktiverade fliken → ordet försvann (emojin kvar)
+tills app-omstart, även på andra flikar. Fix: emoji och etikett i
+separata `<Text>`-noder + `key` som remountar etiketten vid aktiv-
+växling så native-viewn aldrig återanvänds med trasig cache. Bara
+native drabbades (web = DOM-text).
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Fix: i biblioteket kunde en fliks text försvinna när man valde den (Android), tills appen startades om. Flikarna renderas nu korrekt.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• Fix: in the library a tab's text could disappear when selected (Android) until the app was restarted. Tabs now render correctly.
+```
+
+---
+
 ### OTA 2026-05-17 (II) — Fix: svar nådde aldrig servern (undefined-throw)
 
 JS-only OTA på runtime 1.8.0. `updateParticipant` gjorde

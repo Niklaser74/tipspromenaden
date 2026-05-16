@@ -561,76 +561,49 @@ export default function LibraryScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      {/* Segmented control: Mina · Upptäck · Event · Frågebatterier */}
+      {/* Segmented control: Mina · Upptäck · Event · Frågebatterier
+          Emoji och etikett ligger i SEPARATA <Text>-noder. På Android
+          korrumperar en <Text> med blandad emoji + latinsk text vars
+          stil ändras dynamiskt (color vid aktiv-växling) den native
+          text-viewns glyf-cache → ordet försvann tills app-omstart men
+          emojin (annan render-väg) blev kvar. `key` på etikett-noden
+          tvingar remount vid aktiv-växling så native-viewn aldrig
+          återanvänds med trasig cache. */}
       <View style={styles.segmented}>
-        <TouchableOpacity
-          style={[
-            styles.segmentedItem,
-            tab === "mine" && styles.segmentedItemActive,
-          ]}
-          onPress={() => setTab("mine")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.segmentedText,
-              tab === "mine" && styles.segmentedTextActive,
-            ]}
-          >
-            📂 {t("library.tabMyWalks")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.segmentedItem,
-            tab === "walks" && styles.segmentedItemActive,
-          ]}
-          onPress={() => setTab("walks")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.segmentedText,
-              tab === "walks" && styles.segmentedTextActive,
-            ]}
-          >
-            🌍 {t("library.tabDiscover")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.segmentedItem,
-            tab === "events" && styles.segmentedItemActive,
-          ]}
-          onPress={() => setTab("events")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.segmentedText,
-              tab === "events" && styles.segmentedTextActive,
-            ]}
-          >
-            📅 {t("library.tabEvents")}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.segmentedItem,
-            tab === "tipspack" && styles.segmentedItemActive,
-          ]}
-          onPress={() => setTab("tipspack")}
-          activeOpacity={0.7}
-        >
-          <Text
-            style={[
-              styles.segmentedText,
-              tab === "tipspack" && styles.segmentedTextActive,
-            ]}
-          >
-            📦 {t("library.tabTipspacks")}
-          </Text>
-        </TouchableOpacity>
+        {(
+          [
+            { id: "mine", emoji: "📂", labelKey: "library.tabMyWalks" },
+            { id: "walks", emoji: "🌍", labelKey: "library.tabDiscover" },
+            { id: "events", emoji: "📅", labelKey: "library.tabEvents" },
+            { id: "tipspack", emoji: "📦", labelKey: "library.tabTipspacks" },
+          ] as { id: LibraryTab; emoji: string; labelKey: string }[]
+        ).map(({ id, emoji, labelKey }) => {
+          const active = tab === id;
+          return (
+            <TouchableOpacity
+              key={id}
+              style={[
+                styles.segmentedItem,
+                active && styles.segmentedItemActive,
+              ]}
+              onPress={() => setTab(id)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.segmentedInner}>
+                <Text style={styles.segmentedEmoji}>{emoji}</Text>
+                <Text
+                  key={`${id}-${active ? "on" : "off"}`}
+                  style={[
+                    styles.segmentedText,
+                    active && styles.segmentedTextActive,
+                  ]}
+                >
+                  {t(labelKey)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* "Mina"-fliken: extraherad lista över egna + sparade walks */}
@@ -1126,6 +1099,14 @@ const styles = StyleSheet.create({
   },
   segmentedItemActive: {
     backgroundColor: "#1B6B35",
+  },
+  segmentedInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  segmentedEmoji: {
+    fontSize: 12,
   },
   segmentedText: {
     fontSize: 12,
