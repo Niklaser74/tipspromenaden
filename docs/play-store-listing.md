@@ -53,8 +53,10 @@ Arrangera eller delta i tidsbestämda event. Appen visar en banner när
 ett event närmar sig och har en egen event-topplista.
 
 📦 Färdiga frågebatterier
-Importera professionellt producerade frågeset via .tipspack-filer
-(t.ex. naturkunskap, svensk historia, barnfrågor).
+Bläddra och ladda ner färdiga frågepack direkt i appen under
+Paket-fliken — naturkunskap, svensk historia, barnfrågor och mer.
+Förhandsgranska frågorna innan du laddar ner. Du kan också importera
+egna .tipspack-filer.
 
 📴 Fungerar offline
 Tappar du nätet mitt i skogen? Svaren sparas lokalt och synkas
@@ -125,8 +127,10 @@ Host or join time-boxed events. The app shows a banner when an event
 is coming up and has its own event leaderboard.
 
 📦 Ready-made question packs
-Import professionally produced question sets via .tipspack files
-(nature, Swedish history, kids' trivia, and more).
+Browse and download ready-made question packs right in the app under
+the Packs tab — nature, Swedish history, kids' trivia and more.
+Preview the questions before downloading. You can also import your
+own .tipspack files.
 
 📴 Works offline
 Lose signal out in the woods? Answers are saved locally and sync
