@@ -684,6 +684,19 @@ Plocka det som passar humöret. Förslag i grov ordning:
     besvarad, sedan unlockas 2, osv. Bra för storytelling-walks där
     ordningen bär narrativet. OTA-bart, ny `sequential?: boolean`
     på Walk + ändring i ActiveWalkScreens trigger-logik.
+20. **Edge-to-edge för Android 15** (Play Console-rekommendation, 1.8.0)
+    — Android 15 tvingar edge-to-edge (appen ritar bakom system-barer).
+    Vi har redan safe-area-insets på de stora skärmarna men Play
+    flaggar fortfarande utfasade edge-to-edge-API:er. Låg prio,
+    kosmetiskt på Android 15. Kräver native-cykel (ny AAB).
+21. **Orienterings­stöd för stora skärmar** (Play Console-rekommendation,
+    1.8.0) — Play vill att appen stödjer fri rotation/resize på stora
+    skärmar. Vi låser **medvetet** telefoner till portrait men låter
+    surfplattor rotera (App.tsx `applyOrientationLock`). Att lyfta
+    portrait-låset på telefon skulle kräva per-skärm-landscape-finputs
+    (Active/Results/Leaderboard är portrait-tunade). Delvis giltig men
+    medvetet designval — låg prio. (Play-rek #2 "bild-i-bild" är
+    irrelevant för en GPS-quizapp och ignoreras permanent.)
 
 ---
 
