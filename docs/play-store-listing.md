@@ -132,6 +132,34 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.8.0 (build 21) — App Check Stage 2 + ny kontakt-mejl
+
+Native-build. Reaktiverade App Check (Play Integrity) efter att
+build 17-kraschen reattribuerats till välkomst-animationen, inte
+App Check — smoke-testat via preview APK före submit. App Check
+står i Monitor-läge i Firebase Console (rejectar inget än; Enforce-
+flippen är kalender-schemalagd 2026-05-22). Kontakt-mejlen bytt
+från Gmail till @tipspromenaden.app-domänen (support@/privacy@/
+legal@). Offline-läget från 1.7.0 följer med inbakat.
+
+**Svenska (sv-SE):**
+```
+Version 1.8.0:
+• Automatiskt offline-läge — svar sparas lokalt och synkas när nätet är tillbaka, frågebilder pre-cachas (inbakat från 1.7.0).
+• Säkerhet: App Check (Play Integrity) aktiverat — skyddar mot missbruk av appens backend.
+• Kontakt-mejl bytt till @tipspromenaden.app.
+```
+
+**English (en-US):**
+```
+Version 1.8.0:
+• Automatic offline mode — answers saved locally and synced when back online, question images pre-cached (rolled in from 1.7.0).
+• Security: App Check (Play Integrity) enabled — protects against backend abuse.
+• Contact email moved to @tipspromenaden.app.
+```
+
+---
+
 ### AAB 1.7.0 — Automatiskt offline-läge (iteration 1)
 
 Ny native-build krävs (lade till `@react-native-community/netinfo` som
