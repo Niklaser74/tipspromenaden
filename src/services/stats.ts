@@ -86,6 +86,25 @@ async function writeStats(stats: UserStats): Promise<void> {
   await AsyncStorage.setItem(STATS_KEY, JSON.stringify(stats));
 }
 
+// Modul-mutex som serialiserar read-modify-write mot STATS_KEY. Utan
+// detta race:ar samtidiga skrivare (recordWalkCompletion från
+// ActiveWalkScreen + recordWalkCreation-loopen i walkSync vid login):
+// båda läser samma snapshot, båda skriver, sista vinner → den andres
+// mutation förloras. Det orsakade att slutförda promenader saknades i
+// statistiken när man spelade direkt efter app-start. Varje muterande
+// operation körs nu inuti `withStatsLock` så de aldrig överlappar.
+let statsLock: Promise<unknown> = Promise.resolve();
+function withStatsLock<T>(fn: () => Promise<T>): Promise<T> {
+  // Kedja efter föregående operation oavsett om den lyckades eller ej.
+  const run = statsLock.then(fn, fn);
+  // Lås-kedjan får aldrig själv rejecta — annars fastnar alla efterföljande.
+  statsLock = run.then(
+    () => undefined,
+    () => undefined
+  );
+  return run;
+}
+
 /**
  * Registrerar att användaren slutfört en promenad. Idempotent på
  * `walkId` för totalt-räkningen (man får inte räkna upp `walksCompleted`
@@ -101,28 +120,30 @@ export async function recordWalkCompletion(
   total: number
 ): Promise<void> {
   if (!walkId || total <= 0) return;
-  const stats = await getStats();
+  await withStatsLock(async () => {
+    const stats = await getStats();
 
-  stats.questionsAnswered += total;
-  stats.questionsCorrect += score;
+    stats.questionsAnswered += total;
+    stats.questionsCorrect += score;
 
-  if (!stats.completedWalkIds.includes(walkId)) {
-    stats.completedWalkIds.push(walkId);
-    stats.walksCompleted = stats.completedWalkIds.length;
-  }
+    if (!stats.completedWalkIds.includes(walkId)) {
+      stats.completedWalkIds.push(walkId);
+      stats.walksCompleted = stats.completedWalkIds.length;
+    }
 
-  const prev = stats.bestScores[walkId];
-  if (!prev || score > prev.score) {
-    stats.bestScores[walkId] = {
-      walkId,
-      walkTitle,
-      score,
-      total,
-      achievedAt: Date.now(),
-    };
-  }
+    const prev = stats.bestScores[walkId];
+    if (!prev || score > prev.score) {
+      stats.bestScores[walkId] = {
+        walkId,
+        walkTitle,
+        score,
+        total,
+        achievedAt: Date.now(),
+      };
+    }
 
-  await writeStats(stats);
+    await writeStats(stats);
+  });
 }
 
 /**
@@ -131,11 +152,13 @@ export async function recordWalkCompletion(
  */
 export async function recordWalkCreation(walkId: string): Promise<void> {
   if (!walkId) return;
-  const stats = await getStats();
-  if (stats.createdWalkIds.includes(walkId)) return;
-  stats.createdWalkIds.push(walkId);
-  stats.walksCreated = stats.createdWalkIds.length;
-  await writeStats(stats);
+  await withStatsLock(async () => {
+    const stats = await getStats();
+    if (stats.createdWalkIds.includes(walkId)) return;
+    stats.createdWalkIds.push(walkId);
+    stats.walksCreated = stats.createdWalkIds.length;
+    await writeStats(stats);
+  });
 }
 
 /**

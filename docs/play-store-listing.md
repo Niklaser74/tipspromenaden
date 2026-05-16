@@ -209,6 +209,32 @@ Version 1.8.0:
 
 ---
 
+### OTA 2026-05-17 — Fix: statistik tappade slutförda promenader
+
+JS-only OTA på runtime 1.8.0. Lost-update-race i `stats.ts`:
+`recordWalkCompletion` (ActiveWalkScreen) och `recordWalkCreation`-
+loopen (walkSync vid login) gjorde icke-atomär read-modify-write mot
+samma AsyncStorage-nyckel — spelade man direkt efter app-start kunde
+walkSync skriva över completion-bokföringen med stale snapshot.
+Walken visades som klar på topplistan (Firestore-skrivning oberoende)
+men saknades i lokal statistik. Fix: modul-mutex serialiserar alla
+stats-skrivningar; ActiveWalkScreen await:ar completion-skrivningen
+och loggar ev. fel istället för att svälja det.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Fix: slutförda promenader kunde i vissa fall försvinna ur din statistik om du spelade direkt efter att appen startat. Statistiken bokförs nu säkert och tappar inga genomförda promenader.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• Fix: completed walks could in some cases disappear from your stats if you played right after the app started. Stats are now recorded safely and no completed walks are lost.
+```
+
+---
+
 ### AAB 1.7.0 — Automatiskt offline-läge (iteration 1)
 
 Ny native-build krävs (lade till `@react-native-community/netinfo` som

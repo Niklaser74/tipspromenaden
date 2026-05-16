@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Ny: automatiskt offline-läge. Appen märker när du tappat nätet och visar en gul banner högst upp. Svaren sparas lokalt och synkas automatiskt när du är online igen. Frågebilder pre-cachas när du sparar en promenad.",
-        en: "New: automatic offline mode. The app detects when you lose connection and shows a yellow banner at the top. Answers are saved locally and sync automatically when you're back online. Question images are pre-cached when you save a walk.",
+        sv: "Fix: slutförda promenader kunde i vissa fall försvinna ur din statistik om du spelade direkt efter att appen startat. Statistiken bokförs nu säkert och tappar inga genomförda promenader.",
+        en: "Fix: completed walks could in some cases disappear from your stats if you played right after the app started. Stats are now recorded safely and no completed walks are lost.",
       },
     },
   },

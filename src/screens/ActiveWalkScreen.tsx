@@ -431,15 +431,23 @@ export default function ActiveWalkScreen() {
         }
 
         if (isComplete) {
-          // Bokför stats lokalt — gör det innan navigering så att
-          // StatsScreen visar uppdaterade värden om användaren öppnar
-          // den direkt efter. Fel sväljs: stats är inte affärskritiskt.
-          recordWalkCompletion(
-            walk.id,
-            walk.title,
-            newScore,
-            walk.questions.length
-          ).catch(() => {});
+          // Bokför stats lokalt och VÄNTA in skrivningen innan vi
+          // navigerar. Tidigare var det fire-and-forget med sväljt fel
+          // — kombinerat med lost-update-racen i stats.ts kunde en
+          // slutförd promenad försvinna ur statistiken. Mutexen i
+          // stats.ts gör skrivningen snabb och atomär; await:en
+          // garanterar att den hunnit klart medan skärmen lever.
+          // Logga ev. fel istället för att svälja det tyst.
+          try {
+            await recordWalkCompletion(
+              walk.id,
+              walk.title,
+              newScore,
+              walk.questions.length
+            );
+          } catch (e) {
+            console.warn("[stats] recordWalkCompletion misslyckades:", e);
+          }
 
           setTimeout(() => {
             if (sessionId) {
