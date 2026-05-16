@@ -356,6 +356,11 @@ export async function updateParticipant(
   sessionId: string,
   participant: Participant
 ): Promise<void> {
+  // stripUndefined: Firestore-SDK:n kastar "Unsupported field value:
+  // undefined" om något fält är undefined. På icke-sista svar är
+  // `completedAt` undefined — utan scrub kastade varje mellan-svars-
+  // skrivning och hamnade i offline-kön trots att enheten var online.
+  // Samma scrub som saveWalk redan kör.
   await setDoc(
     doc(
       db,
@@ -364,7 +369,7 @@ export async function updateParticipant(
       PARTICIPANTS_SUBCOLLECTION,
       participant.id
     ),
-    participant
+    stripUndefined(participant)
   );
 
   if (participant.completedAt) {

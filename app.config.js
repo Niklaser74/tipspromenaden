@@ -142,8 +142,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fix: slutförda promenader kunde i vissa fall försvinna ur din statistik om du spelade direkt efter att appen startat. Statistiken bokförs nu säkert och tappar inga genomförda promenader.",
-        en: "Fix: completed walks could in some cases disappear from your stats if you played right after the app started. Stats are now recorded safely and no completed walks are lost.",
+        sv: "Viktig fix: dina svar kunde i vissa fall inte sparas till servern under en promenad, vilket gjorde att resultatet saknades på topplistan och i statistiken. Svar synkas nu korrekt — köade svar från tidigare promenader skickas automatiskt vid nästa synk.",
+        en: "Important fix: your answers could in some cases fail to save to the server during a walk, making results missing from the leaderboard and stats. Answers now sync correctly — queued answers from earlier walks are sent automatically on next sync.",
       },
     },
   },

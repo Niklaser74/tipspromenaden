@@ -209,7 +209,35 @@ Version 1.8.0:
 
 ---
 
-### OTA 2026-05-17 — Fix: statistik tappade slutförda promenader
+### OTA 2026-05-17 (II) — Fix: svar nådde aldrig servern (undefined-throw)
+
+JS-only OTA på runtime 1.8.0. `updateParticipant` gjorde
+`setDoc(ref, participant)` UTAN `stripUndefined`. På varje icke-sista
+svar är `completedAt` undefined → Firestore-SDK:n kastar "Unsupported
+field value: undefined" → fångas → svaret hamnar i offline-kön trots
+online. `offlineSync` replayar via samma `updateParticipant` → kastar
+igen → svaren fastnar och når aldrig servern. Resultat: deltagar-
+doc:en sitter kvar i join-state (0 answers, ingen completedAt) →
+saknas i topplista + WalkInsights, men UI visade lokalt optimistiskt
+state. Bekräftat via `scripts/inspect-walk.mjs` mot "Gdansk tour".
+Fix: `stripUndefined(participant)` i `updateParticipant` (samma scrub
+som saveWalk). Återställer även fastnade offline-köer vid nästa sync.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Viktig fix: dina svar kunde i vissa fall inte sparas till servern under en promenad, vilket gjorde att resultatet saknades på topplistan och i statistiken. Svar synkas nu korrekt — köade svar från tidigare promenader skickas automatiskt vid nästa synk.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• Important fix: your answers could in some cases fail to save to the server during a walk, making results missing from the leaderboard and stats. Answers now sync correctly — queued answers from earlier walks are sent automatically on next sync.
+```
+
+---
+
+### OTA 2026-05-17 (I) — Fix: statistik tappade slutförda promenader
 
 JS-only OTA på runtime 1.8.0. Lost-update-race i `stats.ts`:
 `recordWalkCompletion` (ActiveWalkScreen) och `recordWalkCreation`-
