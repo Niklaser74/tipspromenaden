@@ -30,20 +30,43 @@ automatiskt när du är framme. Ingen manuell scanning, inga papperslappar.
 
 ❓ Quizfrågor längs vägen
 Varje kontroll har en fråga med flera svarsalternativ. Läs eller låt
-appen läsa upp frågan för dig medan du går.
+appen läsa upp frågan för dig medan du går. Kartan följer dig
+automatiskt under promenaden.
 
 🏆 Topplista i realtid
 Se hur du ligger till mot andra som gör samma promenad. Barnen älskar
 att tävla om bästa tiden kombinerat med flest rätt.
 
 🗺️ Skapa dina egna promenader
-Bygg en tipspromenad med egna frågor och kontroller i kartan. Dela med
-en QR-kod — andra scannar och kan delta direkt.
+Bygg en tipspromenad med egna frågor och kontroller i kartan. Lägg
+till bilder, dela med en QR-kod — andra scannar och deltar direkt.
+Utkast sparas automatiskt och du kan återanvända positioner från
+tidigare promenader.
+
+📚 Bibliotek — upptäck promenader
+Hitta publika promenader nära dig, filtrera på kategori och språk,
+sortera efter avstånd. Allt samlat under fyra flikar: Mina, Upptäck,
+Event och Paket.
+
+📅 Evenemang
+Arrangera eller delta i tidsbestämda event. Appen visar en banner när
+ett event närmar sig och har en egen event-topplista.
 
 📦 Färdiga frågebatterier
 Importera professionellt producerade frågeset via .tipspack-filer
-(t.ex. naturkunskap, svensk historia, barnfrågor). Egna pack du laddat
-upp på webben hittar du under "Mina paket"-fliken.
+(t.ex. naturkunskap, svensk historia, barnfrågor).
+
+📴 Fungerar offline
+Tappar du nätet mitt i skogen? Svaren sparas lokalt och synkas
+automatiskt när du är online igen. Frågebilder cachas i förväg.
+
+👣 Stegräkning & statistik
+Appen räknar dina steg under promenaden. Se din personliga statistik,
+och som skapare: svarsfördelning per fråga, snittpoäng och snittsteg
+för din promenad.
+
+🏷️ Organisera med taggar
+Sätt egna taggar på dina sparade promenader och filtrera snabbt.
 
 🚲 Cykelläge
 Välj aktivitetstyp Promenad eller Cykel. Cykelläge ger bredare GPS-
@@ -56,8 +79,8 @@ Välj manuellt under Inställningar eller låt appen följa systemspråket.
 
 ✨ Designad för utomhusbruk
 Stora knappar, hög kontrast, fungerar utan hörlurar. Röstuppläsning
-av frågor. OpenTopoMap-vy visar små stigar och spår. Helt gratis
-under testperioden.
+av frågor. Karttyper: karta, satellit och terräng — OpenTopoMap visar
+små stigar och spår. Anpassad layout för surfplattor. Helt gratis.
 
 Perfekt för:
 • Familjeutflykten
@@ -80,7 +103,8 @@ automatically when you arrive. No manual scanning, no paper slips.
 
 ❓ Quiz questions along the way
 Each checkpoint has a multiple-choice question. Read it yourself or let
-the app read it aloud while you keep walking.
+the app read it aloud while you keep walking. The map follows you
+automatically as you go.
 
 🏆 Live leaderboard
 See how you stack up against everyone else doing the same walk. Kids love
@@ -88,12 +112,33 @@ racing for the best combination of time and correct answers.
 
 🗺️ Create your own walks
 Build a quiz walk with your own questions and checkpoints on the map.
-Share with a QR code — others scan and join instantly.
+Add images, share with a QR code — others scan and join instantly.
+Drafts autosave and you can reuse positions from earlier walks.
+
+📚 Library — discover walks
+Find public walks near you, filter by category and language, sort by
+distance. All organised under four tabs: Mine, Discover, Events and
+Packs.
+
+📅 Events
+Host or join time-boxed events. The app shows a banner when an event
+is coming up and has its own event leaderboard.
 
 📦 Ready-made question packs
 Import professionally produced question sets via .tipspack files
-(nature, Swedish history, kids' trivia, and more). Find packs you've
-uploaded on the web under the "My packs" tab.
+(nature, Swedish history, kids' trivia, and more).
+
+📴 Works offline
+Lose signal out in the woods? Answers are saved locally and sync
+automatically when you're back online. Question images are pre-cached.
+
+👣 Step counting & stats
+The app counts your steps during the walk. See your personal stats,
+and as a creator: per-question answer distribution, average score and
+average steps for your walk.
+
+🏷️ Organise with tags
+Add your own tags to saved walks and filter quickly.
 
 🚲 Bike mode
 Pick activity type Walk or Bike. Bike mode gives a wider GPS trigger
@@ -107,8 +152,8 @@ system language.
 
 ✨ Built for the outdoors
 Large buttons, high contrast, works without headphones. Voice-over of
-questions. OpenTopoMap view shows small trails and paths. Free during
-the testing period.
+questions. Map types: map, satellite and terrain — OpenTopoMap shows
+small trails and paths. Tablet-optimised layout. Free.
 
 Perfect for:
 • Family outings
