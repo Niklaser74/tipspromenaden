@@ -1,20 +1,30 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-13
+> Senast uppdaterad: 2026-05-17
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
 > *lagrat tänkande* ifall vinkeln återkommer; den styr inte aktiv utveckling.
 >
+> **MILSTOLPE: appen är i produktion på Google Play.** 1.8.0 (build 22)
+> submittad till produktionsspåret 2026-05-16, världsomspännande
+> distribution (177 länder), under/efter Google-review. App Check Stage 2
+> (Play Integrity) aktiverat i Monitor-läge. Enforce-flippen kalender-
+> schemalagd 22 maj.
+>
 > **Aktivt just nu:** ingenting — allt levererat och deployat. Senaste pass
-> (2026-05-11/13, runtime 1.7.0): automatiskt offline-läge iter 1 (NetInfo,
-> banner, frågebild-cache, graceful session-fallback) — kart-tiles offline
-> återstår som separat iter. Tidigare (2026-05-11): bantad startsida +
-> 4-flikars bibliotek (Mina · Upptäck · Event · Paket), HomeTabs Library
-> ← HomeMain → Stats swipe, update-notifier (native modal + OTA banner)
-> via `config/appUpdate`-doc, perf-pass (cache `getPublicWalks`, parallell
-> cold-start, throttle refresh), OTA-gate i `update-all.mjs` mot glömda
-> release notes, säkerhetshärdning av `playStoreUrl`. Tidigare
+> (2026-05-17, runtime 1.8.0): tre buggfix-OTA:er — (1) `stats.ts` lost-
+> update-mutex, (2) `updateParticipant` stripUndefined (svar nådde aldrig
+> Firestore — deltagar-doc fast i join-state, saknades i topplista +
+> WalkInsights), (3) LibraryScreen-flik-text försvann på Android (emoji +
+> etikett i samma `<Text>` med dynamisk färg korrumperade native glyf-
+> cache). Diagnostik-script `inspect-walk.mjs` tillagt. Tidigare
+> (2026-05-15/16): App Check Stage 2 reaktiverad + smoke-testad, kontakt-
+> mejl → @tipspromenaden.app (support/privacy/legal), Play Store-
+> beskrivning omskriven, `preflight-release.mjs`-gate för AAB-submit,
+> security.txt + HSTS + SSL-härdning på webben. Tidigare (2026-05-11/13,
+> runtime 1.6.0–1.7.0): offline-läge iter 1, bantad startsida + 4-flikars
+> bibliotek, update-notifier, perf-pass, OTA-gate. Tidigare
 > (2026-05-05/06): full webb-admin (`/admin`) med moderation, statistik,
 > batch-upload + skapa/redigera tipspack, flygblad-generator, smart
 > `/get-app`-redirect, engelska översättningar (Fas 1+2), PayPal på /stod,
