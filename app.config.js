@@ -5,40 +5,6 @@
 // Variabler som förväntas:
 //   GOOGLE_MAPS_API_KEY – Google Maps-nyckel (samma för Android + iOS)
 
-// RNFirebase (App Check / Play Integrity) är ANDROID-ONLY — se
-// src/config/firebase.ts (init gated bakom Platform.OS === "android")
-// och react-native.config.js (iOS-autolinking avstängd). På iOS-byggen
-// utelämnar vi därför RNFirebase-pluginsen + static frameworks + Podfile-
-// patchen helt; de behövs inte och orsakade en kaskad av Xcode-fel.
-// EAS sätter EAS_BUILD_PLATFORM per bygge; odefinierat lokalt (dev) →
-// behandlas som icke-iOS (ofarligt, JS-only-dev påverkas inte).
-const isIOSBuild = process.env.EAS_BUILD_PLATFORM === "ios";
-
-const firebaseAndroidPlugins = isIOSBuild
-  ? []
-  : [
-      // App Check Stage 2 — Play Integrity-provider för native (Android).
-      // `@react-native-firebase/app` injicerar Firebase-native-SDK:n
-      // (kräver `googleServicesFile`) och `app-check`-plugen registrerar
-      // Play Integrity. JS SDK:n hämtar tokens via en CustomProvider —
-      // se src/config/firebase.ts.
-      "@react-native-firebase/app",
-      "@react-native-firebase/app-check",
-      // RNFirebase kräver static frameworks. Endast relevant för Android-
-      // bygget nu (iOS exkluderar RNFirebase helt).
-      [
-        "expo-build-properties",
-        {
-          ios: {
-            useFrameworks: "static",
-          },
-        },
-      ],
-      // Patchar Podfile så RNFirebase non-modular-header-fel inte blir
-      // fatalt. Körs efter expo-build-properties. Se plugins/-filen.
-      "./plugins/withNonModularHeaders",
-    ];
-
 module.exports = () => ({
   expo: {
     name: "tipspromenaden-app",
@@ -193,8 +159,26 @@ module.exports = () => ({
       "expo-localization",
       "@react-native-google-signin/google-signin",
       "@react-native-community/datetimepicker",
-      // RNFirebase-stacken (Android-only — tom array på iOS-byggen).
-      ...firebaseAndroidPlugins,
+      // App Check Stage 2 — Play Integrity-provider (native, Android).
+      // RNFirebase används bara för App Check; JS firebase-SDK:n sköter
+      // Firestore/Auth/Storage på båda plattformar. Se src/config/firebase.ts.
+      "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
+      // RNFirebase kräver static frameworks på iOS.
+      [
+        "expo-build-properties",
+        {
+          ios: {
+            useFrameworks: "static",
+          },
+        },
+      ],
+      // Podfile-patch: $RNFirebaseAsStaticFramework = true (officiell
+      // RNFirebase-fix för "Swift pods cannot be integrated as static
+      // libraries" — FirebaseCoreInternal/GoogleUtilities) +
+      // CLANG_ALLOW_NON_MODULAR_INCLUDES (efterföljande -Werror).
+      // Körs efter expo-build-properties.
+      "./plugins/withNonModularHeaders",
     ],
     extra: {
       eas: {
