@@ -51,9 +51,26 @@ module.exports = () => ({
       backgroundColor: "#ffffff",
     },
     ios: {
+      // Samma reverse-DNS som Android-paketet — håller deep links,
+      // analytics och Firebase-config konsekventa över plattformar.
+      // Måste matcha bundle-ID:t som registreras i App Store Connect.
+      bundleIdentifier: "com.tipspromenaden.app",
       supportsTablet: true,
+      // buildNumber ägs av EAS (appVersionSource: "remote" +
+      // autoIncrement i eas.json) — sätt inte manuellt här.
       config: {
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
+      },
+      infoPlist: {
+        // iOS kräver explicita användningssträngar för varje behörighet
+        // appen begär — annars App Store-reject. Android deklarerar
+        // motsvarande via permissions-arrayen nedan.
+        NSLocationWhenInUseUsageDescription:
+          "Tipspromenaden använder din position för att låsa upp frågor när du kommer fram till en kontrollpunkt.",
+        NSCameraUsageDescription:
+          "Kameran används för att skanna QR-koder till promenader.",
+        NSMotionUsageDescription:
+          "Rörelsedata används för att räkna dina steg under en promenad.",
       },
     },
     android: {

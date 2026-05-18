@@ -15,12 +15,18 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "ios": {
+        "autoIncrement": true
+      },
       "channel": "internal",
       "autoIncrement": true
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "ios": {
+        "autoIncrement": true
       },
       "channel": "production",
       "autoIncrement": true

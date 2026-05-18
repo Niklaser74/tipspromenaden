@@ -57,3 +57,6 @@ firebase-admin-key.json
 # generated native folders
 /ios
 /android
+
+# App Store Connect API-nyckel (iOS submit) — får ALDRIG committas
+asc-api-key.p8
