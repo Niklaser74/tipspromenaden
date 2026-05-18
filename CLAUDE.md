@@ -437,6 +437,37 @@ versionCode rullas automatiskt. `appVersionSource: "remote"` betyder att
 EAS-servern äger versionCode-tillståndet — kolla med
 `eas build:version:get -p android`.
 
+### iOS-build (TestFlight, sedan 2026-05-18)
+
+```
+npm run build:ios:internal     # .ipa, kör strip-readonly först
+npm run submit:ios:internal    # → TestFlight (ASC API-nyckel i eas.json)
+```
+
+**Bygg ALLTID via `npm run build:ios:*`** — inte rå `eas build -p ios`.
+Wrappern kör `strip-readonly` först; utan det failar prebuild med
+`EACCES mkdir .expo/web` (Windows read-only-attribut i upload-tar).
+
+**Native-config-arv för iOS (rör inte utan att läsa `docs/ios-setup.md`):**
+- `react-native.config.js` — `@react-native-firebase/app-check` exkluderad
+  på iOS (dödkod där; ObjC bygger inte under static frameworks).
+  `@react-native-firebase/app` behålls.
+- `plugins/withNonModularHeaders.js` — patchar Podfile:
+  `$RNFirebaseAsStaticFramework = true` + `CLANG_ALLOW_NON_MODULAR_…=YES`.
+- `app.config.js` — `expo-build-properties` static frameworks;
+  app-check-pluginen utesluten på iOS via `EAS_BUILD_PLATFORM`-villkor;
+  INGEN `ios.config.googleMapsApiKey` (iOS = Apple Maps; Google Maps
+  iOS-SDK inkompatibel med static frameworks).
+- `GoogleService-Info.plist` committad (som `google-services.json`).
+- Apple-creds: individuell Developer-enrollment, ASC API-nyckel
+  `asc-api-key.p8` (gitignored), EAS-credentials på Expo-servern.
+- iOS = Apple Maps, App Check Android-only, App Check Stage 3
+  (DeviceCheck) ej konfigurerad — krävs före publik App Store-release.
+
+`docs/ios-setup.md` har hela bring-up-historiken: de 10 byggfelen +
+fixar och hur man hämtar EAS-loggar programmatiskt
+(`eas build:view <id> --json` → `logFiles[]` / `xcodeBuildLogsUrl`).
+
 Play Store-spår: **Internt test** visar "(unreviewed)" + ingen innehålls-
 klassificering → Family Link blockerar. **Stängt test** ger riktig granskning
 och klassificering — använd det för riktiga testare.
