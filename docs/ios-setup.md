@@ -169,3 +169,34 @@ ALDRIG committas.
 | 5. Externa testare (om aktuellt) | +~1 dygn engångs Beta App Review |
 
 **Nästan all väntetid är Apple-enrollment, inte TestFlight.**
+
+---
+
+## iOS bring-up: lösta byggfel (2026-05-18, 10 försök)
+
+Första iOS-bygget krävde 10 försök. Varje lager dokumenterat här så
+nästa Expo-SDK-uppgradering / native-cykel inte återupptäcker dem.
+Ändringarna finns i `app.config.js`, `react-native.config.js`,
+`plugins/withNonModularHeaders.js`, `package.json`.
+
+| # | Fas | Fel | Fix |
+|---|-----|-----|-----|
+| 1 | Prebuild | `@react-native-firebase/app` saknade iOS-config | `GoogleService-Info.plist` (committad) + `ios.googleServicesFile` |
+| 2 | Prebuild | RNFirebase kräver static frameworks | `expo-build-properties` `ios.useFrameworks: "static"` |
+| 3 | Prebuild | `EACCES mkdir .expo/web` (Windows read-only-attribut i upload-tar) | bygg via `npm run build:ios:*` (kör `strip-readonly` först — som Android) |
+| 4 | Install pods | `No podspec found for react-native-google-maps` | Ta bort `ios.config.googleMapsApiKey` → iOS kör Apple Maps |
+| 5 | Install pods | Podfile-plugin skrev `//`-kommentar (ogiltig Ruby) | Ruby-kommentar `#` |
+| 6 | Install pods | `Swift pods cannot be integrated as static libraries` (FirebaseCoreInternal/GoogleUtilities) | `$RNFirebaseAsStaticFramework = true` överst i Podfile (via plugin) |
+| 7 | Run fastlane (Xcode) | non-modular header `RNFBApp.*` `-Werror` | `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES` (via plugin, post_install) |
+| 8 | Run fastlane (Xcode) | hela `@react-native-firebase/app-check` ObjC bröts under static frameworks | Exkludera **enbart app-check** på iOS: `react-native.config.js` (pod) + `EAS_BUILD_PLATFORM`-villkor i app.config.js (plugin). app-check är dödkod på iOS (firebase.ts gated på Android). `/app` behålls. |
+
+**Felsökningsteknik:** EAS:s "Unknown error. See logs of the X
+phase" är värdelös. Hämta riktiga loggen programmatiskt:
+`eas build:view <id> --json` → `logFiles[]` (signerade URL:er, 900 s)
+för fas-loggar, `artifacts.xcodeBuildLogsUrl` för Xcode-felen.
+`fetch()` + grep på `error:` / `[!]`.
+
+**Princip:** RNFirebase finns bara för Android Play Integrity App
+Check. JS `firebase`-SDK:n sköter Firestore/Auth/Storage på båda
+plattformar. På iOS ska app-check aldrig länkas. Rör inte den
+balansen vid uppgraderingar.
