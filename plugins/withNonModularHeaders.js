@@ -23,7 +23,8 @@ const { withDangerousMod } = require("@expo/config-plugins");
 const fs = require("node:fs");
 const path = require("node:path");
 
-const MARKER = "// withNonModularHeaders";
+// OBS: Podfile är Ruby → kommentar med '#', inte '//'.
+const MARKER = "# withNonModularHeaders";
 const SNIPPET = `
     ${MARKER}
     installer.pods_project.targets.each do |t|
