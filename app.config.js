@@ -62,6 +62,11 @@ module.exports = () => ({
         googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
       },
       infoPlist: {
+        // Appen använder bara standard-HTTPS/TLS → undantagen från
+        // amerikansk export-krypteringsreglering. `false` gör att App
+        // Store Connect inte frågar om krypterings-compliance vid varje
+        // bygge. Sätt till true bara om egen icke-standard-krypto införs.
+        ITSAppUsesNonExemptEncryption: false,
         // iOS kräver explicita användningssträngar för varje behörighet
         // appen begär — annars App Store-reject. Android deklarerar
         // motsvarande via permissions-arrayen nedan.
