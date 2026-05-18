@@ -66,9 +66,16 @@ module.exports = () => ({
       supportsTablet: true,
       // buildNumber ägs av EAS (appVersionSource: "remote" +
       // autoIncrement i eas.json) — sätt inte manuellt här.
-      config: {
-        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
-      },
+      //
+      // INGEN googleMapsApiKey här med flit: sätts den drar
+      // react-native-maps in `react-native-google-maps`-podspec:en →
+      // `pod install` failar ("No podspec found for
+      // react-native-google-maps"), och Google Maps iOS-SDK:n är
+      // dessutom inkompatibel med `useFrameworks: static` som RNFirebase
+      // kräver. iOS använder därför Apple Maps (react-native-maps
+      // default-provider — alla features funkar: markers, polylines,
+      // cirklar, position). Android behåller Google Maps via
+      // android.config.googleMaps nedan.
       infoPlist: {
         // Appen använder bara standard-HTTPS/TLS → undantagen från
         // amerikansk export-krypteringsreglering. `false` gör att App
