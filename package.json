@@ -11,12 +11,16 @@
     "build:preview": "npm run strip-readonly && eas build -p android --profile preview",
     "build:internal": "npm run strip-readonly && eas build -p android --profile internal",
     "build:production": "npm run strip-readonly && eas build -p android --profile production",
+    "build:ios:internal": "npm run strip-readonly && eas build -p ios --profile internal",
+    "build:ios:production": "npm run strip-readonly && eas build -p ios --profile production",
     "update:preview": "eas update --channel preview",
     "update:internal": "eas update --channel internal",
     "update:production": "eas update --channel production",
     "update:all": "node scripts/update-all.mjs",
     "submit:internal": "node scripts/preflight-release.mjs && eas submit -p android --profile internal --latest --non-interactive",
-    "submit:production": "node scripts/preflight-release.mjs && eas submit -p android --profile production --latest --non-interactive"
+    "submit:production": "node scripts/preflight-release.mjs && eas submit -p android --profile production --latest --non-interactive",
+    "submit:ios:internal": "eas submit -p ios --profile internal --latest --non-interactive",
+    "submit:ios:production": "eas submit -p ios --profile production --latest --non-interactive"
   },
   "dependencies": {
     "@expo-google-fonts/lora": "^0.4.2",
