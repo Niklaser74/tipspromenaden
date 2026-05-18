@@ -37,12 +37,26 @@
       "android": {
         "track": "internal",
         "serviceAccountKeyPath": "./google-service-account.json"
+      },
+      "ios": {
+        "ascAppId": "6770503457",
+        "appleTeamId": "X7VP63X96U",
+        "ascApiKeyPath": "./asc-api-key.p8",
+        "ascApiKeyId": "277N2CY7RN",
+        "ascApiKeyIssuerId": "c797ed81-6b7f-4e89-ae25-900aca0a6d7e"
       }
     },
     "production": {
       "android": {
         "track": "production",
         "serviceAccountKeyPath": "./google-service-account.json"
+      },
+      "ios": {
+        "ascAppId": "6770503457",
+        "appleTeamId": "X7VP63X96U",
+        "ascApiKeyPath": "./asc-api-key.p8",
+        "ascApiKeyId": "277N2CY7RN",
+        "ascApiKeyIssuerId": "c797ed81-6b7f-4e89-ae25-900aca0a6d7e"
       }
     }
   }
