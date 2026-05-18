@@ -707,6 +707,17 @@ Plocka det som passar humöret. Förslag i grov ordning:
     (Active/Results/Leaderboard är portrait-tunade). Delvis giltig men
     medvetet designval — låg prio. (Play-rek #2 "bild-i-bild" är
     irrelevant för en GPS-quizapp och ignoreras permanent.)
+22. **Marknadsförings-creative: testpilot → nedladdning** —
+    `docs/marketing/build-flyer*.mjs` + `build-social-onepager.mjs`
+    är byggda runt testpilot-värvning (rubriker "TESTPILOTER SÖKES",
+    steg "Bli testare → Ask to join", filnamn `*-bli-testare.png`).
+    QR:n pekar redan rätt sen 2026-05-17 (`build-qr.mjs` →
+    `/get-app`), så befintliga tryck funkar funktionellt. Men copy +
+    layout speglar fortfarande sluten test. Kräver creative-pass:
+    nya rubriker/steg-copy, ev. filnamn, och layout-verifiering genom
+    att faktiskt köra generatorerna (tunga deps: `canvas`/`pdfkit`,
+    ej i package.json — installeras vid behov). Icke-deployat, ingen
+    brådska — gör när nya tryck/social-assets faktiskt behövs.
 
 ---
 
