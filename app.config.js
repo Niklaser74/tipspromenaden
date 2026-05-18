@@ -177,6 +177,10 @@ module.exports = () => ({
           },
         },
       ],
+      // Måste köra EFTER expo-build-properties (static frameworks) —
+      // patchar genererade Podfile:n så RNFirebase non-modular-header-
+      // fel inte blir fatalt (-Werror). Se plugins/-filen.
+      "./plugins/withNonModularHeaders",
     ],
     extra: {
       eas: {
