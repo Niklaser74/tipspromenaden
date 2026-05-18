@@ -5,6 +5,19 @@
 // Variabler som förväntas:
 //   GOOGLE_MAPS_API_KEY – Google Maps-nyckel (samma för Android + iOS)
 
+// @react-native-firebase/app-check används bara på Android (Play
+// Integrity; src/config/firebase.ts gated på Platform.OS==='android').
+// På iOS kompilerar dess Objective-C inte med static frameworks och
+// är dessutom död kod. Vi exkluderar därför app-check-PLUGINEN på
+// iOS-byggen (podden exkluderas i react-native.config.js). `/app`
+// behålls på båda — den byggs korrekt med $RNFirebaseAsStaticFramework.
+// EAS sätter EAS_BUILD_PLATFORM per bygge; lokalt (dev) odefinierat →
+// behandlas som icke-iOS (ofarligt, plugin no-op:ar på iOS-pod-frånvaro).
+const appCheckPlugins =
+  process.env.EAS_BUILD_PLATFORM === "ios"
+    ? []
+    : ["@react-native-firebase/app-check"];
+
 module.exports = () => ({
   expo: {
     name: "tipspromenaden-app",
@@ -163,7 +176,8 @@ module.exports = () => ({
       // RNFirebase används bara för App Check; JS firebase-SDK:n sköter
       // Firestore/Auth/Storage på båda plattformar. Se src/config/firebase.ts.
       "@react-native-firebase/app",
-      "@react-native-firebase/app-check",
+      // app-check: Android-only (tom på iOS-bygge — se appCheckPlugins).
+      ...appCheckPlugins,
       // RNFirebase kräver static frameworks på iOS.
       [
         "expo-build-properties",
