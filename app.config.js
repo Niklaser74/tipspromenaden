@@ -55,6 +55,14 @@ module.exports = () => ({
       // analytics och Firebase-config konsekventa över plattformar.
       // Måste matcha bundle-ID:t som registreras i App Store Connect.
       bundleIdentifier: "com.tipspromenaden.app",
+      // Firebase iOS-config — krävs av @react-native-firebase/app under
+      // iOS-prebuild (motsvarar android.googleServicesFile). Hämtas från
+      // Firebase Console → iOS-app med bundle com.tipspromenaden.app →
+      // ladda ner GoogleService-Info.plist till repo-roten. Inga
+      // hemligheter (apiKey/appId/projectId är publika; säkerhet via
+      // rules + App Check) — committas medvetet precis som
+      // google-services.json, så EAS-cloud-buildern hittar filen.
+      googleServicesFile: "./GoogleService-Info.plist",
       supportsTablet: true,
       // buildNumber ägs av EAS (appVersionSource: "remote" +
       // autoIncrement i eas.json) — sätt inte manuellt här.

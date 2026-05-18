@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>851934058818-vntp0ne3gitui95nohlgn8v97los155h.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.851934058818-vntp0ne3gitui95nohlgn8v97los155h</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>851934058818-4vrug3e2i4kksvdge2d6rmgoqal4851m.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAFl02-j9tZyCvOM7M1MODi2p9lw5HhbIE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>851934058818</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.tipspromenaden.app</string>
+	<key>PROJECT_ID</key>
+	<string>tipspromenaden-491207</string>
+	<key>STORAGE_BUCKET</key>
+	<string>tipspromenaden-491207.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:851934058818:ios:5c66a97ad99b78b7f610db</string>
+</dict>
+</plist>
