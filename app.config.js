@@ -159,6 +159,17 @@ module.exports = () => ({
       // CustomProvider som bryggar mot native — se src/config/firebase.ts.
       "@react-native-firebase/app",
       "@react-native-firebase/app-check",
+      // RNFirebase kräver static frameworks på iOS — utan detta failar
+      // iOS-prebuild/pod-fasen ("Prebuild build phase"). Android opåverkat.
+      // Dokumenterat krav för @react-native-firebase + Expo.
+      [
+        "expo-build-properties",
+        {
+          ios: {
+            useFrameworks: "static",
+          },
+        },
+      ],
     ],
     extra: {
       eas: {
