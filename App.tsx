@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, ActivityIndicator, Platform, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  Platform,
+  Dimensions,
+} from "react-native";
 import { NavigationContainer, LinkingOptions } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
@@ -171,11 +178,31 @@ function AppNavigator() {
         <Stack.Screen
           name="JoinWalk"
           component={JoinWalkScreen}
-          options={{
+          options={({ navigation }) => ({
             title: t("nav.joinWalk"),
             headerStyle: { backgroundColor: "#F5F0E8" },
             headerTintColor: "#2C3E2D",
-          }}
+            // JoinWalk nås ofta via OpenWalk → navigation.replace, dvs
+            // utan bakåt-historik → ingen auto-bakåtknapp. iOS saknar
+            // hårdvaru-bakåt, så utan detta blir man fast (t.ex. på en
+            // avslutad event-promenad). Explicit Hem-knapp garanterar
+            // alltid en väg ut.
+            headerLeft: () => (
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.canGoBack()
+                    ? navigation.goBack()
+                    : navigation.navigate("Home")
+                }
+                accessibilityLabel={t("common.home") || "Hem"}
+                style={{ paddingVertical: 6, paddingRight: 16 }}
+              >
+                <Text style={{ color: "#2C3E2D", fontSize: 16, fontWeight: "600" }}>
+                  ‹ {t("common.home") || "Hem"}
+                </Text>
+              </TouchableOpacity>
+            ),
+          })}
         />
         <Stack.Screen
           name="ActiveWalk"

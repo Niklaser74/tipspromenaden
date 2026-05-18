@@ -21,6 +21,12 @@ const GOOGLE_WEB_CLIENT_ID =
   "851934058818-ru6b3h1s8mf7evibqquuu6klbh0jv3f6.apps.googleusercontent.com";
 const GOOGLE_ANDROID_CLIENT_ID =
   "851934058818-4vrug3e2i4kksvdge2d6rmgoqal4851m.apps.googleusercontent.com";
+// iOS OAuth-klient (CLIENT_ID i GoogleService-Info.plist). Krävs av
+// native Google Sign-In på iOS — utan den initieras inte OAuth-flödet
+// och inloggningen failar tyst. URL-schemat (REVERSED_CLIENT_ID)
+// registreras via google-signin-pluginens iosUrlScheme i app.config.js.
+const GOOGLE_IOS_CLIENT_ID =
+  "851934058818-vntp0ne3gitui95nohlgn8v97los155h.apps.googleusercontent.com";
 
 // Native Google Sign-In laddas bara på native-plattformar (inte webb).
 // Try/catch för säkerhets skull om modulen saknas i en viss build.
@@ -63,6 +69,9 @@ export default function LoginScreen() {
       try {
         NativeGoogleSignin.configure({
           webClientId: GOOGLE_WEB_CLIENT_ID,
+          // iOS kräver iosClientId; Android matchar via paketnamn+SHA-1
+          // och ignorerar fältet. Utan detta failar iOS-login.
+          iosClientId: GOOGLE_IOS_CLIENT_ID,
           offlineAccess: false,
           scopes: ["profile", "email"],
         });

@@ -209,6 +209,38 @@ Version 1.8.0:
 
 ---
 
+### OTA 2026-05-18 — iOS-fixar (update-prompt, navigation, ErrorBoundary)
+
+JS-only OTA på runtime 1.8.0 (når iOS TestFlight-build 11 + Android
+prod 22). Från första iOS-testet:
+- `checkNativeUpdate` är nu Android-only — iOS jämförde iOS-buildNumber
+  mot Android-versionCode → falsk "ny version finns" + "Öppna Google
+  Play" (öppnade Play i Safari). `config/appUpdate` är Android-Play-
+  specifik; iOS sköts av App Store/TestFlight.
+- ErrorBoundary fick en "Starta om appen"-knapp (`Updates.reloadAsync`)
+  — "Försök igen" loopade på ihållande fel, iOS saknar hårdvaru-bakåt.
+- JoinWalk har nu en explicit Hem-knapp i headern — nås ofta via
+  `navigation.replace` (utan bakåt-historik); på en avslutad event-
+  promenad satt man fast på iOS.
+- `common.home` locale-nyckel (sv/en).
+
+Login-fixen (iosClientId + iosUrlScheme) är NATIVE → separat iOS-build,
+inte denna OTA.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• iOS-fixar: ingen felaktig "uppdatera via Google Play"-ruta längre, alltid en väg tillbaka från Gå med-skärmen, och en "Starta om appen"-knapp vid fel.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• iOS fixes: no more wrong "update via Google Play" prompt, always a way back from the Join screen, and a "Restart app" button on errors.
+```
+
+---
+
 ### OTA 2026-05-17 (III) — Fix: bibliotekets flik-text försvann (Android)
 
 JS-only OTA på runtime 1.8.0. Segmented-kontrollen i LibraryScreen

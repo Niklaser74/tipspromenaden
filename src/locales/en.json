@@ -17,7 +17,8 @@
     "no": "No",
     "retry": "Try again",
     "close": "Close",
-    "errorTitle": "Error"
+    "errorTitle": "Error",
+    "home": "Home"
   },
   "nav": {
     "home": "Home",

@@ -170,7 +170,17 @@ module.exports = () => ({
       "expo-web-browser",
       "expo-sharing",
       "expo-localization",
-      "@react-native-google-signin/google-signin",
+      // iOS: iosUrlScheme = REVERSED_CLIENT_ID ur GoogleService-Info.plist.
+      // Registrerar URL-schemat i Info.plist så Google-OAuth-callbacken
+      // kan återvända till appen. Utan detta failar iOS-login (Android
+      // opåverkat — matchar via paketnamn+SHA-1).
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          iosUrlScheme:
+            "com.googleusercontent.apps.851934058818-vntp0ne3gitui95nohlgn8v97los155h",
+        },
+      ],
       "@react-native-community/datetimepicker",
       // App Check Stage 2 — Play Integrity-provider (native, Android).
       // RNFirebase används bara för App Check; JS firebase-SDK:n sköter
@@ -206,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fix: i biblioteket kunde en fliks text försvinna när man valde den (Android), tills appen startades om. Flikarna renderas nu korrekt.",
-        en: "Fix: in the library a tab's text could disappear when selected (Android) until the app was restarted. Tabs now render correctly.",
+        sv: "iOS-fixar: ingen felaktig 'uppdatera via Google Play'-ruta längre, alltid en väg tillbaka från Gå med-skärmen, och en 'Starta om appen'-knapp vid fel.",
+        en: "iOS fixes: no more wrong 'update via Google Play' prompt, always a way back from the Join screen, and a 'Restart app' button on errors.",
       },
     },
   },

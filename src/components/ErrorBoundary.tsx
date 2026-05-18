@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import * as Updates from "expo-updates";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -32,6 +33,20 @@ export default class ErrorBoundary extends React.Component<
     this.setState({ hasError: false, error: null });
   };
 
+  // "Försök igen" återställer bara state — vid ett ihållande fel
+  // (t.ex. en skärm som alltid kastar) blir det en oändlig
+  // återvändsgränd, särskilt på iOS som saknar hårdvaru-bakåtknapp.
+  // Den här gör en riktig JS-omstart → appen kallstartar till Home.
+  handleRestart = async () => {
+    try {
+      await Updates.reloadAsync();
+    } catch {
+      // Dev/web eller om reload inte är tillgänglig: fall tillbaka på
+      // soft-reset så knappen aldrig är helt död.
+      this.setState({ hasError: false, error: null });
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -47,6 +62,13 @@ export default class ErrorBoundary extends React.Component<
             activeOpacity={0.8}
           >
             <Text style={styles.retryButtonText}>Försök igen</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={this.handleRestart}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.restartButtonText}>Starta om appen</Text>
           </TouchableOpacity>
         </View>
       );
@@ -93,5 +115,15 @@ const styles = StyleSheet.create({
     color: "#F5F0E8",
     fontSize: 17,
     fontWeight: "700",
+  },
+  restartButton: {
+    marginTop: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+  },
+  restartButtonText: {
+    color: "#4A5E4C",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

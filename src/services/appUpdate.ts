@@ -72,7 +72,13 @@ function getNativeBuildNumber(): number | null {
  * så att en hängande nät-läsning aldrig blockerar app-start.
  */
 export async function checkNativeUpdate(): Promise<NativeUpdateStatus> {
-  if (Platform.OS === "web") return { kind: "none" };
+  // ENBART Android. `config/appUpdate` är helt Android-Play-specifik:
+  // `latestBuild` = Android versionCode, `playStoreUrl` pekar på Play.
+  // På iOS jämfördes iOS-buildNumber (t.ex. 11) mot Android-versionCode
+  // (22) → falsk "ny version finns" + "Öppna Google Play" som öppnar
+  // Play Store i Safari. iOS-uppdateringar sköts av App Store/TestFlight,
+  // inte av den här gaten. Web har ingen native-build alls.
+  if (Platform.OS !== "android") return { kind: "none" };
   try {
     const current = getNativeBuildNumber();
     if (current == null) return { kind: "none" };
