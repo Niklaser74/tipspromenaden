@@ -16,6 +16,7 @@ import { AuthProvider } from "./src/context/AuthContext";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import { initI18n, useTranslation } from "./src/i18n";
 import { installWalkTagsSync } from "./src/services/walkTagsSync";
+import { warmFeedbackPref } from "./src/services/feedback";
 import OnboardingScreen, {
   ONBOARDED_STORAGE_KEY,
 } from "./src/screens/OnboardingScreen";
@@ -32,6 +33,10 @@ import {
 // Koppla in taggarnas auto-push till molnet en gång vid modulladdning.
 // Ligger utanför komponentträdet så det inte återupprepas vid re-render.
 installWalkTagsSync();
+
+// Hydrera ljud/haptik-preferensen tidigt så första rätt/fel-svaret
+// respekterar användarens val (enabledNow() är synkron i hot path).
+warmFeedbackPref();
 
 // Orientation: native-config är "default" (alla rotationer tillåtna).
 // Här bestämmer vi runtime: telefoner låses till portrait (där flesta

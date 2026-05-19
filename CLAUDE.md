@@ -363,10 +363,19 @@ AAB:n kan publiceras:
   (`tipspromenaden.app/tipspack/<slug>.tipspack`) först, faller tillbaka
   på Firestore + Firebase Storage för uppladdade. Replace:ar till
   `CreateWalk` med batteriet förladdat.
+- **Ljud & haptik (1.9.0)** — `services/feedback.ts` central modul:
+  `feedbackCorrect/Wrong/Complete/Arrival`. Ljud = genererade sine-WAV:ar
+  i `assets/sounds/` (`scripts/gen-sounds.mjs` — kör om vid ändring,
+  ingen upphovsrätt). Haptik = `expo-haptics`. EN gemensam toggle
+  `feedback_enabled_v1` (SettingsScreen, default på); `enabledNow()`
+  synkron i hot path, `warmFeedbackPref()` hydrerar cachen från App.tsx.
+  Allt fail-safe (tyst no-op, aldrig en kastad exception). `expo-haptics`
+  + `expo-audio` är **native deps** → ändringar kräver ny build, inte OTA.
 - **Vibration vid frågezon** — `ActiveWalkScreen` triggar en distinkt
   3-pulsig vibration (`Vibration.vibrate([0, 220, 100, 220, 100, 220])`)
   när användaren kommer in i `TRIGGER_DISTANCE_METERS`. Användaren märker
-  även när telefonen är i fickan.
+  även när telefonen är i fickan. `feedbackArrival()` (expo-haptics
+  medium impact) körs alongside för förfinad iOS-känsla.
 - **Skärmen håller sig vaken** — `useKeepAwake()` (från `expo-keep-awake`,
   transitive via SDK 55) håller wake-lock medan `ActiveWalkScreen` är
   mounted. Krävs eftersom Android Doze stoppar JS efter någon minut →

@@ -25,6 +25,12 @@ import {
 } from "../services/firestore";
 import { savePendingSync } from "../services/storage";
 import { recordWalkCompletion } from "../services/stats";
+import {
+  feedbackCorrect,
+  feedbackWrong,
+  feedbackComplete,
+  feedbackArrival,
+} from "../services/feedback";
 import { Walk, Question, Answer, Participant, Session } from "../types";
 import { generateId } from "../utils/qr";
 import { usePedometer } from "../hooks/usePedometer";
@@ -255,6 +261,9 @@ export default function ActiveWalkScreen() {
               // Saknad permission eller hårdvara — tyst.
             }
           }
+          // Förfinad haptik utöver den distinkta 3-pulsen (känns
+          // bättre på iOS Taptic Engine). Respekterar feedback-toggle.
+          feedbackArrival();
           setActiveQuestion(question);
           setSelectedAnswer(null);
           setAnswerFeedback(null);
@@ -378,6 +387,9 @@ export default function ActiveWalkScreen() {
         correct,
         correctAnswer: activeQuestion.options[activeQuestion.correctOptionIndex],
       });
+      // Ljud + haptik direkt på valet (innan 3,5 s-feedback-pausen).
+      if (correct) feedbackCorrect();
+      else feedbackWrong();
 
       // Tid som rätt-svar-bannern visas innan modalen stängs.
       // Tidigare 1500 ms — testarna tyckte det gick för fort, särskilt
@@ -442,6 +454,8 @@ export default function ActiveWalkScreen() {
         }
 
         if (isComplete) {
+          // Firande: arpeggio + success-haptik när sista frågan klarats.
+          feedbackComplete();
           // Bokför stats lokalt och VÄNTA in skrivningen innan vi
           // navigerar. Tidigare var det fire-and-forget med sväljt fel
           // — kombinerat med lost-update-racen i stats.ts kunde en

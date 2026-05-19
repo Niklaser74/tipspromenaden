@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Alert,
   Modal,
   Linking,
+  Switch,
 } from "react-native";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
@@ -24,6 +25,7 @@ import { useAuth } from "../context/AuthContext";
 import { syncMyWalksFromCloud } from "../services/walkSync";
 import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
 import { deleteAccountAndData } from "../services/auth";
+import { isFeedbackEnabled, setFeedbackEnabled } from "../services/feedback";
 import { ONBOARDED_STORAGE_KEY } from "./OnboardingScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -32,6 +34,14 @@ export default function SettingsScreen() {
   const choice = useLanguageChoice();
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(false);
+  const [feedbackOn, setFeedbackOn] = useState(true);
+  useEffect(() => {
+    isFeedbackEnabled().then(setFeedbackOn);
+  }, []);
+  const toggleFeedback = (v: boolean) => {
+    setFeedbackOn(v);
+    setFeedbackEnabled(v);
+  };
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -155,6 +165,22 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           );
         })}
+      </View>
+
+      {/* Ljud & vibration */}
+      <Text style={styles.sectionTitle}>{t("settings.feedback")}</Text>
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text style={styles.rowLabel}>{t("settings.feedbackToggle")}</Text>
+            <Text style={styles.rowHint}>{t("settings.feedbackHint")}</Text>
+          </View>
+          <Switch
+            value={feedbackOn}
+            onValueChange={toggleFeedback}
+            trackColor={{ false: "#C4CCC6", true: "#2D7A3A" }}
+          />
+        </View>
       </View>
 
       {/* Kontosynk — återställ promenader från molnet */}

@@ -652,43 +652,44 @@ Plocka det som passar humöret. Förslag i grov ordning:
    App Store-release:** Universal Links (apple-app-site-association
    finns förberedd), iOS App Check Stage 3 (DeviceCheck), bredare
    TestFlight-test, full App Store-review.
-4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
-   Animerad resultatscen ✅ levererad 2026-05-05; ljud återstår.
-5. **Mörkt tema** — respektera `useColorScheme()`.
-6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
-7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
+4. **Ljudeffekter + haptics** — PÅGÅR 2026-05-19. Pling/fel-ton/
+   completion-jingel + haptik vid kontroll-ankomst & rätt/fel.
+   `expo-haptics` + `expo-audio` är native deps → **inte OTA**, kräver
+   ny AAB + iOS-build. Settings-toggle "Ljud & vibration".
+5. **Accessibility-pass** — VoiceOver/TalkBack-labels.
+6. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
    V1-signaler känns för svaga).
-8. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
+7. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
    delning av färdiga rutter (Fas 2 fortsättning).
-9. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
-10. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
+8. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
+9. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
     spaces och &-tecken i slug (`djur & natur`) → fula procent-encodade
     URL:er. Sanitera till hyphen-form vid upload på webben.
-11. **Cloud Function för score-validering** — flytta poäng-uträkning
+10. **Cloud Function för score-validering** — flytta poäng-uträkning
     serverside så klient-inflaterad score inte går igenom. Kvarvarande
     accepterad svaghet enligt sec-review 2026-05-04. Kräver Firebase
     Functions-setup (Blaze-plan, men gratis-tier räcker för hobby-volym).
-12. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
+11. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
     som finns (`GHSA-j687-52p2-xcff`, `define:vars` XSS) påverkar oss
     inte praktiskt eftersom vi inte använder `define:vars`. Bumpen
     kostar 1–3 h och kan bryta Cloudflare Pages-byggen. Gör när Astro 6
     varit ute ≥1 månad och alla `@astrojs/*`-integrations är v6-klara,
     eller när vi ändå rör build-pipelinen.
-13. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
+12. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
     är på och vi sett Monitor-läget gå rent ett tag, flippa både
     Firestore och Storage från Monitor till Enforce i Firebase Console.
-14. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
+13. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
     slug i edit-läge eftersom byte är en flytt-operation (kopiera +
     radera + uppdatera referenser). Lägg till om behov uppstår.
-15. **E-post-username-läckage på topplista** — `JoinWalkScreen` föreslår
+14. **E-post-username-läckage på topplista** — `JoinWalkScreen` föreslår
     `user.email.split("@")[0]` som default när displayName saknas.
     Edge case (Google-inlogg sätter normalt displayName) men fixa via
     tom default eller hjälptext "Detta visas på topplistan".
-16. **Evenemang Fas 2 — påminnelse-notiser** — när en användare tappar
+15. **Evenemang Fas 2 — påminnelse-notiser** — när en användare tappar
     "Påminn mig" på ett event-kort, schemalägg en lokal notification
     24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
     Lokal-only (ingen Cloud Function-backend) håller det enkelt.
-17. **Offline iter 2 — kart-tiles offline** — ✅ KLART & VERIFIERAT på
+16. **Offline iter 2 — kart-tiles offline** — ✅ KLART & VERIFIERAT på
     enhet 2026-05-19 (OTA på runtime 1.8.0). Ingen MapLibre-swap behövdes: `react-native-maps`
     `UrlTile` har redan inbyggd disk-cache (`tileCachePath` +
     `offlineMode`) i det länkade native-lagret → JS-only, OTA-bart, INGEN
@@ -698,23 +699,23 @@ Plocka det som passar humöret. Förslag i grov ordning:
     får inte proxas; OSM blockerar app-trafik). Detaljer i CLAUDE.md
     "Offline-kartor (iter 2)". Ev. framtid: Settings-knapp som kallar
     `clearAllMapTiles()` + "ladda ner det här området"-UI.
-18. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
+17. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
     för en walk under sitt event-fönster (event.startDate–endDate).
     Visar deltagare som spelat under den tiden, sorterat på score → tid.
     Kan landa antingen som ny topplista i appen eller delningsbar
     `tipspromenaden.app/event/<walkId>`-sida på webben. OTA-bart
     om vi gör det i appen, eller kräver bara nya routes på webben.
-19. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
+18. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
     besvaras i ordning". När på: bara fråga 1 är aktiv tills den är
     besvarad, sedan unlockas 2, osv. Bra för storytelling-walks där
     ordningen bär narrativet. OTA-bart, ny `sequential?: boolean`
     på Walk + ändring i ActiveWalkScreens trigger-logik.
-20. **Edge-to-edge för Android 15** (Play Console-rekommendation, 1.8.0)
+19. **Edge-to-edge för Android 15** (Play Console-rekommendation, 1.8.0)
     — Android 15 tvingar edge-to-edge (appen ritar bakom system-barer).
     Vi har redan safe-area-insets på de stora skärmarna men Play
     flaggar fortfarande utfasade edge-to-edge-API:er. Låg prio,
     kosmetiskt på Android 15. Kräver native-cykel (ny AAB).
-21. **Orienterings­stöd för stora skärmar** (Play Console-rekommendation,
+20. **Orienterings­stöd för stora skärmar** (Play Console-rekommendation,
     1.8.0) — Play vill att appen stödjer fri rotation/resize på stora
     skärmar. Vi låser **medvetet** telefoner till portrait men låter
     surfplattor rotera (App.tsx `applyOrientationLock`). Att lyfta
@@ -722,7 +723,7 @@ Plocka det som passar humöret. Förslag i grov ordning:
     (Active/Results/Leaderboard är portrait-tunade). Delvis giltig men
     medvetet designval — låg prio. (Play-rek #2 "bild-i-bild" är
     irrelevant för en GPS-quizapp och ignoreras permanent.)
-22. **Marknadsförings-creative: testpilot → nedladdning** —
+21. **Marknadsförings-creative: testpilot → nedladdning** —
     `docs/marketing/build-flyer*.mjs` + `build-social-onepager.mjs`
     är byggda runt testpilot-värvning (rubriker "TESTPILOTER SÖKES",
     steg "Bli testare → Ask to join", filnamn `*-bli-testare.png`).
@@ -735,6 +736,15 @@ Plocka det som passar humöret. Förslag i grov ordning:
     brådska — gör när nya tryck/social-assets faktiskt behövs.
 
 ---
+
+22. **Mörkt tema** — LÅGT PRIO, stort. Kodbasen har MEDVETET
+    ingen theme-fil (CLAUDE.md: "färger inline med hex — medveten
+    enkelhet"): ~81 unika hex-färger inline över 17 skärmar +
+    komponenter. Riktig dark mode = införa theme.ts + useTheme() +
+    systematisk migrering skärm-för-skärm, fler arbetspass, hög
+    regressionsrisk. Halvt mörkt läge ser buggigt ut. Skjuts ned
+    medvetet 2026-05-19 — gör som dedikerat tema-projekt om/när det
+    känns värt risken, inte som kvälls-plock.
 
 ## Google Play-distribution (krävs för Family Link-barn)
 

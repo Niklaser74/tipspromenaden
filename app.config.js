@@ -23,7 +23,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.8.0",
+    version: "1.9.0",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -216,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Stabilare för stora grupper: topplistan uppdateras nu mjukare när många spelar samtidigt (mindre hack på äldre telefoner), och event-promenader låser inte längre ute sena deltagare.",
-        en: "More stable for large groups: the leaderboard now updates more smoothly when many play at once (less lag on older phones), and event walks no longer lock out late participants.",
+        sv: "Nytt: ljud och vibration! Pling vid rätt svar, ton vid fel, en jingel när promenaden är klar och vibration vid kontrollpunkter. Stäng av under Inställningar om du vill ha det tyst.",
+        en: "New: sound and vibration! A ping on correct answers, a tone on wrong, a jingle when the walk is done and vibration at checkpoints. Turn it off under Settings if you prefer silence.",
       },
     },
   },

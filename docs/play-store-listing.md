@@ -181,6 +181,33 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.9.0 — Ljud & haptik
+
+Native-release (`expo-haptics` + `expo-audio` är native deps → ny AAB
++ iOS-build, INTE OTA). Genererade sine-WAV:ar (`scripts/gen-sounds.mjs`,
+ingen upphovsrätt): pling vid rätt svar, låg ton vid fel, C-dur-
+arpeggio när promenaden är klar. Haptik: success/error vid svar,
+medium impact vid kontrollpunkt (utöver den befintliga 3-puls-
+vibrationen). Central `services/feedback.ts`, fail-safe, en
+gemensam Settings-toggle "Ljud & vibration" (`feedback_enabled_v1`,
+default på). Bump 1.8.0 → 1.9.0.
+
+**Svenska (sv-SE):**
+```
+Version 1.9.0:
+• Ljud och vibration! Pling vid rätt svar, ton vid fel, en jingel när promenaden är klar och vibration vid kontrollpunkter.
+• Stäng av allt under Inställningar → Ljud & vibration om du vill ha det tyst.
+```
+
+**English (en-US):**
+```
+Version 1.9.0:
+• Sound and vibration! A ping on correct answers, a tone on wrong, a jingle when the walk is done and vibration at checkpoints.
+• Turn it all off under Settings → Sound & vibration if you prefer silence.
+```
+
+---
+
 ### OTA 2026-05-19 (III) — Storgrupps-härdning (200+ samtidiga)
 
 JS-only OTA på runtime 1.8.0. Inför ett skarpt event med ~200
