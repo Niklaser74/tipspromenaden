@@ -17,19 +17,14 @@ export interface LatLng {
 }
 
 /**
- * Räknar ut centrum-koordinaten för en promenad genom att ta medelvärdet
- * av alla frågors koordinater. Medelvärde är ok för sortering; exakt
- * geografisk centroid på en sfär är overkill här eftersom promenaderna
- * sträcker sig över hundratals meter, inte grader.
+ * Plockar ut alla giltiga, placerade kontrollkoordinater ur en walk.
  *
  * Hoppar över koordinater som är `(0, 0)` — appen använder dem som
  * sentinel för "ej placerad" (Atlanten är inte intressant) och de skulle
- * annars dra centroid mot havet för halvfärdiga walks.
- *
- * Returnerar null om promenaden saknar giltiga placerade koordinater.
+ * annars dra centroid/bounds mot havet för halvfärdiga walks.
  */
-export function walkCentroid(walk: Walk): LatLng | null {
-  const coords = (walk.questions || [])
+function validCoords(walk: Walk): LatLng[] {
+  return (walk.questions || [])
     .map((q) => q.coordinate)
     .filter(
       (c): c is LatLng =>
@@ -40,6 +35,18 @@ export function walkCentroid(walk: Walk): LatLng | null {
         Number.isFinite(c.longitude) &&
         !(c.latitude === 0 && c.longitude === 0)
     );
+}
+
+/**
+ * Räknar ut centrum-koordinaten för en promenad genom att ta medelvärdet
+ * av alla frågors koordinater. Medelvärde är ok för sortering; exakt
+ * geografisk centroid på en sfär är overkill här eftersom promenaderna
+ * sträcker sig över hundratals meter, inte grader.
+ *
+ * Returnerar null om promenaden saknar giltiga placerade koordinater.
+ */
+export function walkCentroid(walk: Walk): LatLng | null {
+  const coords = validCoords(walk);
   if (coords.length === 0) return null;
 
   const sum = coords.reduce(
@@ -69,5 +76,38 @@ export function distanceToWalk(user: LatLng, walk: Walk): number {
     user.longitude,
     c.latitude,
     c.longitude
+  );
+}
+
+export interface LatLngBounds {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
+/**
+ * Omslutande box (min/max lat+lng) för alla placerade kontrollpunkter.
+ * Används av `mapTileCache` för att veta vilket geografiskt område som
+ * ska för-cachas så kartan funkar offline på plats.
+ *
+ * Returnerar null om promenaden saknar giltiga placerade koordinater.
+ */
+export function walkBounds(walk: Walk): LatLngBounds | null {
+  const coords = validCoords(walk);
+  if (coords.length === 0) return null;
+  return coords.reduce<LatLngBounds>(
+    (b, c) => ({
+      minLat: Math.min(b.minLat, c.latitude),
+      maxLat: Math.max(b.maxLat, c.latitude),
+      minLng: Math.min(b.minLng, c.longitude),
+      maxLng: Math.max(b.maxLng, c.longitude),
+    }),
+    {
+      minLat: coords[0].latitude,
+      maxLat: coords[0].latitude,
+      minLng: coords[0].longitude,
+      maxLng: coords[0].longitude,
+    }
   );
 }

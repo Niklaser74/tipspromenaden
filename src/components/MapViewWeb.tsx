@@ -7,6 +7,7 @@ import React, {
   useCallback,
 } from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
+import { tileCacheDir } from "../services/mapTileCache";
 
 // react-native-maps stöds inte på web.
 // På web använder vi Leaflet via en iframe med inline HTML.
@@ -51,6 +52,12 @@ interface WebMapProps {
    */
   onPanDrag?: () => void;
   mapType?: WebMapType;
+  /**
+   * Endast native: när true läses terräng-tiles ur disk-cachen istället
+   * för nätet (react-native-maps `UrlTile.offlineMode`). På web ignoreras
+   * den — Leaflet använder browserns egen HTTP-cache.
+   */
+  offline?: boolean;
   children?: React.ReactNode;
 }
 
@@ -632,7 +639,8 @@ function WebPolyline(props: WebPolylineProps) {
  */
 const NativeMapView = Platform.OS !== "web"
   ? React.forwardRef((props: any, ref: any) => {
-      const { mapType = "standard", children, ...rest } = props;
+      const { mapType = "standard", offline = false, children, ...rest } =
+        props;
 
       // Endast `terrain` använder en UrlTile-overlay (OpenTopoMap) —
       // den ger trevlig topografi + stigar för cykel/vandring.
@@ -655,6 +663,13 @@ const NativeMapView = Platform.OS !== "web"
           ? "none" // terrain: OSM-baserad overlay täcker baskartan
           : "standard";
 
+      // Disk-cache för terräng-tiles så kartan funkar offline ute i
+      // skogen. react-native-maps lagrar hämtade tiles under
+      // `tileCachePath` ({z}/{x}/{y}); `mapTileCache.prefetchWalkTiles`
+      // fyller samma katalog i förväg. `offlineMode` läser bara cachen
+      // (med uppskalning av lägre zoom om exakt tile saknas).
+      const cacheDir = tileCacheDir();
+
       return (
         <NativeMapViewRaw ref={ref} mapType={underlyingType} {...rest}>
           {tile && (
@@ -663,6 +678,15 @@ const NativeMapView = Platform.OS !== "web"
               maximumZ={tile.maxZ}
               flipY={false}
               zIndex={-1}
+              {...(cacheDir
+                ? {
+                    tileCachePath: cacheDir,
+                    // 60 dygn: terräng ändras sällan, serve-stale-while-
+                    // refresh gör att en gammal tile ändå visas direkt.
+                    tileCacheMaxAge: 60 * 24 * 3600,
+                    offlineMode: offline,
+                  }
+                : {})}
             />
           )}
           {children}

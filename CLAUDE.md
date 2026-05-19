@@ -405,8 +405,24 @@ AAB:n kan publiceras:
   triggas automatiskt från `saveWalkLocally()`; rensas via
   `clearWalkImages(walkId)` från `removeSavedWalk()`. `findActiveSession()`
   returnerar nu `null` vid `unavailable`/`deadline-exceeded` istället
-  för att kasta. Karttiles är fortfarande online-only — nästa iteration
-  kräver byte från native Google Maps till MapLibre/Leaflet-cache.
+  för att kasta.
+- **Offline-kartor (iter 2, 2026-05-19, OTA)** — `services/mapTileCache.ts`
+  för-cachar OpenTopoMap-tiles för en walks bounding-box (z13–17,
+  ~250 m marginal, tak 480 tiles) best-effort från `saveWalkLocally()`
+  — samma mönster som `cacheWalkImages`. Skriver i react-native-maps
+  `tileCachePath`-schemat `{dir}/{z}/{x}/{y}` (filnamn = y, INGEN
+  filändelse) så `UrlTile.offlineMode` läser tillbaka dem (med
+  upp-skalning av lägre zoom om exakt tile saknas). MapViewWeb:s
+  native-`UrlTile` (endast terräng) får `tileCachePath` +
+  `tileCacheMaxAge` (60 d) + `offlineMode={offline}`-prop;
+  `ActiveWalkScreen` skickar `offline={!useOnlineStatus()}`. Ingen ny
+  native-dep (react-native-maps + expo-file-system redan länkade) →
+  OTA-bart, ingen MapLibre-swap behövdes. Cachen är coordinate-
+  addresserad och DELAS mellan walks → ingen per-walk-radering;
+  `clearAllMapTiles()` finns exporterad för en framtida Settings-knapp.
+  Standard/hybrid (Google/Apple) oförändrade — OSM:s tile-server
+  blockerar app-trafik, så bara den redan-attribuerade OpenTopoMap-
+  terrängen cachas. Web/Leaflet orört (browser-HTTP-cache).
 - **Uppdaterings-notiser** — `components/UpdateNotifier.tsx` monteras inuti
   `AuthProvider` i `App.tsx` och visar två separata UI:n. (1) Native-modal
   vid app-start om `expo-application.nativeBuildVersion < latestBuild` i

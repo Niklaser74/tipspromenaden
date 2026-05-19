@@ -80,6 +80,15 @@ export async function saveWalkLocally(savedWalk: SavedWalk): Promise<void> {
   } catch {
     // Ingen panik — cache är opt-in offline-optimering
   }
+  // Best-effort: för-cacha terräng-tiles för promenadens område så
+  // kartan funkar offline ute på plats. Samma dynamiska-import-mönster
+  // som ovan (undviker att dra in expo-file-system tidigt i uppstart).
+  try {
+    const { prefetchWalkTiles } = await import("./mapTileCache");
+    prefetchWalkTiles(savedWalk.walk).catch(() => {});
+  } catch {
+    // Tyst fail — kartan funkar online ändå
+  }
 }
 
 /**

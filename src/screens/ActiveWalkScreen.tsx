@@ -28,6 +28,7 @@ import { recordWalkCompletion } from "../services/stats";
 import { Walk, Question, Answer, Participant, Session } from "../types";
 import { generateId } from "../utils/qr";
 import { usePedometer } from "../hooks/usePedometer";
+import { useOnlineStatus } from "../hooks/useOnlineStatus";
 import { useTranslation } from "../i18n";
 import { getActivityConfig } from "../constants/activityType";
 
@@ -92,6 +93,11 @@ export default function ActiveWalkScreen() {
 
   // Karttyp (standard/hybrid/terrain), persisterad mellan sessioner.
   const { mapType, cycleMapType } = useMapType();
+
+  // Live NetInfo-status (skild från `isOnline` ovan som speglar Firestore-
+  // sessionen). Styr `offline` på kartan: utan nät läses terräng-tiles ur
+  // disk-cachen i stället för att bli grå.
+  const networkOnline = useOnlineStatus();
 
   // Karta-följer-användaren. Default på — kartan animerar mjukt till
   // användarens nya position vid varje GPS-tick (behåller zoomnivå).
@@ -522,6 +528,7 @@ export default function ActiveWalkScreen() {
         showsUserLocation
         initialRegion={getInitialRegion()}
         mapType={mapType}
+        offline={!networkOnline}
         onRegionChangeComplete={
           Platform.OS !== "web" ? handleRegionChange : undefined
         }

@@ -181,6 +181,35 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-19 (II) — Offline-kartor (terräng cachas på disk)
+
+JS-only OTA på runtime 1.8.0. `react-native-maps` `UrlTile` har en
+inbyggd disk-cache (`tileCachePath` + `offlineMode`) som redan finns i
+det länkade native-lagret — alltså OTA-bart, ingen ny AAB. Ny
+`services/mapTileCache.ts` för-cachar OpenTopoMap-tiles för en
+promenads bounding-box (z13–17, ~250 m marginal, tak 480 tiles)
+best-effort från `saveWalkLocally()`, i exakt samma `{z}/{x}/{y}`-
+schema som react-native-maps läser. `ActiveWalkScreen` skickar
+`offline={!useOnlineStatus()}` → terräng-tiles läses ur cachen
+(med uppskalning av lägre zoom om exakt tile saknas) i stället för
+att kartan blir grå. Standard/hybrid (Google/Apple) oförändrade —
+OSM:s tile-server blockerar app-trafik, OpenTopoMap är redan
+attribuerad via `<MapAttribution>`. Web/Leaflet orört.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Kartan funkar nu offline — terrängkartan för dina sparade promenader laddas ner i förväg och visas även utan täckning. Tidigare blev kartan grå i skogen. Välj karttypen Terräng för bästa offline-resultat.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• Maps now work offline — the terrain map for your saved walks is pre-downloaded and shown even without signal. The map previously went grey in the forest. Pick the Terrain map type for the best offline result.
+```
+
+---
+
 ### AAB 1.8.0 (build 21) — App Check Stage 2 + ny kontakt-mejl
 
 Native-build. Reaktiverade App Check (Play Integrity) efter att

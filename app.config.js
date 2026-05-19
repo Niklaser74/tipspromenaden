@@ -216,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fix: inloggning fungerar nu på iOS — inloggningsskärmen kraschade tidigare direkt vid öppning.",
-        en: "Fix: login now works on iOS — the login screen previously crashed immediately on open.",
+        sv: "Kartan funkar nu offline — terrängkartan för dina sparade promenader laddas ner i förväg och visas även utan täckning. Tidigare blev kartan grå i skogen. Tips: välj karttypen Terräng för bästa offline-resultat.",
+        en: "Maps now work offline — the terrain map for your saved walks is pre-downloaded and shown even without signal. The map previously went grey in the forest. Tip: pick the Terrain map type for the best offline result.",
       },
     },
   },

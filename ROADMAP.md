@@ -688,11 +688,16 @@ Plocka det som passar humöret. Förslag i grov ordning:
     "Påminn mig" på ett event-kort, schemalägg en lokal notification
     24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
     Lokal-only (ingen Cloud Function-backend) håller det enkelt.
-17. **Offline iter 2 — kart-tiles offline** — nuvarande native Google
-    Maps cachar inte tiles, så kartan blir grå i skog/nödlägen.
-    Byte till MapLibre native (vector tiles) eller Leaflet+expo-file-
-    system tile-cache. 1–2 dagars jobb, påverkar ActiveWalkScreen,
-    CreateWalkScreen och MapViewWeb. Kräver ny AAB.
+17. **Offline iter 2 — kart-tiles offline** — ✅ KLART 2026-05-19 (OTA
+    på runtime 1.8.0). Ingen MapLibre-swap behövdes: `react-native-maps`
+    `UrlTile` har redan inbyggd disk-cache (`tileCachePath` +
+    `offlineMode`) i det länkade native-lagret → JS-only, OTA-bart, INGEN
+    ny AAB. `services/mapTileCache.ts` för-cachar OpenTopoMap-tiles för
+    walkens bbox från `saveWalkLocally()`; `ActiveWalkScreen` läser
+    cachen offline. Endast terräng-laget cachas (Google/Apple-baskartan
+    får inte proxas; OSM blockerar app-trafik). Detaljer i CLAUDE.md
+    "Offline-kartor (iter 2)". Ev. framtid: Settings-knapp som kallar
+    `clearAllMapTiles()` + "ladda ner det här området"-UI.
 18. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
     för en walk under sitt event-fönster (event.startDate–endDate).
     Visar deltagare som spelat under den tiden, sorterat på score → tid.
