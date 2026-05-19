@@ -419,7 +419,11 @@ export default function ActiveWalkScreen() {
 
         if (sessionId) {
           try {
-            await updateParticipant(sessionId, updatedParticipant);
+            await updateParticipant(
+              sessionId,
+              updatedParticipant,
+              !!walk.event
+            );
           } catch (e) {
             console.log("Kunde inte synka (sparar offline):", e);
             await savePendingSync({
@@ -430,6 +434,7 @@ export default function ActiveWalkScreen() {
               answers: newAnswers,
               score: newScore,
               completedAt: isComplete ? Date.now() : undefined,
+              isEvent: !!walk.event,
               ...(typeof steps === "number" ? { steps } : {}),
               timestamp: Date.now(),
             });

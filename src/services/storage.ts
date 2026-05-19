@@ -187,6 +187,9 @@ export interface PendingSyncData {
   score: number;
   /** Unix-tidsstämpel för när deltagaren avslutade, om promenaden är klar. */
   completedAt?: number;
+  /** True om promenaden är ett event — styr att updateParticipant inte
+   * auto-flippar sessionen till `completed` (event har ett tidsfönster). */
+  isEvent?: boolean;
   /** Antal steg från Pedometer (om tillgängligt). */
   steps?: number;
   /** Unix-tidsstämpel för när synkjobbet skapades (för felsökning). */

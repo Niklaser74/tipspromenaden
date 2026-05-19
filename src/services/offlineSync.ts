@@ -83,7 +83,7 @@ export async function syncPendingData(): Promise<{
         ...(typeof data.steps === "number" ? { steps: data.steps } : {}),
       };
 
-      await updateParticipant(data.sessionId, participant);
+      await updateParticipant(data.sessionId, participant, !!data.isEvent);
       await removePendingSync(data.sessionId, data.participantId);
       synced++;
     } catch (e) {

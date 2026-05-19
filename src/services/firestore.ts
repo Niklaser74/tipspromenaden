@@ -354,7 +354,16 @@ export async function addParticipant(
  */
 export async function updateParticipant(
   sessionId: string,
-  participant: Participant
+  participant: Participant,
+  // Event-promenader har ett tidsfönster (event.startDate–endDate) och
+  // fler deltagare kan ansluta under hela fönstret. Att auto-flippa
+  // sessionen till `completed` så fort "alla för tillfället anslutna är
+  // klara" är fel där: en sen-finishares engångsläsning kan (eventual
+  // consistency) missa precis-anslutna → frysa ut resten (reglerna
+  // blockerar skrivningar mot completed-sessioner). För event hoppar vi
+  // därför över auto-completion helt — topplistan räknar ändå `allDone`
+  // klient-side från deltagarnas completedAt.
+  isEvent: boolean = false
 ): Promise<void> {
   // stripUndefined: Firestore-SDK:n kastar "Unsupported field value:
   // undefined" om något fält är undefined. På icke-sista svar är
@@ -372,7 +381,7 @@ export async function updateParticipant(
     stripUndefined(participant)
   );
 
-  if (participant.completedAt) {
+  if (participant.completedAt && !isEvent) {
     try {
       const all = await getParticipants(sessionId);
       if (all.length > 0 && all.every((p) => p.completedAt)) {
@@ -393,6 +402,43 @@ export async function updateParticipant(
  * `callback` med ett syntetiserat `Session`-objekt där `participants` är
  * populerad.
  */
+/**
+ * Coalescer: vid storgrupps-event (t.ex. 200 deltagare × ~15 svar) ger
+ * participants-subscriptionen tusentals snapshots. Utan detta re-renderar
+ * varje klient med topplistan öppen 200-radslistan tusentals gånger →
+ * jank + batteridränering på äldre telefoner. Vi buntar ihop: flush:a
+ * efter `waitMs` tyst men senast var `maxWaitMs` även under konstant
+ * skrivburst, så listan känns live men inte per-skrivning.
+ */
+function createCoalescer(
+  flush: () => void,
+  waitMs = 600,
+  maxWaitMs = 2000
+): { schedule: () => void; cancel: () => void } {
+  let waitTimer: ReturnType<typeof setTimeout> | null = null;
+  let maxTimer: ReturnType<typeof setTimeout> | null = null;
+  const fire = () => {
+    if (waitTimer) clearTimeout(waitTimer);
+    if (maxTimer) clearTimeout(maxTimer);
+    waitTimer = null;
+    maxTimer = null;
+    flush();
+  };
+  return {
+    schedule: () => {
+      if (waitTimer) clearTimeout(waitTimer);
+      waitTimer = setTimeout(fire, waitMs);
+      if (!maxTimer) maxTimer = setTimeout(fire, maxWaitMs);
+    },
+    cancel: () => {
+      if (waitTimer) clearTimeout(waitTimer);
+      if (maxTimer) clearTimeout(maxTimer);
+      waitTimer = null;
+      maxTimer = null;
+    },
+  };
+}
+
 export function subscribeToSession(
   sessionId: string,
   callback: (session: Session) => void
@@ -400,18 +446,20 @@ export function subscribeToSession(
   let latestSession: Session | null = null;
   let latestParticipants: Participant[] = [];
 
-  const emit = () => {
-    if (latestSession) {
-      callback({ ...latestSession, participants: latestParticipants });
+  const { schedule: scheduleEmit, cancel: cancelEmit } = createCoalescer(
+    () => {
+      if (latestSession) {
+        callback({ ...latestSession, participants: latestParticipants });
+      }
     }
-  };
+  );
 
   const unsubSession = onSnapshot(
     doc(db, SESSIONS_COLLECTION, sessionId),
     (snap) => {
       if (snap.exists()) {
         latestSession = snap.data() as Session;
-        emit();
+        scheduleEmit();
       }
     }
   );
@@ -420,11 +468,12 @@ export function subscribeToSession(
     collection(db, SESSIONS_COLLECTION, sessionId, PARTICIPANTS_SUBCOLLECTION),
     (snap) => {
       latestParticipants = snap.docs.map((d) => d.data() as Participant);
-      emit();
+      scheduleEmit();
     }
   );
 
   return () => {
+    cancelEmit();
     unsubSession();
     unsubParticipants();
   };
@@ -592,7 +641,10 @@ export function subscribeToWalkSessions(
   // sessionId -> unsubscribe för participants-lyssnaren
   const participantUnsubs = new Map<string, Unsubscribe>();
 
-  const emit = () => {
+  // Samma coalescing som subscribeToSession — event-topplistor är just
+  // det stora-grupp-fallet (alla 200 i en session, läses här via
+  // isEvent-vägen). Buntar ihop snapshot-bursten.
+  const { schedule: emit, cancel: cancelEmit } = createCoalescer(() => {
     const merged: Session[] = [];
     for (const [sid, s] of sessionDocs.entries()) {
       merged.push({
@@ -601,7 +653,7 @@ export function subscribeToWalkSessions(
       });
     }
     callback(merged);
-  };
+  });
 
   const unsubSessions = onSnapshot(sessionsQuery, (snap) => {
     const seen = new Set<string>();
@@ -647,6 +699,7 @@ export function subscribeToWalkSessions(
   });
 
   return () => {
+    cancelEmit();
     unsubSessions();
     for (const u of participantUnsubs.values()) u();
     participantUnsubs.clear();

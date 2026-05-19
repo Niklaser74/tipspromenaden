@@ -181,6 +181,39 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-19 (III) — Storgrupps-härdning (200+ samtidiga)
+
+JS-only OTA på runtime 1.8.0. Inför ett skarpt event med ~200
+samtidiga deltagare, två riktade härdningar:
+- `updateParticipant` auto-flippar INTE längre event-sessioner till
+  `completed`. Alla deltagare hamnar i EN session (oavsett event);
+  en sen-finishares engångs-`getParticipants` kunde pga eventual
+  consistency missa precis-anslutna → flippa `completed` → reglerna
+  låste ut resten. Event har ett tidsfönster — topplistan räknar
+  `allDone` klient-side ändå. `isEvent` propageras från
+  ActiveWalkScreen + offline-kön (`PendingSyncData.isEvent`).
+- `subscribeToSession` + `subscribeToWalkSessions` coalescar nu
+  snapshot-bursten (debounce 600 ms, maxWait 2 s). 200×~15 svar gav
+  tusentals re-renders av 200-radslistan per klient → jank/batteri
+  på äldre telefoner. Listan känns fortfarande live.
+
+Kvarstår som accepterad svaghet: klient-beräknad score (Cloud
+Function på roadmap) — flagga för arrangör vid prissatt tävling.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Stabilare för stora grupper: topplistan uppdateras nu mjukare när många spelar samtidigt (mindre hack på äldre telefoner), och event-promenader låser inte längre ute sena deltagare.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• More stable for large groups: the leaderboard now updates more smoothly when many play at once (less lag on older phones), and event walks no longer lock out late participants.
+```
+
+---
+
 ### OTA 2026-05-19 (II) — Offline-kartor (terräng cachas på disk)
 
 JS-only OTA på runtime 1.8.0. `react-native-maps` `UrlTile` har en

@@ -216,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Kartan funkar nu offline — terrängkartan för dina sparade promenader laddas ner i förväg och visas även utan täckning. Tidigare blev kartan grå i skogen. Tips: välj karttypen Terräng för bästa offline-resultat.",
-        en: "Maps now work offline — the terrain map for your saved walks is pre-downloaded and shown even without signal. The map previously went grey in the forest. Tip: pick the Terrain map type for the best offline result.",
+        sv: "Stabilare för stora grupper: topplistan uppdateras nu mjukare när många spelar samtidigt (mindre hack på äldre telefoner), och event-promenader låser inte längre ute sena deltagare.",
+        en: "More stable for large groups: the leaderboard now updates more smoothly when many play at once (less lag on older phones), and event walks no longer lock out late participants.",
       },
     },
   },

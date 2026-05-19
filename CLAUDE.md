@@ -165,6 +165,20 @@ Deltagare är en **undresamling**, inte en array inbäddad i session-dokumentet.
 Det är ett medvetet val: undviker 1 MB-gränsen och gör realtidssubscribe
 granulärare.
 
+**Storgrupps-modell (viktigt — t.ex. 200 samtidiga):** ALLA deltagare
+hamnar i EN session. `findActiveSession(walkId)` returnerar den enda
+sessionen med status `waiting`/`active`; första personen skapar den,
+resten `addParticipant` in i samma `participants`-subcollection.
+**Event-läge shardar INTE** — endast toppliste-aggregeringen skiljer
+(`isEvent` → `subscribeToWalkSessions`). Två härdningar för skala
+(2026-05-19): (1) `updateParticipant` auto-flippar INTE event-sessioner
+till `completed` (`isEvent`-flagga via ActiveWalkScreen +
+`PendingSyncData.isEvent`) — annars kunde en sen-finishares stale
+`getParticipants` låsa ut resten. (2) `subscribeToSession`/
+`subscribeToWalkSessions` coalescar snapshots via `createCoalescer`
+(600 ms/2 s) så 200×svar inte ger tusentals re-renders. Score är
+fortfarande klient-beräknad — flagga vid prissatt tävling.
+
 ## Säkerhetsmodell
 
 Se `firestore.rules` och `storage.rules` för bindande sanning.
