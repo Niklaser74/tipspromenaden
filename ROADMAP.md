@@ -1,7 +1,8 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-18 — **iOS på TestFlight** (1.8.0/11,
-> efter 10 byggförsök; native-config + felsökning i `docs/ios-setup.md`)
+> Senast uppdaterad: 2026-05-19 — **iOS verifierat på TestFlight**
+> (build 12; login + 3 navigerings-/UI-buggar från första testet
+> fixade; native-config + felsökning i `docs/ios-setup.md`)
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
@@ -641,14 +642,16 @@ Plocka det som passar humöret. Förslag i grov ordning:
    att legitim trafik syns som *verified* i Monitor en stund, sen flippa
    Firestore + Storage till **Enforce** (samordnas med web Stage 1, se
    punkt 13).
-3. **iOS-build** — ✅ KLART 2026-05-18. 1.8.0(11) uppladdad till
-   TestFlight efter 10 byggförsök (RNFirebase+static-frameworks-helvete,
-   se `docs/ios-setup.md`). Apple Developer (individuell) enrollad, ASC
-   API-nyckel, EAS-credentials på Expo-servern. iOS = Apple Maps,
-   App Check Android-only. **Återstår:** verifiera på iPhone via
-   TestFlight, ev. Universal Links (apple-app-site-association finns
-   förberedd), iOS App Check Stage 3 (DeviceCheck) före publik
-   App Store-release.
+3. **iOS-build** — ✅ KLART & VERIFIERAT 2026-05-19. 1.8.0 build 12
+   på TestFlight, testad på iPhone: login fungerar, navigering OK.
+   10 byggförsök (RNFirebase+static-frameworks) + 4 första-test-buggar
+   (update-prompt/login/ErrorBoundary/JoinWalk-bakåt) — allt i
+   `docs/ios-setup.md` resp. release notes. Apple Developer
+   (individuell), ASC API-nyckel, EAS-credentials på Expo-servern.
+   iOS = Apple Maps, App Check Android-only. **Återstår före publik
+   App Store-release:** Universal Links (apple-app-site-association
+   finns förberedd), iOS App Check Stage 3 (DeviceCheck), bredare
+   TestFlight-test, full App Store-review.
 4. **Ljudeffekter + haptics** — pling vid rätt svar, completion-jingel.
    Animerad resultatscen ✅ levererad 2026-05-05; ljud återstår.
 5. **Mörkt tema** — respektera `useColorScheme()`.
