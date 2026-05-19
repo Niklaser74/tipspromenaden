@@ -688,8 +688,8 @@ Plocka det som passar humöret. Förslag i grov ordning:
     "Påminn mig" på ett event-kort, schemalägg en lokal notification
     24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
     Lokal-only (ingen Cloud Function-backend) håller det enkelt.
-17. **Offline iter 2 — kart-tiles offline** — ✅ KLART 2026-05-19 (OTA
-    på runtime 1.8.0). Ingen MapLibre-swap behövdes: `react-native-maps`
+17. **Offline iter 2 — kart-tiles offline** — ✅ KLART & VERIFIERAT på
+    enhet 2026-05-19 (OTA på runtime 1.8.0). Ingen MapLibre-swap behövdes: `react-native-maps`
     `UrlTile` har redan inbyggd disk-cache (`tileCachePath` +
     `offlineMode`) i det länkade native-lagret → JS-only, OTA-bart, INGEN
     ny AAB. `services/mapTileCache.ts` för-cachar OpenTopoMap-tiles för

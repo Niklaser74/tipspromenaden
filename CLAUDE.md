@@ -406,7 +406,7 @@ AAB:n kan publiceras:
   `clearWalkImages(walkId)` från `removeSavedWalk()`. `findActiveSession()`
   returnerar nu `null` vid `unavailable`/`deadline-exceeded` istället
   för att kasta.
-- **Offline-kartor (iter 2, 2026-05-19, OTA)** — `services/mapTileCache.ts`
+- **Offline-kartor (iter 2, 2026-05-19, OTA — verifierat på enhet)** — `services/mapTileCache.ts`
   för-cachar OpenTopoMap-tiles för en walks bounding-box (z13–17,
   ~250 m marginal, tak 480 tiles) best-effort från `saveWalkLocally()`
   — samma mönster som `cacheWalkImages`. Skriver i react-native-maps
