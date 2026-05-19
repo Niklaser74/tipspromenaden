@@ -23,7 +23,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.9.0",
+    version: "1.9.1",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -182,6 +182,14 @@ module.exports = () => ({
         },
       ],
       "@react-native-community/datetimepicker",
+      // Sign in with Apple (iOS). Plugin lägger entitlementet
+      // com.apple.developer.applesignin. Krav enligt App Store
+      // Guideline 4.8 (appen erbjuder Google-login). Android opåverkat
+      // (plugin är no-op där). KRÄVER att Apple-providern aktiveras i
+      // Firebase Console (Authentication → Sign-in method → Apple) —
+      // se docs/app-store-release.md. EAS lägger till "Sign In with
+      // Apple"-capability på App ID:t vid nästa iOS-build.
+      "expo-apple-authentication",
       // App Check Stage 2 — Play Integrity-provider (native, Android).
       // RNFirebase används bara för App Check; JS firebase-SDK:n sköter
       // Firestore/Auth/Storage på båda plattformar. Se src/config/firebase.ts.
@@ -216,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Nytt: ljud och vibration! Pling vid rätt svar, ton vid fel, en jingel när promenaden är klar och vibration vid kontrollpunkter. Stäng av under Inställningar om du vill ha det tyst.",
-        en: "New: sound and vibration! A ping on correct answers, a tone on wrong, a jingle when the walk is done and vibration at checkpoints. Turn it off under Settings if you prefer silence.",
+        sv: "Logga in med Apple (iOS). Plus ljud & vibration: pling vid rätt svar, ton vid fel, jingel när promenaden är klar — stäng av under Inställningar.",
+        en: "Sign in with Apple (iOS). Plus sound & vibration: a ping on correct answers, a tone on wrong, a jingle when the walk is done — turn it off under Settings.",
       },
     },
   },

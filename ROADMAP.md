@@ -648,10 +648,14 @@ Plocka det som passar humöret. Förslag i grov ordning:
    (update-prompt/login/ErrorBoundary/JoinWalk-bakåt) — allt i
    `docs/ios-setup.md` resp. release notes. Apple Developer
    (individuell), ASC API-nyckel, EAS-credentials på Expo-servern.
-   iOS = Apple Maps, App Check Android-only. **Återstår före publik
-   App Store-release:** Universal Links (apple-app-site-association
-   finns förberedd), iOS App Check Stage 3 (DeviceCheck), bredare
-   TestFlight-test, full App Store-review.
+   iOS = Apple Maps, App Check Android-only. **Sign in with Apple
+   (Plan B) implementerad 2026-05-19 (1.9.1)** → Guideline 4.8 löst,
+   inte bara åberopad. **Återstår före publik App Store-release:**
+   aktivera Apple-provider i Firebase Console (se docs/app-store-
+   release.md), bygg/verifiera 1.9.1 på TestFlight, [DU]-steg i ASC
+   (screenshots 6.9"/6.5", App Privacy-label, metadata), submit för
+   review. Post-launch (ej blockerare): Universal Links, iOS App
+   Check Stage 3 (DeviceCheck).
 4. **Ljudeffekter + haptics** — PÅGÅR 2026-05-19. Pling/fel-ton/
    completion-jingel + haptik vid kontroll-ankomst & rätt/fel.
    `expo-haptics` + `expo-audio` är native deps → **inte OTA**, kräver

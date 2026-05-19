@@ -181,6 +181,33 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### AAB 1.9.1 — Sign in with Apple (iOS, Guideline 4.8)
+
+iOS-only native-tillägg (`expo-apple-authentication`). Android 1.9.0
+(build 23) ligger redan i produktion; Apple Sign In är irrelevant där
+→ Android byggs INTE om, iOS App Store-bygget blir 1.9.1. Litet
+version-skev (Android prod 1.9.0 / iOS 1.9.1) — medvetet, iOS-only
+additivt. `auth.ts signInWithApple` (OAuthProvider apple.com + rawNonce
+via expo-crypto SHA256), Apples officiella knapp i LoginScreen (endast
+iOS 13+ via `isAvailableAsync`). **Manuellt krav:** Apple-providern
+måste aktiveras i Firebase Console (Authentication → Sign-in method →
+Apple) — annars `auth/invalid-credential`. Löser Plan B i
+`docs/app-store-release.md` (4.8-risken elimineras, inte bara åberopas).
+
+**Svenska (sv-SE):**
+```
+Version 1.9.1:
+• Logga in med Apple på iOS.
+```
+
+**English (en-US):**
+```
+Version 1.9.1:
+• Sign in with Apple on iOS.
+```
+
+---
+
 ### AAB 1.9.0 — Ljud & haptik
 
 Native-release (`expo-haptics` + `expo-audio` är native deps → ny AAB

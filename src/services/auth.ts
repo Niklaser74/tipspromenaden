@@ -15,6 +15,7 @@ import {
   signInWithCredential,
   signInAnonymously,
   GoogleAuthProvider,
+  OAuthProvider,
   onAuthStateChanged,
   signOut as firebaseSignOut,
   deleteUser as firebaseDeleteUser,
@@ -116,6 +117,42 @@ export async function signInAnonymousUser(): Promise<AppUser> {
  */
 export async function signInWithGoogle(idToken: string): Promise<AppUser> {
   const credential = GoogleAuthProvider.credential(idToken);
+  const result = await signInWithCredential(auth, credential);
+  return {
+    uid: result.user.uid,
+    displayName: result.user.displayName,
+    email: result.user.email,
+    photoURL: result.user.photoURL,
+    isAnonymous: false,
+  };
+}
+
+/**
+ * Loggar in med Sign in with Apple (endast iOS).
+ *
+ * Apple-flödet i `LoginScreen` (`expo-apple-authentication`) returnerar
+ * en `identityToken` (JWT). Firebase Apple-providern kräver dessutom
+ * den RÅA noncen som Apple-tokenet är bundet till (vi skickade en
+ * SHA256-hash av den till Apple; Firebase verifierar genom att hasha
+ * rawNonce och jämföra mot tokenets `nonce`-claim). Utan rawNonce ger
+ * Firebase `auth/invalid-credential`.
+ *
+ * Apple ger displayName/email ENDAST första gången användaren godkänner
+ * appen — därefter är de null. Vi tar det Firebase råkar ha; saknas
+ * displayName föreslår LoginScreen-flödet inget (smeknamn anges manuellt).
+ *
+ * @param identityToken - JWT från `AppleAuthentication.signInAsync`.
+ * @param rawNonce - Ohashad nonce som genererades före Apple-anropet.
+ */
+export async function signInWithApple(
+  identityToken: string,
+  rawNonce: string
+): Promise<AppUser> {
+  const provider = new OAuthProvider("apple.com");
+  const credential = provider.credential({
+    idToken: identityToken,
+    rawNonce,
+  });
   const result = await signInWithCredential(auth, credential);
   return {
     uid: result.user.uid,

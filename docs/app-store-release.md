@@ -10,18 +10,20 @@ Komplement till `docs/ios-setup.md` (bygg/credentials) och
 
 ---
 
-## ⚠️ Strategisk risk: Guideline 4.8 (Sign in with Apple)
+## ✅ Guideline 4.8 — LÖST via Plan B (Sign in with Apple)
 
-Appen erbjuder Google-login. Apple 4.8 kräver "Sign in with Apple" som
-alternativ **om** appen inte har ett likvärdigt icke-konto-alternativ.
-Tipspromenaden har **anonymt deltagarläge** (delta utan konto;
-Google-login är opt-in endast för att *skapa/äga* promenader).
+Plan B implementerad 2026-05-19 (1.9.1) — vi eliminerar 4.8-risken
+istället för att åberopa undantag. Appen har nu BÅDE Sign in with
+Apple, Google-login OCH anonymt deltagarläge. `auth.ts
+signInWithApple` + Apples officiella knapp i LoginScreen (iOS 13+).
 
-**Plan A (försök undantaget):** åberopa anonymt läge i review-notes
-(text nedan). Starkt argument — kärnupplevelsen kräver inget konto.
-**Plan B (om reject):** lägg till Sign in with Apple
-(`expo-apple-authentication` + Firebase Apple-provider, ~halvdag) och
-submitta om. Inget kodförarbete gjort för B än — görs bara vid behov.
+> 🔴 **OBLIGATORISKT MANUELLT STEG INNAN iOS-LOGIN FUNGERAR:**
+> aktivera Apple som inloggningsleverantör i Firebase Console:
+> Authentication → Sign-in method → **Apple** → Enable → Save.
+> (Service ID / OAuth-config behövs INTE för enbart iOS-appen —
+> bara att providern är på.) Utan detta ger Apple-login
+> `auth/invalid-credential`. Testa på TestFlight innan App Store-
+> submit.
 
 ---
 
@@ -38,13 +40,13 @@ The core experience — scanning/opening a walk and answering questions
 at GPS checkpoints — works fully anonymously. Tap "Skanna QR" or open
 a shared walk link; no account is needed.
 
-Google Sign-In is OPTIONAL and only used by creators who want to make
-and own their own walks. Because a fully functional no-account path
-exists, we believe Guideline 4.8 (Sign in with Apple) does not apply.
+Sign-in is OPTIONAL (only for creators who make/own walks). We offer
+Sign in with Apple, Google, AND a no-account anonymous path — so
+Guideline 4.8 is fully satisfied.
 
-To review the creator flow you may sign in with any Google account,
-or test a ready-made walk anonymously from the in-app library
-("Bibliotek" → "Upptäck").
+To review the creator flow, use Sign in with Apple or any Google
+account, or test a ready-made walk anonymously from the in-app
+library ("Bibliotek" → "Upptäck").
 
 GPS is required to unlock questions at checkpoints — please test
 outdoors or with a simulated location near a walk's checkpoints.
@@ -126,7 +128,9 @@ promenad (karta+fråga), Resultat/konfetti, Bibliotek, Skapa-promenad.
 3. Välj build (12 eller nyare), fyll App Review Notes (§1)
 4. Submit for Review. Första review: **1–3 dygn, kan neka.**
 5. Vid godkänt: släpp manuellt eller phased release (7 dagar).
-6. Vid 4.8-reject → Plan B (Sign in with Apple), submitta om.
+6. 4.8 är redan löst (Sign in with Apple finns) — ingen Plan B kvar.
+   Glöm INTE: aktivera Apple-providern i Firebase Console först (se
+   4.8-sektionen överst), annars failar Apple-login i review.
 
 ## 7. iOS App Store-beskrivning (sv) — färdig att klistra
 

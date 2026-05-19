@@ -11,7 +11,9 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import { signInWithGoogle } from "../services/auth";
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
+import { signInWithGoogle, signInWithApple } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "../i18n";
 
@@ -54,6 +56,50 @@ export default function LoginScreen() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
+  // Sign in with Apple finns bara på iOS 13+. Vi visar knappen bara när
+  // den faktiskt är tillgänglig (Apple Guideline 4.8 — likvärdigt
+  // tredjeparts-login vid sidan av Google; vårt anonyma läge täcker
+  // dessutom no-account-kravet).
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  useEffect(() => {
+    if (Platform.OS === "ios") {
+      AppleAuthentication.isAvailableAsync()
+        .then(setAppleAvailable)
+        .catch(() => setAppleAvailable(false));
+    }
+  }, []);
+
+  const handleAppleLogin = async () => {
+    setLoading(true);
+    try {
+      // Firebase Apple-providern kräver en nonce: vi skickar SHA256(raw)
+      // till Apple och rawNonce till Firebase, som verifierar matchning.
+      const rawNonce =
+        Crypto.randomUUID() + Crypto.randomUUID().replace(/-/g, "");
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce
+      );
+      const cred = await AppleAuthentication.signInAsync({
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+        nonce: hashedNonce,
+      });
+      if (!cred.identityToken) throw new Error(t("auth.noIdToken"));
+      await signInWithApple(cred.identityToken, rawNonce);
+      if (navigation.canGoBack()) navigation.goBack();
+      else navigation.navigate("Home");
+    } catch (e: any) {
+      // Användaren avbröt Apple-arket → tyst (ingen felruta).
+      if (e?.code !== "ERR_REQUEST_CANCELED" && e?.code !== "ERR_CANCELED") {
+        Alert.alert(t("auth.loginError"), e?.message || String(e));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // expo-auth-session-hooken anropas alltid (React-regler), men används
   // bara på webben. Den kör ändå `invariantClientId` på ALLA plattformar
@@ -223,6 +269,22 @@ export default function LoginScreen() {
           )}
         </TouchableOpacity>
 
+        {/* Sign in with Apple — endast iOS, Apples egen knapp (krav).
+            Likvärdig prominens med Google enligt Guideline 4.8. */}
+        {appleAvailable && (
+          <AppleAuthentication.AppleAuthenticationButton
+            buttonType={
+              AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
+            }
+            buttonStyle={
+              AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+            }
+            cornerRadius={14}
+            style={styles.appleButton}
+            onPress={handleAppleLogin}
+          />
+        )}
+
         {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
@@ -301,6 +363,13 @@ const styles = StyleSheet.create({
   },
 
   // Google button
+  appleButton: {
+    width: "100%",
+    maxWidth: 320,
+    height: 52,
+    marginTop: 12,
+    alignSelf: "center",
+  },
   googleButton: {
     backgroundColor: "#FFFFFF",
     borderWidth: 1.5,
