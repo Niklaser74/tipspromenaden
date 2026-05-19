@@ -216,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "iOS-fixar: ingen felaktig 'uppdatera via Google Play'-ruta längre, alltid en väg tillbaka från Gå med-skärmen, och en 'Starta om appen'-knapp vid fel.",
-        en: "iOS fixes: no more wrong 'update via Google Play' prompt, always a way back from the Join screen, and a 'Restart app' button on errors.",
+        sv: "Felskärmen visar nu den tekniska feltexten — hjälper oss hitta orsaken till kvarvarande problem snabbare.",
+        en: "The error screen now shows the technical error text — helps us pinpoint the cause of remaining issues faster.",
       },
     },
   },

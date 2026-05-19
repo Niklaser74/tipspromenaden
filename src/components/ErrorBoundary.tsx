@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import * as Updates from "expo-updates";
 
 interface ErrorBoundaryState {
@@ -56,6 +56,15 @@ export default class ErrorBoundary extends React.Component<
           <Text style={styles.message}>
             Ett oväntat fel inträffade. Försök igen eller starta om appen.
           </Text>
+          {this.state.error ? (
+            <Text style={styles.detail} selectable>
+              {String(this.state.error?.message || this.state.error)}
+              {this.state.error?.stack
+                ? "\n\n" +
+                  this.state.error.stack.split("\n").slice(0, 6).join("\n")
+                : ""}
+            </Text>
+          ) : null}
           <TouchableOpacity
             style={styles.retryButton}
             onPress={this.handleRetry}
@@ -103,7 +112,17 @@ const styles = StyleSheet.create({
     color: "#4A5E4C",
     textAlign: "center",
     lineHeight: 22,
-    marginBottom: 32,
+    marginBottom: 20,
+  },
+  detail: {
+    fontSize: 12,
+    color: "#9A6A00",
+    backgroundColor: "#FBF0D8",
+    fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }),
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 28,
+    maxHeight: 220,
   },
   retryButton: {
     backgroundColor: "#1B6B35",
