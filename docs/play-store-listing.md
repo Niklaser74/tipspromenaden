@@ -209,6 +209,32 @@ Version 1.8.0:
 
 ---
 
+### OTA 2026-05-19 — Fix: iOS-login kraschade (expo-auth-session iosClientId)
+
+JS-only OTA på runtime 1.8.0. `Google.useAuthRequest` (expo-auth-
+session) anropas ovillkorligt (React-hook-regler) men hade bara
+web+android client-ID. Hookens `invariantClientId` körs på ALLA
+plattformar vid render → kastade på iOS innan man tryckt logga in →
+LoginScreen kraschade rakt in i ErrorBoundary. Fix: skicka även
+`iosClientId` (CLIENT_ID ur GoogleService-Info.plist). Inte native
+GoogleSignin (den fixades separat i build 12 med iosUrlScheme); detta
+var en uppströms render-krasch. ErrorBoundary visar nu feltext+stack
+(föregående OTA) — det var så vi pinpointade detta.
+
+**Svenska (sv-SE):**
+```
+OTA till runtime 1.8.0:
+• Fix: inloggning fungerar nu på iOS — inloggningsskärmen kraschade tidigare direkt vid öppning.
+```
+
+**English (en-US):**
+```
+OTA to runtime 1.8.0:
+• Fix: login now works on iOS — the login screen previously crashed immediately on open.
+```
+
+---
+
 ### OTA 2026-05-18 — iOS-fixar (update-prompt, navigation, ErrorBoundary)
 
 JS-only OTA på runtime 1.8.0 (når iOS TestFlight-build 11 + Android

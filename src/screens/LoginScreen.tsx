@@ -56,10 +56,14 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
 
   // expo-auth-session-hooken anropas alltid (React-regler), men används
-  // bara på webben. Vi skickar med båda klient-ID:n så hooken inte kraschar.
+  // bara på webben. Den kör ändå `invariantClientId` på ALLA plattformar
+  // vid render och kastar om plattformens client-ID saknas — på iOS
+  // kraschade LoginScreen rakt in i ErrorBoundary innan man ens tryckt
+  // logga in. Alla tre client-ID:n måste därför skickas med.
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
     scopes: ["openid", "profile", "email"],
   });
 

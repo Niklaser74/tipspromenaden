@@ -216,8 +216,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Felskärmen visar nu den tekniska feltexten — hjälper oss hitta orsaken till kvarvarande problem snabbare.",
-        en: "The error screen now shows the technical error text — helps us pinpoint the cause of remaining issues faster.",
+        sv: "Fix: inloggning fungerar nu på iOS — inloggningsskärmen kraschade tidigare direkt vid öppning.",
+        en: "Fix: login now works on iOS — the login screen previously crashed immediately on open.",
       },
     },
   },
