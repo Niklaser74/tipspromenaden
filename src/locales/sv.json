@@ -489,6 +489,11 @@
   "active": {
     "points": "p",
     "offline": "OFFLINE",
+    "exitLabel": "Lämna promenaden",
+    "exitTitle": "Lämna promenaden?",
+    "exitBodyFresh": "Du har inte svarat på några frågor än. Du kan starta om från Hem senare.",
+    "exitBodyWithProgress": "Du har {{answered}}/{{total}} besvarade frågor. Dina svar och poäng sparas — när du öppnar samma promenad igen får du fråga om du vill fortsätta eller börja om.",
+    "exitConfirm": "Lämna",
     "distanceToControl": "{{distance}} till kontroll {{order}}",
     "nextInOrder": "Nästa: kontroll {{order}} — {{distance}}",
     "almostThere": " — Nästan framme!",

@@ -181,6 +181,38 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-20 (V) — ✕-knapp för att lämna promenaden + kart-vy i Bibliotek
+
+`ActiveWalkScreen` har `headerShown: false` (helbild-karta) → iPhone-
+användare hade ingen väg ut ur en pågående promenad utan att stänga
+appen. Android funkade via system-back-gest men det är inte
+plattforms-likvärdigt. Ny ✕-knapp i status-pillen (vänster om namnet)
+öppnar en bekräftelse-dialog som förklarar att svar och poäng är
+sparade — användaren kan fortsätta senare via resume-feature från
+föregående OTA (I). Vid bekräftelse: `navigation.goBack()` (eller
+"Home" som fallback om stack är tom, t.ex. vid deep-link-start).
+
+Samma push inkluderar Bibliotek Iteration 4 (V1) — sub-toggle
+"📋 Lista / 📍 Karta" i Upptäck-fliken med klustrade pins på publika
+walks centroid-koordinater. Tre zoom-nivåer (region/stad/kvarter),
+preview-kort vid pin-tap, animateToRegion vid kluster-tap.
+
+**Release notes (svenska):**
+
+> Ny ✕-knapp för att lämna promenaden — saknades på iPhone där det
+> inte fanns någon väg ut utan att stänga appen. Bekräftelsedialog
+> visar att svar och poäng är sparade så du kan fortsätta senare.
+> Och: ny karta i Bibliotek → Upptäck med klustrade nålar.
+
+**Release notes (English):**
+
+> New ✕ button to leave the walk — was missing on iPhone where
+> there was no way out without closing the app. Confirmation dialog
+> explains your answers and points are saved so you can continue
+> later. Plus: new map in Library → Discover with clustered pins.
+
+---
+
 ### OTA 2026-05-20 (IV) — Bibliotek Iteration 4: kart-vy i Upptäck
 
 Ny sub-toggle "📋 Lista / 📍 Karta" i Bibliotek → Upptäck. Karta-läget

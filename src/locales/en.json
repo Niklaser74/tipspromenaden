@@ -489,6 +489,11 @@
   "active": {
     "points": "pt",
     "offline": "OFFLINE",
+    "exitLabel": "Leave walk",
+    "exitTitle": "Leave the walk?",
+    "exitBodyFresh": "You haven't answered any questions yet. You can start over from Home later.",
+    "exitBodyWithProgress": "You've answered {{answered}}/{{total}} questions. Your answers and points are saved — next time you open the same walk you'll be asked whether to resume or restart.",
+    "exitConfirm": "Leave",
     "distanceToControl": "{{distance}} to control {{order}}",
     "nextInOrder": "Next: control {{order}} — {{distance}}",
     "almostThere": " — Almost there!",

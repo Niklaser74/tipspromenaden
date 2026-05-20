@@ -356,6 +356,40 @@ export default function ActiveWalkScreen() {
   }, []);
 
   // 🎯-knappen: återuppta följning + animera direkt till nuvarande position.
+  // Lämna promenaden — bekräftelsedialog som förklarar att svar och
+  // poäng är sparade (resume-feature) så användaren känner sig trygg
+  // med att gå ur. Variant-text beroende på om någon fråga är
+  // besvarad än så texten är meningsfull även vid bail-out direkt
+  // efter start. Vid bekräftelse: navigera tillbaka (eller till Home
+  // som fallback om stack är tom — kan hända om appen öppnades via
+  // deep link direkt till en walk).
+  const handleExitWalk = useCallback(() => {
+    const anyAnswered = answers.length > 0;
+    Alert.alert(
+      t("active.exitTitle"),
+      anyAnswered
+        ? t("active.exitBodyWithProgress", {
+            answered: answers.length,
+            total: walk.questions.length,
+          })
+        : t("active.exitBodyFresh"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("active.exitConfirm"),
+          style: "destructive",
+          onPress: () => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Home");
+            }
+          },
+        },
+      ]
+    );
+  }, [answers.length, navigation, t, walk.questions.length]);
+
   const handleCenterOnMe = useCallback(() => {
     setFollowUser(true);
     if (
@@ -670,11 +704,27 @@ export default function ActiveWalkScreen() {
         })}
       </MapView>
 
-      {/* Top overlay - status bar */}
+      {/* Top overlay - status bar.
+          Exit-knappen vänster om namnet: stack-headern är dold på
+          ActiveWalk (helbild-karta) → Android har system-back-gest men
+          iOS saknar någon väg att lämna promenaden utan att stänga
+          appen. Bekräftelse-dialog förklarar att svar och poäng är
+          sparade så användaren kan återuppta (resume-feature). */}
       <View style={styles.topOverlay}>
         <View style={styles.statusPill}>
+          <TouchableOpacity
+            onPress={handleExitWalk}
+            style={styles.exitButton}
+            activeOpacity={0.7}
+            accessibilityLabel={t("active.exitLabel")}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.exitIcon}>✕</Text>
+          </TouchableOpacity>
           <View style={styles.statusLeft}>
-            <Text style={styles.statusName}>{participantName}</Text>
+            <Text style={styles.statusName} numberOfLines={1}>
+              {participantName}
+            </Text>
             {!isOnline && (
               <View style={styles.offlineBadge}>
                 <Text style={styles.offlineText}>{t("active.offline")}</Text>
@@ -1022,9 +1072,29 @@ const styles = StyleSheet.create({
     }),
   },
   statusLeft: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  // Exit-knapp till vänster om namnet i status-pillen. Lågmäld men
+  // tydligt klickbar — pillen har redan tillräcklig kontrast mot
+  // kartan så vi behöver inte extra ram. Hit-slop ger 24×24 effektiv
+  // touch-yta även om iconen visuellt är 16×16.
+  exitButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(255,255,255,0.18)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  exitIcon: {
+    color: "#F5F0E8",
+    fontSize: 16,
+    fontWeight: "700",
+    lineHeight: 18,
   },
   statusName: {
     color: "#F5F0E8",
