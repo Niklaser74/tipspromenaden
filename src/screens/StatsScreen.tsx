@@ -15,6 +15,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   getStats,
   averageCorrectPct,
@@ -24,6 +25,10 @@ import { useTranslation } from "../i18n";
 
 export default function StatsScreen() {
   const { t } = useTranslation();
+  // Stack-headern är dold på Stats (det är en flik-screen under HomeTabs),
+  // så vi måste själva lägga på enhetens safe-area-top — annars hamnar
+  // "Statistik"-rubriken bakom iPhone-notchen/Dynamic Island.
+  const insets = useSafeAreaInsets();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -52,7 +57,7 @@ export default function StatsScreen() {
 
   if (!stats) {
     return (
-      <View style={styles.empty}>
+      <View style={[styles.empty, { paddingTop: insets.top }]}>
         <Text style={styles.emptyText}>{t("common.loading")}</Text>
       </View>
     );
@@ -69,7 +74,7 @@ export default function StatsScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 20 }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }

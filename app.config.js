@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Ny ✕-knapp för att lämna promenaden — saknades på iPhone där det inte fanns någon väg ut utan att stänga appen. Bekräftelsedialog visar att svar och poäng är sparade så du kan fortsätta senare. Och: ny karta i Bibliotek → Upptäck med klustrade nålar.",
-        en: "New ✕ button to leave the walk — was missing on iPhone where there was no way out without closing the app. Confirmation dialog explains your answers and points are saved so you can continue later. Plus: new map in Library → Discover with clustered pins.",
+        sv: "Fix: Statistik-rubriken hamnade bakom klocka/kamera på iPhone — nu med korrekt safe-area överst. Plus tidigare i kväll: ✕-knapp för att lämna promenaden och ny karta i Bibliotek → Upptäck med klustrade nålar.",
+        en: "Fix: the Stats header sat behind the clock/camera on iPhone — now with proper safe-area padding. Plus earlier tonight: ✕ button to leave the walk and a new map in Library → Discover with clustered pins.",
       },
     },
   },
