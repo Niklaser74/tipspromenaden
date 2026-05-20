@@ -668,29 +668,39 @@ Plocka det som passar humöret. Förslag i grov ordning:
 6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
 7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
    V1-signaler känns för svaga).
-8. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
+8. **Bibliotek Iteration 4 — kart-vy ("Upptäck på karta")** — sub-
+   toggle "📍 Karta / 📋 Lista" i Upptäck-fliken. Tre zoom-nivåer:
+   (a) utzoomad → kluster "5 walks här" (`react-native-map-clustering`
+   eller hand-rullad grid-bucketing); (b) mellan → 1 pin per walk på
+   `centroid`-fältet (finns redan, auto-beräknad vid save); (c)
+   inzoomad → faktiska question-coordinaterna + skuggat område
+   (Polygon från convex hull, Graham scan ~30 rader). Tryck pin →
+   preview-kort med "Starta"-knapp. Filtreras mot
+   `moderation/hidden`. OTA-bart (bara JS, react-native-maps primitives
+   redan länkade). Estimat 4–6 dagar.
+9. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
    delning av färdiga rutter (Fas 2 fortsättning).
-9. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
-10. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
+10. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
+11. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
     spaces och &-tecken i slug (`djur & natur`) → fula procent-encodade
     URL:er. Sanitera till hyphen-form vid upload på webben.
-11. **Cloud Function för score-validering** — flytta poäng-uträkning
+12. **Cloud Function för score-validering** — flytta poäng-uträkning
     serverside så klient-inflaterad score inte går igenom. Kvarvarande
     accepterad svaghet enligt sec-review 2026-05-04. Kräver Firebase
     Functions-setup (Blaze-plan, men gratis-tier räcker för hobby-volym).
-12. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
+13. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
     som finns (`GHSA-j687-52p2-xcff`, `define:vars` XSS) påverkar oss
     inte praktiskt eftersom vi inte använder `define:vars`. Bumpen
     kostar 1–3 h och kan bryta Cloudflare Pages-byggen. Gör när Astro 6
     varit ute ≥1 månad och alla `@astrojs/*`-integrations är v6-klara,
     eller när vi ändå rör build-pipelinen.
-13. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
+14. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
     är på och vi sett Monitor-läget gå rent ett tag, flippa både
     Firestore och Storage från Monitor till Enforce i Firebase Console.
-13. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
+15. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
     slug i edit-läge eftersom byte är en flytt-operation (kopiera +
     radera + uppdatera referenser). Lägg till om behov uppstår.
-14. **E-post-username-läckage på topplista** — `JoinWalkScreen` föreslår
+16. **E-post-username-läckage på topplista** — `JoinWalkScreen` föreslår
     `user.email.split("@")[0]` som default när displayName saknas.
     Edge case (Google-inlogg sätter normalt displayName) men fixa via
     tom default eller hjälptext "Detta visas på topplistan".
