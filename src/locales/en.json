@@ -201,6 +201,7 @@
     "viewList": "List",
     "viewMap": "Map",
     "mapEmpty": "No walks match — adjust search or filters.",
+    "sharedPointTitle": "{{count}} walks here",
     "previewQuestions": "👁 Preview",
     "hideQuestions": "Hide questions",
     "previewHint": "Question text only — answer options stay hidden for the players 🤫",

@@ -181,6 +181,38 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-20 (VI) — Shared-point-gruppering i kart-vyn
+
+När flera promenader delar samma fysiska startpunkt (skapare har gjort
+varianter av samma rutt, event på samma plats etc) renderades de
+tidigare som överlappande nålar på exakt samma koordinat — bara den
+översta klickbar. Två lager av gruppering nu:
+
+1. `groupColocated(walks)` — alltid på, snappar walks vars centroid
+   är inom ~30 m (SHARED_POINT_GRID = 0.0003°) till EN WalkGroup.
+2. `clusterGroups(groups, region)` — den befintliga dynamiska
+   klustringen, men på grupper i stället för individuella walks.
+   Klustrets count-badge summerar walks över alla ingående grupper.
+
+Visuellt: shared-point-pin är orange (skiljer från röd/blå walk-pin)
+med en räkne-badge i hörnet. Tap → bottom-sheet med lista över alla
+walks på platsen → tap på rad öppnar preview-kortet → Spela.
+Enskild walk på platsen beter sig oförändrat (öppnar preview direkt).
+
+**Release notes (svenska):**
+
+> Karta-läget i Bibliotek visar nu en antal-badge när flera
+> promenader delar samma startpunkt. Tryck nålen → lista över alla
+> promenader på platsen → välj den du vill spela.
+
+**Release notes (English):**
+
+> The Library map now shows a count badge when multiple walks share
+> the same starting point. Tap the pin → list of all walks at that
+> spot → pick the one you want to play.
+
+---
+
 ### OTA 2026-05-20 (V) — ✕-knapp för att lämna promenaden + kart-vy i Bibliotek
 
 `ActiveWalkScreen` har `headerShown: false` (helbild-karta) → iPhone-

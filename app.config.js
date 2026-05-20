@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fix: Statistik-rubriken hamnade bakom klocka/kamera på iPhone — nu med korrekt safe-area överst. Plus tidigare i kväll: ✕-knapp för att lämna promenaden och ny karta i Bibliotek → Upptäck med klustrade nålar.",
-        en: "Fix: the Stats header sat behind the clock/camera on iPhone — now with proper safe-area padding. Plus earlier tonight: ✕ button to leave the walk and a new map in Library → Discover with clustered pins.",
+        sv: "Karta-läget i Bibliotek visar nu en antal-badge när flera promenader delar samma startpunkt. Tryck nålen → lista över alla promenader på platsen → välj den du vill spela.",
+        en: "The Library map now shows a count badge when multiple walks share the same starting point. Tap the pin → list of all walks at that spot → pick the one you want to play.",
       },
     },
   },

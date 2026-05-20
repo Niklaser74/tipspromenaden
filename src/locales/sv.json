@@ -201,6 +201,7 @@
     "viewList": "Lista",
     "viewMap": "Karta",
     "mapEmpty": "Inga promenader matchar — justera sök eller filter.",
+    "sharedPointTitle": "{{count}} promenader här",
     "previewQuestions": "👁 Förhandsgranska",
     "hideQuestions": "Dölj frågor",
     "previewHint": "Bara frågetexterna visas — svarsalternativen håller vi för deltagarna 🤫",
