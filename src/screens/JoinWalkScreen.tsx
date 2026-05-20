@@ -12,8 +12,8 @@ import {
   ScrollView,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
-import { Walk } from "../types";
-import { findActiveSession } from "../services/firestore";
+import { Walk, Answer } from "../types";
+import { findActiveSession, getParticipant } from "../services/firestore";
 import { signInAnonymousUser } from "../services/auth";
 import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -45,6 +45,17 @@ export default function JoinWalkScreen() {
     null
   );
 
+  // Resume-state: om current uid redan är deltagare i sessionen med svar
+  // men inte slutfört, växlar UI:t till "Fortsätt promenaden"-läge.
+  // Vi hämtar deltagarens befintliga `answers` och `score` så att
+  // ActiveWalkScreen kan hydrera state utan att börja om från fråga 1.
+  // Pågående promenad = answers.length > 0 && !completedAt.
+  const [resumeState, setResumeState] = useState<{
+    answers: Answer[];
+    score: number;
+    savedName: string;
+  } | null>(null);
+
   // Check if walk is an event and if it's within the date range
   const isEvent = !!walk.event;
   const now = new Date().toISOString().split("T")[0];
@@ -59,7 +70,35 @@ export default function JoinWalkScreen() {
     (async () => {
       try {
         const session = await findActiveSession(walk.id);
-        if (!cancelled && session) setExistingSessionId(session.id);
+        if (cancelled || !session) return;
+        setExistingSessionId(session.id);
+
+        // Resume-check: är jag redan deltagare i den här sessionen med
+        // svar men inte slutförd? Kräver att auth.currentUser finns
+        // (inloggade Google/Apple-användare, eller anonyma som behållit
+        // sin uid sedan föregående start). Helt nya anonyma sessioner
+        // har ingen uid än → ingen resume möjlig, kör fräsch start.
+        const uid = auth.currentUser?.uid;
+        if (uid) {
+          const p = await getParticipant(session.id, uid);
+          if (
+            !cancelled &&
+            p &&
+            !p.completedAt &&
+            p.answers &&
+            p.answers.length > 0
+          ) {
+            setResumeState({
+              answers: p.answers,
+              score: p.score || 0,
+              savedName: p.name || "",
+            });
+            // Visa det sparade namnet i UI:t även om det skiljer sig
+            // från initialName (Google-display) — användaren ska se
+            // exakt det namn som finns på topplistan.
+            if (p.name) setName(p.name);
+          }
+        }
       } catch {
         // Offline or no session found - that's fine
       }
@@ -149,6 +188,12 @@ export default function JoinWalkScreen() {
       participantId,
       participantName: name.trim(),
       sessionId: existingSessionId || undefined,
+      // Resume-läge: skicka med befintliga svar + score så ActiveWalk
+      // hydrerar state istället för att börja om. addParticipant där är
+      // ändå idempotent (firestore.ts), så det är säkert att resa om
+      // vid liten race med en parallell skrivning.
+      existingAnswers: resumeState?.answers,
+      existingScore: resumeState?.score,
     });
     setLoading(false);
   };
@@ -218,12 +263,26 @@ export default function JoinWalkScreen() {
           </View>
         )}
 
-        {/* Session indicator */}
-        {existingSessionId && (
-          <View style={styles.sessionBadge}>
-            <View style={styles.sessionDot} />
-            <Text style={styles.sessionText}>{t("join.sessionActive")}</Text>
+        {/* Resume-banner: visas när användaren har en pågående promenad
+            i den här sessionen. Ersätter "session aktiv"-badgen — bägge
+            samtidigt är överflödigt och tar fokus från Fortsätt-knappen. */}
+        {resumeState ? (
+          <View style={styles.resumeBadge}>
+            <Text style={styles.resumeEmoji}>⏯️</Text>
+            <Text style={styles.resumeText}>
+              {t("join.resumeBanner", {
+                answered: resumeState.answers.length,
+                total: walk.questions.length,
+              })}
+            </Text>
           </View>
+        ) : (
+          existingSessionId && (
+            <View style={styles.sessionBadge}>
+              <View style={styles.sessionDot} />
+              <Text style={styles.sessionText}>{t("join.sessionActive")}</Text>
+            </View>
+          )
         )}
 
         {/* Name input */}
@@ -263,6 +322,8 @@ export default function JoinWalkScreen() {
                 ? t("join.notOpenButton")
                 : eventEnded
                 ? t("join.showLeaderboard")
+                : resumeState
+                ? t("join.resumeButton")
                 : t("join.startButton")}
             </Text>
           )}
@@ -400,6 +461,28 @@ const styles = StyleSheet.create({
   },
   eventTextMuted: {
     color: "#8A9A8D",
+  },
+
+  // Resume badge — visas när det finns en pågående promenad att fortsätta
+  resumeBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF4E5",
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: "#FFD8A8",
+  },
+  resumeEmoji: {
+    fontSize: 20,
+  },
+  resumeText: {
+    color: "#8C5A1A",
+    fontSize: 14,
+    fontWeight: "600",
+    flex: 1,
   },
 
   // Session badge

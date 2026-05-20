@@ -322,6 +322,36 @@ async function getParticipants(sessionId: string): Promise<Participant[]> {
 }
 
 /**
+ * Hämtar EN deltagare ur en session (engångs-läsning) — används av
+ * JoinWalkScreen för att detektera "användaren har redan startat den
+ * här promenaden och avbröt mitt i". Om dokumentet finns och har svar
+ * men inget `completedAt`, är det en pågående promenad som kan återupptas.
+ *
+ * Returnerar `null` om sessionen saknas, deltagaren inte är med, eller vid
+ * offline/permission-fel — så att resume-flödet alltid faller tillbaka på
+ * att starta en fräsch promenad i stället för att hänga sig.
+ */
+export async function getParticipant(
+  sessionId: string,
+  participantId: string
+): Promise<Participant | null> {
+  try {
+    const ref = doc(
+      db,
+      SESSIONS_COLLECTION,
+      sessionId,
+      PARTICIPANTS_SUBCOLLECTION,
+      participantId
+    );
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return null;
+    return snap.data() as Participant;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Lägger till en deltagare i en session genom att skriva ett dokument i
  * subkollektionen `sessions/{sessionId}/participants/{participantId}`.
  * Firestore-reglerna kräver att `participantId === auth.uid`.

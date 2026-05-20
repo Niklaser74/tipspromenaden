@@ -657,30 +657,34 @@ Plocka det som passar humöret. Förslag i grov ordning:
    screenshots 6.9"/6.5", App Privacy-label, metadata, submit för
    review. Post-launch (ej blockerare):
    Universal Links, iOS App Check Stage 3 (DeviceCheck).
-4. **Ljudeffekter + haptics** — PÅGÅR 2026-05-19. Pling/fel-ton/
-   completion-jingel + haptik vid kontroll-ankomst & rätt/fel.
-   `expo-haptics` + `expo-audio` är native deps → **inte OTA**, kräver
-   ny AAB + iOS-build. Settings-toggle "Ljud & vibration".
-5. **Accessibility-pass** — VoiceOver/TalkBack-labels.
-6. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
+4. **Ljudeffekter + haptics** — ✅ KLART 1.9.0.
+5. **Pause & resume — proaktiva entry-points** — basics (auto-resume
+   via JoinWalkScreen + hydrerad ActiveWalkScreen) gjort 2026-05-20
+   som OTA. Kvar: (a) chip i `MyWalksList` "Pågående · 5/10 · Fortsätt"
+   som best-effort kollar `findActiveSession` per egen-sparad walk
+   och visar live-progress; (b) banner i `HomeScreen` "Du har en
+   pågående promenad" som genväg utan att gå via biblioteket.
+   Båda kan skickas som OTA. Lågprio tills vi sett att basics används.
+6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
+7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
    V1-signaler känns för svaga).
-7. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
+8. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
    delning av färdiga rutter (Fas 2 fortsättning).
-8. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
-9. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
+9. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
+10. **Slug-sanering vid tipspack-upload** — befintlig upload tillåter
     spaces och &-tecken i slug (`djur & natur`) → fula procent-encodade
     URL:er. Sanitera till hyphen-form vid upload på webben.
-10. **Cloud Function för score-validering** — flytta poäng-uträkning
+11. **Cloud Function för score-validering** — flytta poäng-uträkning
     serverside så klient-inflaterad score inte går igenom. Kvarvarande
     accepterad svaghet enligt sec-review 2026-05-04. Kräver Firebase
     Functions-setup (Blaze-plan, men gratis-tier räcker för hobby-volym).
-11. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
+12. **Astro 5→6 major bump på webben** — uppskjuten. Den enda Astro-CVE
     som finns (`GHSA-j687-52p2-xcff`, `define:vars` XSS) påverkar oss
     inte praktiskt eftersom vi inte använder `define:vars`. Bumpen
     kostar 1–3 h och kan bryta Cloudflare Pages-byggen. Gör när Astro 6
     varit ute ≥1 månad och alla `@astrojs/*`-integrations är v6-klara,
     eller när vi ändå rör build-pipelinen.
-12. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
+13. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
     är på och vi sett Monitor-läget gå rent ett tag, flippa både
     Firestore och Storage från Monitor till Enforce i Firebase Console.
 13. **Slug-byte vid redigering av tipspack** — admin-editor:n låser

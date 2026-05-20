@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Logga in med Apple (iOS). Plus ljud & vibration: pling vid rätt svar, ton vid fel, jingel när promenaden är klar — stäng av under Inställningar.",
-        en: "Sign in with Apple (iOS). Plus sound & vibration: a ping on correct answers, a tone on wrong, a jingle when the walk is done — turn it off under Settings.",
+        sv: "Fortsätt en pågående promenad. Stänger du appen mitt i en runda dyker en 'Fortsätt promenaden'-knapp upp när du öppnar samma promenad igen — dina tidigare svar finns kvar och du börjar där du slutade.",
+        en: "Resume an in-progress walk. Close the app mid-round and a 'Resume walk' button appears next time you open the same walk — your previous answers are kept and you pick up where you left off.",
       },
     },
   },

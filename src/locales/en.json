@@ -350,6 +350,8 @@
     "endedAt": "Ended: {{date}}",
     "dateRange": "{{start}} — {{end}}",
     "sessionActive": "Active session — you're joining an ongoing round",
+    "resumeBanner": "You have a walk in progress here — {{answered}}/{{total}} answered. Pick up where you left off.",
+    "resumeButton": "Resume walk",
     "updatedNotice": "The walk was updated by the creator — you have the latest version",
     "startButton": "Start the walk",
     "notOpenButton": "Not open yet",

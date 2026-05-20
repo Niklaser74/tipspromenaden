@@ -181,6 +181,39 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-20 — Fortsätt en pågående promenad
+
+Om du stänger appen mitt i en promenad och öppnar samma promenad igen
+visas nu en "Fortsätt promenaden"-knapp (eller "Resume walk") med en
+banner som säger hur många frågor du redan svarat på. Dina tidigare
+svar och din poäng finns kvar — du börjar exakt där du slutade i
+stället för att tappa progressen och börja om från fråga 1.
+
+Tekniskt: route till `JoinWalkScreen` får en ny resume-detektion via
+ny `getParticipant(sid, uid)`-helper. Om uid:t redan är deltagare med
+oavslutade svar i sessionen hydrerar `ActiveWalkScreen` state från
+Firestore-doken (`existingAnswers`, `existingScore` route-params).
+Datamodellen rörs inte — Firestore-deltagare har alltid varit durabla,
+det här är ren UX/routing-fix.
+
+Kvar i roadmappen (#5): proaktiv "Pågående · X/Y · Fortsätt"-chip i
+biblioteket + Home-banner som genväg, utan att gå via biblioteket först.
+
+**Release notes (svenska):**
+
+> Fortsätt en pågående promenad. Stänger du appen mitt i en runda
+> dyker en "Fortsätt promenaden"-knapp upp när du öppnar samma
+> promenad igen — dina tidigare svar finns kvar och du börjar där
+> du slutade.
+
+**Release notes (English):**
+
+> Resume an in-progress walk. Close the app mid-round and a
+> "Resume walk" button appears next time you open the same walk —
+> your previous answers are kept and you pick up where you left off.
+
+---
+
 ### AAB 1.9.1 — Sign in with Apple (iOS, Guideline 4.8)
 
 iOS-only native-tillägg (`expo-apple-authentication`). Android 1.9.0

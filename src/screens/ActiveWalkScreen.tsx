@@ -57,17 +57,35 @@ export default function ActiveWalkScreen() {
     participantId,
     participantName,
     sessionId: existingSessionId,
+    existingAnswers,
+    existingScore,
   } = route.params as {
     walk: Walk;
     participantId: string;
     participantName: string;
     sessionId?: string;
+    // Resume-läge: JoinWalkScreen detekterade att uid:t redan är deltagare
+    // i sessionen med oavslutade svar. Hydrera state istället för att
+    // börja om från fråga 1. addParticipant nedan är idempotent → säkert
+    // att kalla även när deltagaren redan finns.
+    existingAnswers?: Answer[];
+    existingScore?: number;
   };
 
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
-  const [answers, setAnswers] = useState<Answer[]>([]);
-  const [answeredIds, setAnsweredIds] = useState<Set<string>>(new Set());
+  // Hydrera answers + answeredIds från resume-state. Vid kall-start är
+  // bägge tomma; vid fortsätt får vi tillbaka svarslistan från Firestore.
+  // Notera: svaren är index-baserade mot frågans `options`, så om
+  // skaparen har ändrat frågordningen (questions reorderade) sedan
+  // sessionsstart blir hydratiseringen fel. JoinWalkScreen kör redan
+  // refreshSavedWalk INNAN den hittar resume-state, men om skaparen
+  // ändrat efter det får vi leva med en mindre risk för fel-mapping
+  // tills #7 (.tipswalk-formatet) ger stabila question-ID:n.
+  const [answers, setAnswers] = useState<Answer[]>(existingAnswers || []);
+  const [answeredIds, setAnsweredIds] = useState<Set<string>>(
+    () => new Set((existingAnswers || []).map((a) => a.questionId))
+  );
   const [sessionId, setSessionId] = useState<string | null>(
     existingSessionId || null
   );
