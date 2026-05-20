@@ -13,7 +13,11 @@ import {
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { Walk, Answer } from "../types";
-import { findActiveSession, getParticipant } from "../services/firestore";
+import {
+  findActiveSession,
+  getParticipant,
+  updateParticipant,
+} from "../services/firestore";
 import { signInAnonymousUser } from "../services/auth";
 import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -122,7 +126,66 @@ export default function JoinWalkScreen() {
     };
   }, [initialWalk.id]);
 
-  const handleStart = async () => {
+  // "Starta om från början" — visas bara i resume-läge. Bekräftar först
+  // (destruktivt: ersätter befintliga answers + score på Firestore-docen
+  // när användaren börjar svara igen, eftersom updateParticipant kör
+  // setDoc utan merge). Vi behöver inte rensa Firestore själva — nästa
+  // svar i en tom answers-array kommer att skriva över hela docen.
+  const handleRestart = () => {
+    Alert.alert(
+      t("join.restartTitle"),
+      t("join.restartMessage", {
+        answered: resumeState?.answers.length ?? 0,
+        score: resumeState?.score ?? 0,
+      }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("join.restartConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            // Rensa lokalt först så UI:t reagerar omedelbart.
+            const savedName = resumeState?.savedName || name.trim();
+            setResumeState(null);
+
+            // Rensa även Firestore-doken till noll-tillstånd direkt.
+            // Annars: om användaren avbryter innan första nya svaret
+            // landar, blir gamla state synligt igen vid nästa öppning
+            // (resume-detektionen i useEffect ovan slår till på de
+            // gamla answers + score). updateParticipant kör setDoc
+            // utan merge → ersätter hela doken. Tyst try/catch eftersom
+            // offline-fall hanteras av samma logik i ActiveWalkScreen
+            // (första svaret efter restart skriver över oavsett).
+            const uid = auth.currentUser?.uid;
+            if (existingSessionId && uid) {
+              try {
+                await updateParticipant(
+                  existingSessionId,
+                  {
+                    id: uid,
+                    name: savedName,
+                    answers: [],
+                    score: 0,
+                  },
+                  isEvent
+                );
+              } catch {
+                // Offline / completed session — ignorera, lokala state
+                // räcker för att ge användaren en ren start.
+              }
+            }
+
+            // Skicka explicit `freshStart: true` så handleStart inte
+            // läser från (eventuellt-stale) resumeState i closure:n.
+            handleStart({ freshStart: true });
+          },
+        },
+      ]
+    );
+  };
+
+  const handleStart = async (opts?: { freshStart?: boolean }) => {
+    const freshStart = !!opts?.freshStart;
     if (!name.trim()) {
       Alert.alert(t("join.enterNameTitle"), t("join.enterNameMessage"));
       return;
@@ -191,9 +254,12 @@ export default function JoinWalkScreen() {
       // Resume-läge: skicka med befintliga svar + score så ActiveWalk
       // hydrerar state istället för att börja om. addParticipant där är
       // ändå idempotent (firestore.ts), så det är säkert att resa om
-      // vid liten race med en parallell skrivning.
-      existingAnswers: resumeState?.answers,
-      existingScore: resumeState?.score,
+      // vid liten race med en parallell skrivning. Vid freshStart skickar
+      // vi medvetet undefined → ActiveWalkScreen börjar på fråga 1 med
+      // tom score, och första updateParticipant skriver över den gamla
+      // Firestore-doken (setDoc utan merge).
+      existingAnswers: freshStart ? undefined : resumeState?.answers,
+      existingScore: freshStart ? undefined : resumeState?.score,
     });
     setLoading(false);
   };
@@ -299,7 +365,7 @@ export default function JoinWalkScreen() {
             // dyker upp när namnet redan är korrekt förifyllt.
             autoFocus={!initialName}
             returnKeyType="go"
-            onSubmitEditing={handleStart}
+            onSubmitEditing={() => handleStart()}
           />
           <Text style={styles.privacyHint}>{t("join.privacyHint")}</Text>
         </View>
@@ -310,7 +376,7 @@ export default function JoinWalkScreen() {
             styles.startButton,
             (!eventActive || loading) && styles.startButtonDisabled,
           ]}
-          onPress={handleStart}
+          onPress={() => handleStart()}
           disabled={loading}
           activeOpacity={0.8}
         >
@@ -328,6 +394,22 @@ export default function JoinWalkScreen() {
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* Sekundärknapp "Starta om från början" — visas bara i resume-
+            läge, inte vid första-gångs-start. Diskret stil (text-only)
+            så den inte konkurrerar med Fortsätt-knappen visuellt. */}
+        {resumeState && !eventNotStarted && !eventEnded && (
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={handleRestart}
+            disabled={loading}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.restartButtonText}>
+              {t("join.restartButton")}
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {!eventNotStarted && !eventEnded && (
           <Text style={styles.hint}>{t("join.gpsHint")}</Text>
@@ -568,6 +650,20 @@ const styles = StyleSheet.create({
     color: "#F5F0E8",
     fontSize: 18,
     fontWeight: "700",
+  },
+
+  // Restart-knapp — text-only, diskret färg så Fortsätt-knappen behåller
+  // visuell tyngd. Större tap-yta (paddingVertical 14) för att vara
+  // bekväm utan att dra blicken till sig.
+  restartButton: {
+    paddingVertical: 14,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  restartButtonText: {
+    color: "#8C5A1A",
+    fontSize: 15,
+    fontWeight: "600",
   },
 
   // Hint

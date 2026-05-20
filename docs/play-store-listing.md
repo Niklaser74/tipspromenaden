@@ -181,7 +181,37 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
-### OTA 2026-05-20 — Fortsätt en pågående promenad
+### OTA 2026-05-20 (II) — "Starta om från början"-knapp
+
+Komplement till resume-funktionen från OTA (I) — när en pågående
+promenad upptäcks visas nu också en sekundärknapp "Starta om från
+början" under "Fortsätt"-knappen. Trycker man den får man en
+bekräftelsedialog som visar nuvarande progress ("Du har 5 besvarade
+frågor och 3 poäng") och måste explicit godkänna. Vid bekräftelse
+nollställs både lokala state och Firestore-deltagardokumentet (via
+`updateParticipant` med tom answers + score=0) så att en avbruten
+restart inte hänger kvar gammal state till nästa öppning.
+
+UX-motivation: vissa vill köra om en kasspromenad utan att den gamla
+scoren skuggar topplistan. Lättare än att radera kontot.
+
+**Release notes (svenska):**
+
+> Vill du börja om i stället för att fortsätta? Nu finns en
+> "Starta om från början"-knapp under Fortsätt-knappen när du har
+> en pågående promenad. Bekräftelsedialog så du inte råkar nolla
+> poängen av misstag.
+
+**Release notes (English):**
+
+> Prefer to restart instead of continuing? There's now a "Start
+> over from the beginning" button below the Resume button when
+> you have a walk in progress. A confirmation dialog keeps you
+> from accidentally resetting your score.
+
+---
+
+### OTA 2026-05-20 (I) — Fortsätt en pågående promenad
 
 Om du stänger appen mitt i en promenad och öppnar samma promenad igen
 visas nu en "Fortsätt promenaden"-knapp (eller "Resume walk") med en

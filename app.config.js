@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fortsätt en pågående promenad. Stänger du appen mitt i en runda dyker en 'Fortsätt promenaden'-knapp upp när du öppnar samma promenad igen — dina tidigare svar finns kvar och du börjar där du slutade.",
-        en: "Resume an in-progress walk. Close the app mid-round and a 'Resume walk' button appears next time you open the same walk — your previous answers are kept and you pick up where you left off.",
+        sv: "Vill du börja om i stället för att fortsätta? Nu finns en 'Starta om från början'-knapp under Fortsätt-knappen när du har en pågående promenad. Bekräftelsedialog så du inte råkar nolla poängen av misstag.",
+        en: "Prefer to restart instead of continuing? There's now a 'Start over from the beginning' button below the Resume button when you have a walk in progress. A confirmation dialog keeps you from accidentally resetting your score.",
       },
     },
   },
