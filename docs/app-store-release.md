@@ -1,6 +1,7 @@
 # iOS App Store — publikt släpp (checklista + förberett material)
 
-Nuläge: 1.8.0 build 12 verifierad på TestFlight (intern). Detta dokument
+Nuläge: 1.9.1 build 21 verifierad på TestFlight (intern) — Apple-login
+fungerar. Detta dokument
 har allt som behövs för att gå från TestFlight → publik App Store-
 release. Mekaniskt material är förberett här; stegen markerade
 **[DU]** kräver inloggning i App Store Connect.
@@ -10,20 +11,13 @@ Komplement till `docs/ios-setup.md` (bygg/credentials) och
 
 ---
 
-## ✅ Guideline 4.8 — LÖST via Plan B (Sign in with Apple)
+## ✅ Guideline 4.8 — LÖST & VERIFIERAT via Plan B (Sign in with Apple)
 
-Plan B implementerad 2026-05-19 (1.9.1) — vi eliminerar 4.8-risken
-istället för att åberopa undantag. Appen har nu BÅDE Sign in with
-Apple, Google-login OCH anonymt deltagarläge. `auth.ts
-signInWithApple` + Apples officiella knapp i LoginScreen (iOS 13+).
-
-> 🔴 **OBLIGATORISKT MANUELLT STEG INNAN iOS-LOGIN FUNGERAR:**
-> aktivera Apple som inloggningsleverantör i Firebase Console:
-> Authentication → Sign-in method → **Apple** → Enable → Save.
-> (Service ID / OAuth-config behövs INTE för enbart iOS-appen —
-> bara att providern är på.) Utan detta ger Apple-login
-> `auth/invalid-credential`. Testa på TestFlight innan App Store-
-> submit.
+Plan B implementerad 2026-05-19, verifierad på TestFlight 2026-05-20
+(1.9.1 build 21) — Apple-login fungerar end-to-end på iPhone. Appen
+har nu BÅDE Sign in with Apple, Google-login OCH anonymt deltagarläge.
+`auth.ts signInWithApple` + Apples officiella knapp i LoginScreen
+(iOS 13+). Apple-provider aktiverad i Firebase Console 2026-05-20.
 
 ---
 

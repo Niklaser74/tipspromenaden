@@ -1,8 +1,8 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-20 — **Sign in with Apple på TestFlight**
-> (1.9.1 build 21; Guideline 4.8 löst via Plan B + dokumenterat
-> profil-regen-flöde efter ny capability i `docs/ios-setup.md` #9)
+> Senast uppdaterad: 2026-05-20 — **Sign in with Apple verifierad på
+> TestFlight** (1.9.1 build 21; Apple-login fungerar end-to-end →
+> Guideline 4.8 löst via Plan B, inte bara åberopad)
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
@@ -651,10 +651,11 @@ Plocka det som passar humöret. Förslag i grov ordning:
    bygget krävde manuell Sign-In-with-Apple-capability-toggle i
    Apple Developer Portal + rensning av cachad provisioning profile
    i Expo Dashboard + `EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` env-var —
-   recept i `docs/ios-setup.md` §6b + #9. **Återstår före publik
-   App Store-release:** verifiera Apple-login på TestFlight,
-   [DU]-steg i ASC (screenshots 6.9"/6.5", App Privacy-label,
-   metadata), submit för review. Post-launch (ej blockerare):
+   recept i `docs/ios-setup.md` §6b + #9. Apple-login verifierad
+   på iPhone 2026-05-20. **Återstår före publik App Store-release**
+   (alla [DU]-steg, dokumenterade i `docs/app-store-release.md`):
+   screenshots 6.9"/6.5", App Privacy-label, metadata, submit för
+   review. Post-launch (ej blockerare):
    Universal Links, iOS App Check Stage 3 (DeviceCheck).
 4. **Ljudeffekter + haptics** — PÅGÅR 2026-05-19. Pling/fel-ton/
    completion-jingel + haptik vid kontroll-ankomst & rätt/fel.
