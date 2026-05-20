@@ -548,6 +548,19 @@ via `eas update`.
 
 
 
+**Fallgrop — version-skev mellan plattformar bryter Android-OTA:**
+När iOS bumpades 1.9.0→1.9.1 för Sign in with Apple men Android prod
+stannade på 1.9.0 (build 23), publicerades alla `npm run update:all`-
+OTA:er till runtime 1.9.1 (eftersom app.config.js `version`-fältet
+styr `runtimeVersion`). Konsekvens: Android-prod-användare fick aldrig
+OTA:n eftersom deras runtime är 1.9.0. Fix: temporärt sätt
+`version: "1.9.0"` i app.config.js, kör `eas update --branch <b>
+--environment production --message "..." --non-interactive` mot bägge
+branches, återställ version. (`update-all.mjs`s release-notes-gate
+hoppar du genom att gå direkt på `eas update`.) Inträffar varje gång
+plattformarna har olika `version`-värden; jämna till så snart möjligt
+genom att synka Android med en ny AAB.
+
 `eas.json` binder varje build-profil till en EAS-channel:
 - `preview` → `channel: "preview"`
 - `internal` → `channel: "internal"`
