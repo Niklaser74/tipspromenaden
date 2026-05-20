@@ -181,6 +181,53 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-20 (IV) — Bibliotek Iteration 4: kart-vy i Upptäck
+
+Ny sub-toggle "📋 Lista / 📍 Karta" i Bibliotek → Upptäck. Karta-läget
+renderar `LibraryMapView` (ny komponent) med klustrade pins:
+
+- Vid utzoomning (latitudeDelta ≥ 0.5 = land/region): grov klustring,
+  bucket = delta/6, kluster-pin med antal "5".
+- Mellan (≥ 0.05 = stad): finkornig klustring, bucket = delta/8.
+- Inzoomad (< 0.05 = kvarter): inga kluster, alla walks individuellt.
+
+Pins är färg-kodade (röd = promenad 🚶, blå = cykel 🚲) på walks
+`centroid`-fält som redan auto-beräknas vid save. Tryck kluster →
+animateToRegion till klustrets bbox. Tryck walk-pin → bottom-sheet
+preview-kort med titel, kontrollantal, stad, avstånd (om "nära mig"
+aktivt) + Spela-knapp som routar via befintliga `joinWalk` (samma
+safety-disclaimer-flöde som lista-vyn).
+
+Implementation:
+- `src/components/LibraryMapView.tsx` (NY, ~370 rader). Egen-rullad
+  klustring (grid-bucketing baserat på `region.latitudeDelta`).
+- LibraryScreen får `discoverView`-state och gating på alla
+  `tab === "walks"`-block.
+- Walks utan `centroid` (gamla utkast) hoppas över tyst.
+- Convex/concave hull-rendering inte med i V1 (vänta tills datat
+  visar att det behövs — vid 200+ walks är pins och kluster
+  tillräckligt informativt).
+
+Inga native deps — använder befintliga `react-native-maps`-primitives
+(MapView, Marker). OTA-bart.
+
+**Release notes (svenska):**
+
+> Hitta promenader på karta. Bibliotek → Upptäck har nu en växel
+> 📋 Lista / 📍 Karta. Kartan visar publika promenader som nålar på
+> sina mittpunkter — vid utzoomning klustras de ihop ("5
+> promenader"), tryck på ett kluster för att zooma in. Tryck en nål
+> för förhandsgranskning + Spela-knapp.
+
+**Release notes (English):**
+
+> Discover walks on a map. Library → Discover now has a 📋 List /
+> 📍 Map toggle. The map shows public walks as pins on their
+> centers — zooming out clusters them together ("5 walks"), tap a
+> cluster to zoom in. Tap a pin for preview + Play button.
+
+---
+
 ### OTA 2026-05-20 (III) — Tvinga ordning på kontrollerna (skapar-opt-in)
 
 Ny per-walk-toggle i CreateWalkScreen → "Tvinga ordning på

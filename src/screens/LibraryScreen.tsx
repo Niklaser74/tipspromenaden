@@ -51,9 +51,11 @@ import { getCurrentLocation, getDistanceInMeters, formatDistance } from "../util
 import { WALK_CATEGORIES } from "../constants/categories";
 import { Walk } from "../types";
 import MyWalksList from "../components/MyWalksList";
+import LibraryMapView from "../components/LibraryMapView";
 import { getSavedWalks } from "../services/storage";
 
 type LibraryTab = "mine" | "walks" | "events" | "tipspack";
+type DiscoverView = "list" | "map";
 
 export default function LibraryScreen() {
   const navigation = useNavigation<any>();
@@ -69,6 +71,11 @@ export default function LibraryScreen() {
   // (= Upptäck). Detta gör att skapare som ofta vill tillbaka till sina
   // egna promenader inte behöver byta flik varje gång.
   const [tab, setTab] = useState<LibraryTab>(initialTab ?? "mine");
+  // Upptäck-fliken har en sub-toggle "📋 Lista / 📍 Karta". Persistas
+  // inte mellan sessioner — defaultar till lista varje gång eftersom
+  // listan har bättre sök-/filter-stöd. Karta är för spontan
+  // upptäckt "vad finns nära mig?".
+  const [discoverView, setDiscoverView] = useState<DiscoverView>("list");
   useEffect(() => {
     if (initialTab) return;
     let cancelled = false;
@@ -688,7 +695,47 @@ export default function LibraryScreen() {
         </View>
       )}
 
+      {/* Sub-toggle "📋 Lista / 📍 Karta" — visas bara på Upptäck-fliken
+          när walks-datan laddats. Karta visar publika walks som pins på
+          centroid-koordinaterna, med automatisk klustring vid utzoomning. */}
       {tab === "walks" && walks !== null && walks.length > 0 && (
+        <View style={styles.viewToggleRow}>
+          <TouchableOpacity
+            onPress={() => setDiscoverView("list")}
+            style={[
+              styles.viewToggle,
+              discoverView === "list" && styles.viewToggleActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.viewToggleText,
+                discoverView === "list" && styles.viewToggleTextActive,
+              ]}
+            >
+              📋 {t("library.viewList")}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setDiscoverView("map")}
+            style={[
+              styles.viewToggle,
+              discoverView === "map" && styles.viewToggleActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.viewToggleText,
+                discoverView === "map" && styles.viewToggleTextActive,
+              ]}
+            >
+              📍 {t("library.viewMap")}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {tab === "walks" && discoverView === "list" && walks !== null && walks.length > 0 && (
         <View style={styles.flagRow}>
           <TouchableOpacity
             onPress={toggleNearMe}
@@ -718,6 +765,19 @@ export default function LibraryScreen() {
         </View>
       )}
 
+      {/* Kart-vy: ersätter listan + dess filter-/sortchip när aktiv.
+          filteredWalks respekterar fortfarande sök/kategori/språk men
+          inte "nära mig" (kartan visar geografi naturligt, så
+          "nära mig"-sortering är överflödig — vi lägger heller inte
+          en cirkel runt användaren i V1). */}
+      {tab === "walks" && discoverView === "map" && walks !== null && (
+        <LibraryMapView
+          walks={filteredWalks}
+          userLocation={userLocation}
+          onSelect={joinWalk}
+        />
+      )}
+
       {error && <Text style={styles.error}>{error}</Text>}
 
       {tab === "tipspack" && !showMine && packs === null && !error && (
@@ -727,7 +787,7 @@ export default function LibraryScreen() {
         </View>
       )}
 
-      {tab === "walks" && walks === null && !error && (
+      {tab === "walks" && discoverView === "list" && walks === null && !error && (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#1B6B35" />
           <Text style={styles.loadingText}>{t("library.loading")}</Text>
@@ -742,7 +802,7 @@ export default function LibraryScreen() {
         </Text>
       )}
 
-      {tab === "walks" && walks !== null && walksToRender.length === 0 && (
+      {tab === "walks" && discoverView === "list" && walks !== null && walksToRender.length === 0 && (
         <Text style={styles.empty}>
           {searchTerm || selectedCategories.size > 0 || selectedLanguages.size > 0
             ? t("library.noMatch")
@@ -809,7 +869,7 @@ export default function LibraryScreen() {
         </ScrollView>
       )}
 
-      {tab === "walks" && (
+      {tab === "walks" && discoverView === "list" && (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
           {walksToRender.map(({ walk, placedCount, distance }) => (
             <View key={walk.id} style={styles.card}>
@@ -1161,6 +1221,35 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     paddingBottom: 12,
+  },
+  // Sub-toggle "Lista / Karta" — pill-grupp segmenterad. Lite tyngre
+  // visuell vikt än chips eftersom det styr hela vyn, inte ett filter.
+  viewToggleRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  viewToggle: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    alignItems: "center",
+  },
+  viewToggleActive: {
+    backgroundColor: "#1B6B35",
+    borderColor: "#1B6B35",
+  },
+  viewToggleText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2C3E2D",
+  },
+  viewToggleTextActive: {
+    color: "#F5F0E8",
   },
   flagChip: {
     paddingHorizontal: 12,

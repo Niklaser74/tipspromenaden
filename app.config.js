@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Skapare kan nu tvinga deltagarna att besöka kontrollerna i ordning. Aktiveras per promenad i Inställningar → 'Tvinga ordning på kontrollerna'. Övriga kontroller visas som låsta (🔒) på kartan tills föregående är besvarad.",
-        en: "Creators can now require participants to visit checkpoints in order. Enable per walk under Settings → 'Require checkpoints in order'. Other checkpoints appear locked (🔒) on the map until the previous one has been answered.",
+        sv: "Hitta promenader på karta. Bibliotek → Upptäck har nu en växel 📋 Lista / 📍 Karta. Kartan visar publika promenader som nålar på sina mittpunkter — vid utzoomning klustras de ihop (\"5 promenader\"), tryck på ett kluster för att zooma in. Tryck en nål för förhandsgranskning + Spela-knapp.",
+        en: "Discover walks on a map. Library → Discover now has a 📋 List / 📍 Map toggle. The map shows public walks as pins on their centers — zooming out clusters them together (\"5 walks\"), tap a cluster to zoom in. Tap a pin for preview + Play button.",
       },
     },
   },

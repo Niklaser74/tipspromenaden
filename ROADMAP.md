@@ -668,16 +668,12 @@ Plocka det som passar humöret. Förslag i grov ordning:
 6. **Accessibility-pass** — VoiceOver/TalkBack-labels.
 7. **Bibliotek Iteration 3** — ❤️-knapp + skapar-profilsida (bara om
    V1-signaler känns för svaga).
-8. **Bibliotek Iteration 4 — kart-vy ("Upptäck på karta")** — sub-
-   toggle "📍 Karta / 📋 Lista" i Upptäck-fliken. Tre zoom-nivåer:
-   (a) utzoomad → kluster "5 walks här" (`react-native-map-clustering`
-   eller hand-rullad grid-bucketing); (b) mellan → 1 pin per walk på
-   `centroid`-fältet (finns redan, auto-beräknad vid save); (c)
-   inzoomad → faktiska question-coordinaterna + skuggat område
-   (Polygon från convex hull, Graham scan ~30 rader). Tryck pin →
-   preview-kort med "Starta"-knapp. Filtreras mot
-   `moderation/hidden`. OTA-bart (bara JS, react-native-maps primitives
-   redan länkade). Estimat 4–6 dagar.
+8. **Bibliotek Iteration 4 — kart-vy ("Upptäck på karta")** — ✅
+   KLART 2026-05-20 (V1). Sub-toggle "📋 Lista / 📍 Karta" i Upptäck;
+   `LibraryMapView` med hand-rullad grid-bucketing-klustring (tre
+   nivåer baserat på latitudeDelta), pin per walk på `centroid`,
+   preview-kort vid pin-tap. Convex/concave hull-polygon ej i V1
+   (vänta tills datat visar att det behövs).
 9. **`.tipswalk`-filformat** — paket med både frågor OCH koordinater för
    delning av färdiga rutter (Fas 2 fortsättning).
 10. **Pausläge för cykelläge** — vid trafikljus etc, beroende på cykeltest-feedback.
