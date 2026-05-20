@@ -353,6 +353,14 @@ export default function CreateWalkScreen() {
   const [activityType, setActivityType] = useState<"walk" | "bike">(
     existingWalk?.activityType ?? "walk"
   );
+  // Strict-order: tvinga deltagarna att besöka kontrollerna i ordning
+  // (#1, #2, #3 ...). Default av — bakåtkompatibelt fri-läge där
+  // närmaste obesvarade triggas. Opt-in per walk eftersom vissa
+  // promenader (orientering, narrativ stadsvandring) tjänar på det
+  // medan andra (familjequiz i park) ska vara fria.
+  const [enforceSequentialOrder, setEnforceSequentialOrder] = useState(
+    !!existingWalk?.enforceSequentialOrder
+  );
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
   // Sammanslaget "Inställningar"-block för att inte ta upp kartytan i
@@ -363,7 +371,8 @@ export default function CreateWalkScreen() {
   const [showSettings, setShowSettings] = useState(
     !!existingWalk?.event ||
       !!existingWalk?.public ||
-      existingWalk?.activityType === "bike"
+      existingWalk?.activityType === "bike" ||
+      !!existingWalk?.enforceSequentialOrder
   );
 
   // Språk — ny promenad defaultar till "sv" (eller batteriets språk om
@@ -938,6 +947,9 @@ export default function CreateWalkScreen() {
         // Spara bara aktivitetstyp om != default ("walk"). Håller äldre
         // promenader bakåtkompatibla — saknas fältet räknas det som walk.
         ...(activityType !== "walk" ? { activityType } : {}),
+        // Strict-order: bara persistera om aktivt, så äldre walks
+        // (utan fältet) fortsätter behandlas som fri-läge.
+        ...(enforceSequentialOrder ? { enforceSequentialOrder: true } : {}),
       };
 
       // Spara till Firebase (setDoc upserts automatiskt)
@@ -1377,6 +1389,33 @@ export default function CreateWalkScreen() {
               />
             </View>
           </View>
+        )}
+
+        {/* Strict-order — tvinga kontrollerna i ordning. Visas mellan
+            event och publicera eftersom den är en spel-logik-toggle,
+            inte en distribution-toggle. Lås-emojin ger snabb avläsning
+            (samma symbol som låst-pinen i ActiveWalkScreen). */}
+        <TouchableOpacity
+          style={styles.eventToggle}
+          onPress={() => setEnforceSequentialOrder(!enforceSequentialOrder)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              enforceSequentialOrder && styles.checkboxChecked,
+            ]}
+          >
+            {enforceSequentialOrder && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={styles.eventToggleText}>
+            🔒 {t("create.strictOrderToggle")}
+          </Text>
+        </TouchableOpacity>
+        {enforceSequentialOrder && (
+          <Text style={styles.publishWarning}>
+            {t("create.strictOrderHint")}
+          </Text>
         )}
 
         {/* Publicera till bibliotek */}

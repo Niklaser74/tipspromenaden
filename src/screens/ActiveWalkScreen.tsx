@@ -226,10 +226,32 @@ export default function ActiveWalkScreen() {
         }
       }
 
+      // Strict-order-läge (Walk.enforceSequentialOrder): bara nästa-i-
+      // ordning är "aktiv" för trigger + approaching-vibration + distans-
+      // pill. Övriga obesvarade visas som låsta på kartan (se Marker-
+      // renderingen nedan) men öppnar inte modalen även om användaren
+      // står precis intill. I fri-läge (default, bakåtkompatibelt) körs
+      // hela listan som tidigare → närmaste obesvarade triggar.
+      const allUnanswered = walk.questions.filter(
+        (q) => !answeredIdsRef.current.has(q.id)
+      );
+      const strictMode = !!walk.enforceSequentialOrder;
+      const triggerableQuestions =
+        strictMode && allUnanswered.length > 0
+          ? [
+              [...allUnanswered].sort(
+                (a, b) => (a.order ?? 0) - (b.order ?? 0)
+              )[0],
+            ]
+          : allUnanswered;
+
       let minDist = Infinity;
       let closest: Question | null = null;
 
-      for (const question of walk.questions) {
+      for (const question of triggerableQuestions) {
+        // (Tidigare check `if (answeredIds.has) continue;` är redundant
+        // sedan vi filtrerade ovan, men behålls för defensiv kod om
+        // listan någonsin skulle byggas annorlunda.)
         if (answeredIdsRef.current.has(question.id)) continue;
 
         const dist = getDistanceInMeters(
@@ -532,6 +554,17 @@ export default function ActiveWalkScreen() {
   const progress = answeredIds.size;
   const total = walk.questions.length;
 
+  // Strict-order: id:t på nästa-i-ordning-frågan (eller null när allt
+  // är besvarat). Driver låst-styling på övriga markers + "Gå till
+  // kontroll #N härnäst"-bannern. Rå klient-uträkning per render —
+  // total <= 200 så ingen memo-kostnad värd att infektera koden med.
+  const strictMode = !!walk.enforceSequentialOrder;
+  const nextExpectedQuestion: Question | null = strictMode
+    ? [...walk.questions]
+        .filter((q) => !answeredIds.has(q.id))
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))[0] || null
+    : null;
+
   const getInitialRegion = () => {
     // Bike-walks zoomar ut mer som default — rutterna är längre och
     // cyklisten behöver mer kontext om kommande kontroller.
@@ -586,28 +619,35 @@ export default function ActiveWalkScreen() {
         )}
         {walk.questions.map((q, idx) => {
           const isDone = answeredIds.has(q.id);
+          // L\u00e5st = strict-order \u00e4r p\u00e5, kontrollen \u00e4r obesvarad och INTE
+          // den som \u00e4r n\u00e4st p\u00e5 tur. Renderas d\u00e4mpad + \ud83d\udd12 i st\u00e4llet f\u00f6r
+          // ordningsnummer; trigger-cirkeln d\u00f6ljs s\u00e5 anv\u00e4ndaren visuellt
+          // f\u00f6rst\u00e5r att den inte aktiveras \u00e4n.
+          const isLocked =
+            strictMode && !isDone && nextExpectedQuestion?.id !== q.id;
           const isNearest = nearestQuestion?.id === q.id;
           return (
             <React.Fragment key={q.id}>
               <Marker
                 coordinate={q.coordinate}
-                opacity={isDone ? 0.4 : 1}
+                opacity={isDone ? 0.4 : isLocked ? 0.5 : 1}
               >
                 <View style={styles.markerContainer}>
                   <View
                     style={[
                       styles.marker,
                       isDone && styles.markerDone,
-                      isNearest && !isDone && styles.markerNearest,
+                      isLocked && styles.markerLocked,
+                      isNearest && !isDone && !isLocked && styles.markerNearest,
                     ]}
                   >
                     <Text style={styles.markerText}>
-                      {isDone ? "\u2713" : idx + 1}
+                      {isDone ? "\u2713" : isLocked ? "\ud83d\udd12" : idx + 1}
                     </Text>
                   </View>
                 </View>
               </Marker>
-              {!isDone && (
+              {!isDone && !isLocked && (
                 <Circle
                   center={q.coordinate}
                   radius={TRIGGER_DISTANCE_METERS}
@@ -670,20 +710,29 @@ export default function ActiveWalkScreen() {
         </TouchableOpacity>
       )}
 
-      {/* Distance indicator - floating pill */}
-      <View style={styles.distancePill}>
+      {/* Distance indicator - floating pill.
+          I strict-order-läge byts texten ut: "Nästa: kontroll #N — 78 m"
+          istället för "Avstånd till kontroll #N: 78 m", för att göra
+          tydligt att kontrollen är den som SKA besökas härnäst — inte
+          bara den närmaste. Approaching-prefix och "almost there"-
+          suffix lämnas oförändrade så användaren får samma feedback
+          när de närmar sig rätt kontroll. */}
+      <View style={[styles.distancePill, strictMode && styles.distancePillStrict]}>
         {nearestDistance !== null && nearestQuestion ? (
-          <Text style={styles.distanceText}>
+          <Text style={[styles.distanceText, strictMode && styles.distanceTextStrict]}>
             {nearestDistance <= Math.max(30, APPROACHING_DISTANCE_METERS) && nearestDistance > TRIGGER_DISTANCE_METERS
               ? "📍 "
               : ""}
-            {t("active.distanceToControl", {
-              distance:
-                nearestDistance > 1000
-                  ? `${(nearestDistance / 1000).toFixed(1)} km`
-                  : `${nearestDistance} m`,
-              order: nearestQuestion.order,
-            })}
+            {t(
+              strictMode ? "active.nextInOrder" : "active.distanceToControl",
+              {
+                distance:
+                  nearestDistance > 1000
+                    ? `${(nearestDistance / 1000).toFixed(1)} km`
+                    : `${nearestDistance} m`,
+                order: nearestQuestion.order,
+              }
+            )}
             {nearestDistance <= Math.max(30, APPROACHING_DISTANCE_METERS) && nearestDistance > TRIGGER_DISTANCE_METERS
               ? t("active.almostThere")
               : ""}
@@ -925,6 +974,13 @@ const styles = StyleSheet.create({
   markerDone: {
     backgroundColor: "#2D7A3A",
   },
+  // Låst-stil (strict-order, ej näst på tur): dämpad grå-blå färg så
+  // pinen skiljer sig från både färdig (grön) och nästa (röd). 🔒-emoji
+  // renderas i Text-noden ovan. Inget annat trigger-feedback bör hända
+  // för dessa — loop:n i GPS-callbacken filtrerar bort dem.
+  markerLocked: {
+    backgroundColor: "#6B7B8E",
+  },
   markerNearest: {
     backgroundColor: "#E53935",
     width: 40,
@@ -1048,6 +1104,18 @@ const styles = StyleSheet.create({
       android: { elevation: 4 },
       web: { boxShadow: "0px 2px 8px rgba(0,0,0,0.1)" },
     }),
+  },
+  // Strict-mode-pillens variant: blå ton i bakgrunden så användaren
+  // visuellt registrerar att läget är annorlunda (riktnings-styrt
+  // istället för fri vandring). Layout/positioning är samma.
+  distancePillStrict: {
+    backgroundColor: "rgba(227,239,255,0.97)",
+    borderWidth: 1,
+    borderColor: "#B8D4F0",
+  },
+  distanceTextStrict: {
+    color: "#1B4D7A",
+    fontWeight: "700",
   },
   distanceText: {
     color: "#2C3E2D",

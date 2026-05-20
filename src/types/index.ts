@@ -114,6 +114,15 @@ export interface Walk {
    * walk-kort. Skaparen väljer vid skapande/redigering.
    */
   activityType?: "walk" | "bike";
+  /**
+   * Strict-order-läge — om `true` måste deltagaren besöka kontrollerna
+   * i `order`-fältets ordning (#1 först, sen #2, ...). GPS-triggern
+   * öppnar bara nästa-i-ordning, andra kontroller visas som låsta på
+   * kartan tills föregående är besvarade. Default (saknad/false) =
+   * bakåtkompatibelt fri-läge där närmaste obesvarade triggas.
+   * Skaparen opt-in:ar via toggle i CreateWalk.
+   */
+  enforceSequentialOrder?: boolean;
 }
 
 /**

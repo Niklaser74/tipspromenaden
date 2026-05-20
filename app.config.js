@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Vill du börja om i stället för att fortsätta? Nu finns en 'Starta om från början'-knapp under Fortsätt-knappen när du har en pågående promenad. Bekräftelsedialog så du inte råkar nolla poängen av misstag.",
-        en: "Prefer to restart instead of continuing? There's now a 'Start over from the beginning' button below the Resume button when you have a walk in progress. A confirmation dialog keeps you from accidentally resetting your score.",
+        sv: "Skapare kan nu tvinga deltagarna att besöka kontrollerna i ordning. Aktiveras per promenad i Inställningar → 'Tvinga ordning på kontrollerna'. Övriga kontroller visas som låsta (🔒) på kartan tills föregående är besvarad.",
+        en: "Creators can now require participants to visit checkpoints in order. Enable per walk under Settings → 'Require checkpoints in order'. Other checkpoints appear locked (🔒) on the map until the previous one has been answered.",
       },
     },
   },

@@ -181,6 +181,40 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-20 (III) — Tvinga ordning på kontrollerna (skapar-opt-in)
+
+Ny per-walk-toggle i CreateWalkScreen → "Tvinga ordning på
+kontrollerna". När aktiv låses kontroll #2 tills #1 är besvarad osv.
+GPS-triggern öppnar bara nästa-i-ordning, övriga visas som låsta (🔒,
+grå-blå pin) på kartan utan trigger-cirkel. Distans-pillen byter färg
+till blå och text till "Nästa: kontroll #N — XX m" istället för
+"Avstånd till kontroll #N".
+
+Datamodellen redan kompatibel — `Question.order` finns sen tidigare.
+Ny `Walk.enforceSequentialOrder?: boolean` (opt-in, default fri-läge
+för alla 600+ befintliga walks). Resume-funktionen funkar automatiskt:
+hydrerade svar avgör vilken som är näst-i-ordning vid återupptag.
+
+Strict-order är en spel-logik-toggle (mellan event och publicera i
+Settings-panelen), inte distribution. Hint-text under toggle:n
+förklarar UX för skaparen vid första aktivering.
+
+**Release notes (svenska):**
+
+> Skapare kan nu tvinga deltagarna att besöka kontrollerna i ordning.
+> Aktiveras per promenad i Inställningar → "Tvinga ordning på
+> kontrollerna". Övriga kontroller visas som låsta (🔒) på kartan
+> tills föregående är besvarad.
+
+**Release notes (English):**
+
+> Creators can now require participants to visit checkpoints in
+> order. Enable per walk under Settings → "Require checkpoints in
+> order". Other checkpoints appear locked (🔒) on the map until the
+> previous one has been answered.
+
+---
+
 ### OTA 2026-05-20 (II) — "Starta om från början"-knapp
 
 Komplement till resume-funktionen från OTA (I) — när en pågående
