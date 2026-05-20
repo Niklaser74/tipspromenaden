@@ -1,8 +1,8 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-19 — **iOS verifierat på TestFlight**
-> (build 12; login + 3 navigerings-/UI-buggar från första testet
-> fixade; native-config + felsökning i `docs/ios-setup.md`)
+> Senast uppdaterad: 2026-05-20 — **Sign in with Apple på TestFlight**
+> (1.9.1 build 21; Guideline 4.8 löst via Plan B + dokumenterat
+> profil-regen-flöde efter ny capability i `docs/ios-setup.md` #9)
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är
@@ -642,20 +642,20 @@ Plocka det som passar humöret. Förslag i grov ordning:
    att legitim trafik syns som *verified* i Monitor en stund, sen flippa
    Firestore + Storage till **Enforce** (samordnas med web Stage 1, se
    punkt 13).
-3. **iOS-build** — ✅ KLART & VERIFIERAT 2026-05-19. 1.8.0 build 12
-   på TestFlight, testad på iPhone: login fungerar, navigering OK.
-   10 byggförsök (RNFirebase+static-frameworks) + 4 första-test-buggar
-   (update-prompt/login/ErrorBoundary/JoinWalk-bakåt) — allt i
-   `docs/ios-setup.md` resp. release notes. Apple Developer
+3. **iOS-build** — ✅ KLART & VERIFIERAT. 1.8.0 build 12 + 1.9.1
+   build 21 på TestFlight (Sign in with Apple). Apple Developer
    (individuell), ASC API-nyckel, EAS-credentials på Expo-servern.
    iOS = Apple Maps, App Check Android-only. **Sign in with Apple
-   (Plan B) implementerad 2026-05-19 (1.9.1)** → Guideline 4.8 löst,
-   inte bara åberopad. **Återstår före publik App Store-release:**
-   aktivera Apple-provider i Firebase Console (se docs/app-store-
-   release.md), bygg/verifiera 1.9.1 på TestFlight, [DU]-steg i ASC
-   (screenshots 6.9"/6.5", App Privacy-label, metadata), submit för
-   review. Post-launch (ej blockerare): Universal Links, iOS App
-   Check Stage 3 (DeviceCheck).
+   (Plan B, 1.9.1)** → Guideline 4.8 löst, inte bara åberopad;
+   Apple-provider aktiverad i Firebase Console 2026-05-20. Native-
+   bygget krävde manuell Sign-In-with-Apple-capability-toggle i
+   Apple Developer Portal + rensning av cachad provisioning profile
+   i Expo Dashboard + `EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` env-var —
+   recept i `docs/ios-setup.md` §6b + #9. **Återstår före publik
+   App Store-release:** verifiera Apple-login på TestFlight,
+   [DU]-steg i ASC (screenshots 6.9"/6.5", App Privacy-label,
+   metadata), submit för review. Post-launch (ej blockerare):
+   Universal Links, iOS App Check Stage 3 (DeviceCheck).
 4. **Ljudeffekter + haptics** — PÅGÅR 2026-05-19. Pling/fel-ton/
    completion-jingel + haptik vid kontroll-ankomst & rätt/fel.
    `expo-haptics` + `expo-audio` är native deps → **inte OTA**, kräver

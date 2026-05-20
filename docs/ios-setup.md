@@ -139,6 +139,44 @@ ALDRIG committas.
 
 ---
 
+## 6b. Icke-interaktivt bygge med ny capability/entitlement
+
+När du lägger till en native capability (t.ex. Sign In with Apple,
+Push Notifications, HealthKit) räcker det INTE att bara installera
+expo-pluginen — den befintliga provisioning-profilen är kvar i EAS-
+credentials utan det nya entitlementet, och `eas build --non-interactive`
+återanvänder den utan att fråga Apple om validering ("Skipping
+Provisioning Profile validation on Apple Servers because we aren't
+authenticated").
+
+**Recept (verifierat 1.9.1 Sign in with Apple):**
+
+1. Aktivera capability på App ID:t i Apple Developer Portal manuellt.
+2. Radera Provisioning Profile-raden i Expo Dashboard → Credentials
+   för aktuell profil (`internal` / `production`). Distribution
+   Certificate behålls.
+3. Kör bygget med dessa env-vars satta (alla fem behövs):
+
+   ```
+   EXPO_ASC_API_KEY_PATH=C:\dev\tipspromenaden-app\asc-api-key.p8
+   EXPO_ASC_KEY_ID=277N2CY7RN
+   EXPO_ASC_ISSUER_ID=c797ed81-6b7f-4e89-ae25-900aca0a6d7e
+   EXPO_APPLE_TEAM_ID=X7VP63X96U
+   EXPO_APPLE_TEAM_TYPE=INDIVIDUAL
+   ```
+
+EAS upptäcker att profilen saknas, autentiserar mot Apple via ASC-
+nyckeln, skapar ny profil mot uppdaterade App ID:t, och bygget går
+igenom. ASC API-nyckel räcker här — Apple-ID/app-specific-password
+behövs INTE när TEAM_TYPE är satt.
+
+`EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` är obligatorisk för individuella
+Apple Developer-konton. Utan den failar EAS med "Input is required,
+but stdin is not readable. Failed to display prompt: Select your
+Apple Team Type."
+
+---
+
 ## 7. Saker att veta för just denna app
 
 - **App Check Stage 3 (iOS DeviceCheck)** är inte konfigurerad.
@@ -189,6 +227,7 @@ nästa Expo-SDK-uppgradering / native-cykel inte återupptäcker dem.
 | 6 | Install pods | `Swift pods cannot be integrated as static libraries` (FirebaseCoreInternal/GoogleUtilities) | `$RNFirebaseAsStaticFramework = true` överst i Podfile (via plugin) |
 | 7 | Run fastlane (Xcode) | non-modular header `RNFBApp.*` `-Werror` | `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES` (via plugin, post_install) |
 | 8 | Run fastlane (Xcode) | hela `@react-native-firebase/app-check` ObjC bröts under static frameworks | Exkludera **enbart app-check** på iOS: `react-native.config.js` (pod) + `EAS_BUILD_PLATFORM`-villkor i app.config.js (plugin). app-check är dödkod på iOS (firebase.ts gated på Android). `/app` behålls. |
+| 9 | Run fastlane (Xcode), 1.9.1 | "Provisioning profile doesn't include the Sign In with Apple capability / com.apple.developer.applesignin entitlement" efter att `expo-apple-authentication` lades till | (a) Toggla **Sign In with Apple** på App ID:t i Apple Developer Portal → Identifiers → com.tipspromenaden.app (manuellt, ~30 sek). (b) Radera den cachade Provisioning Profile-raden i Expo Dashboard → Credentials (Distribution Certificate ska behållas). (c) Bygg om med ASC-env-varsen + `EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` (utan team-type-vars promtar EAS efter "Select your Apple Team Type" och faller på `Input is required, but stdin is not readable`). EAS skapar då en ny profil mot uppdaterade App ID:t. |
 
 **Felsökningsteknik:** EAS:s "Unknown error. See logs of the X
 phase" är värdelös. Hämta riktiga loggen programmatiskt:

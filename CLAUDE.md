@@ -533,7 +533,9 @@ Backup av gammal state innan flytt: `C:/Users/niklas.eriksson/_archive/`.
 ### OTA: appVersion-policy + båda branches
 
 `runtimeVersion.policy: "appVersion"` i `app.config.js` — runtime läses
-dynamiskt från `version`-fältet (just nu `"1.5.0"`, build 17). Tidigare körde vi `"fingerprint"`
+dynamiskt från `version`-fältet (just nu `"1.9.1"` på iOS / `"1.9.0"` på
+Android — iOS bumpade till 1.9.1 för Sign in with Apple-bygget medan
+Android-1.9.0/build 23 ligger kvar i Play produktion). Tidigare körde vi `"fingerprint"`
 men det drev isär: EAS-build-servern och `eas update` lokalt hashade
 olika filuppsättningar, så varje build/publicering fick olika runtime-
 hash och OTA:er nådde aldrig fram. appVersion ger deterministisk
