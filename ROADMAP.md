@@ -1,8 +1,11 @@
 # Tipspromenaden — Produktstrategi & Roadmap
 
-> Senast uppdaterad: 2026-05-20 — **Sign in with Apple verifierad på
-> TestFlight** (1.9.1 build 21; Apple-login fungerar end-to-end →
-> Guideline 4.8 löst via Plan B, inte bara åberopad)
+> Senast uppdaterad: 2026-05-20 — **Tät leverans-dag**: Sign in with
+> Apple verifierad på TestFlight (1.9.1 build 21), Plan B för
+> Guideline 4.8 löst. Sex OTA:er ut: resume in-progress walk +
+> restart-knapp, strict-order (skapar-opt-in), Bibliotek kart-vy
+> (Iteration 4) med klustrade pins + shared-point-gruppering,
+> ✕-knapp för att lämna promenad, safe-area-fix StatsScreen.
 > Status: **Hobbyprojekt** — vi bygger för hantverket och för att göra något bra,
 > inte för att tjäna pengar. Driftkostnader ligger på ~120 kr/år så det finns
 > ingen press på intäkter. Affärsmodell-tabellen finns kvar nedan men är

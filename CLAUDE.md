@@ -463,6 +463,55 @@ AAB:n kan publiceras:
   stängs genom att dra handle/header nedåt (>120 px eller snabb flick).
   PanResponder triggar bara på tydligt vertikal nedåt-gest så form-fält
   förblir interaktiva.
+- **Sign in with Apple (1.9.1, iOS)** — Plan B för Guideline 4.8.
+  `expo-apple-authentication` + `auth.ts signInWithApple` med
+  OAuthProvider("apple.com") + rawNonce via expo-crypto SHA256.
+  Apples officiella knapp i LoginScreen, iOS 13+ via
+  `AppleAuthentication.isAvailableAsync()`. Android opåverkat
+  (plugin no-op). Apple-provider aktiv i Firebase Console.
+  Plugin lägger `com.apple.developer.applesignin`-entitlement
+  → ny capability behöver toggla i Apple Developer Portal +
+  rensa cachad provisioning profile i Expo Dashboard innan ny
+  build. Se docs/ios-setup.md §6b.
+- **Resume in-progress walk (OTA 2026-05-20)** — om current uid
+  redan är deltagare i en sessions med `answers.length > 0` och utan
+  `completedAt` så detekterar `JoinWalkScreen` det via ny
+  `firestore.ts getParticipant(sid, uid)`-helper och växlar UI till
+  "Fortsätt promenaden"-läge med banner "X/N besvarade".
+  `ActiveWalkScreen` accepterar `existingAnswers` + `existingScore`
+  route-params och hydrerar useState() istället för tom array.
+  `addParticipant` är idempotent → no-op vid resume.
+  Komplement: "Starta om från början"-knapp i resume-läge med
+  bekräftelsedialog + eager `updateParticipant({answers:[], score:0})`
+  så avbruten restart inte återupplivar gammal state. Anonyma som
+  ominstallerar appen får nytt uid → kan inte återuppta (känd
+  begränsning).
+- **Strict-order (1.9.x, skapar-opt-in)** — `Walk.enforceSequentialOrder?:
+  boolean` tvingar deltagaren att besöka kontroller i `Question.order`-
+  ordning. GPS-loopen i ActiveWalkScreen filtrerar till `[nextInOrder]`
+  innan distans-koll → bara nästa-i-ordning triggar. Övriga obesvarade
+  renderas som låsta (grå-blå pin med 🔒, ingen trigger-cirkel) tills
+  föregående är besvarad. Distans-pillen byter färg till blå och text
+  till "Nästa: kontroll #N — XX m" i strict-läge. Toggle i CreateWalk
+  → Inställningar. Bakåtkompatibelt: saknat fält = fri-läge (default).
+- **Lämna pågående promenad (✕-knapp)** — `ActiveWalkScreen` har
+  `headerShown: false` (helbild-karta), så vi har en floating ✕-knapp
+  i status-pillen vänster om namnet. Bekräftelsedialog förklarar
+  att svar/poäng sparas (resume-feature). Variant-text beroende på
+  om någon fråga besvarats. `navigation.canGoBack() ? goBack() : navigate("Home")`
+  som fallback för deep-link-startade promenader.
+- **Bibliotek kart-vy ("Upptäck på karta")** — `components/LibraryMapView.tsx`.
+  Sub-toggle "📋 Lista / 📍 Karta" i Bibliotek → Upptäck. Två lager av
+  klustring: (1) `groupColocated()` snappar walks vars centroid är
+  inom ~30 m (SHARED_POINT_GRID = 0.0003°) till EN WalkGroup —
+  renderas som orange pin med räkne-badge → tap öppnar bottom-sheet
+  med lista över walks på platsen. (2) `clusterGroups()` dynamisk
+  zoom-klustring (cellSize = delta/6 eller delta/8 beroende på zoom,
+  0 = ingen klustring vid maxinzoom). Tap kluster → animateToRegion
+  till bbox. Tap enskild walk-pin → preview-kort + Spela-knapp.
+  Använder befintliga react-native-maps primitives → OTA-bart.
+  Filtreras mot sök/kategori/språk via filteredWalks; walks utan
+  centroid hoppas över tyst.
 
 ## Byggflöde
 
