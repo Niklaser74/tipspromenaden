@@ -52,6 +52,83 @@ Contact: support@tipspromenaden.app
 (Demo-konto behövs inte tack vare anonymt läge — men erbjud ett
 Google-test­konto om granskaren ändå frågar.)
 
+### Utökad version som användes vid Guideline 2.1(a) info-needed (2026-05-21)
+
+Vid återinlämning efter rejection där Apple bad om demo-data
+(QR-kod, AR-marker) — kompletterad med konkreta simulator-koordinater
+och en dedikerad engelsk demo-walk vid Apple Park, Cupertino. Demo-
+walken skapades via `scripts/create-review-demo-walk.mjs` (admin SDK,
+kringgår appens tap-to-place-flöde för koordinater).
+
+```
+Tipspromenaden is a GPS quiz-walk app (Swedish "tipspromenad").
+
+NO LOGIN REQUIRED TO USE THE APP:
+The core experience — scanning/opening a walk and answering questions
+at GPS checkpoints — works fully anonymously.
+
+Sign-in is OPTIONAL (only for creators who make/own walks). We offer
+Sign in with Apple, Google, AND a no-account anonymous path — so
+Guideline 4.8 is fully satisfied.
+
+==================================================================
+DEMO WALK FOR REVIEW
+==================================================================
+
+A dedicated English demo walk has been created at Apple Park, Cupertino
+(three quick questions). You can access it three ways:
+
+1. SCAN THE QR CODE (attached to this submission)
+
+2. PASTE THE URL into Safari, then tap "Open in Tipspromenaden":
+   https://tipspromenaden.app/walk/<WALK_ID>
+
+3. BROWSE THE LIBRARY (no QR/URL needed):
+   Open the app → "Bibliotek" tab → "Upptäck" → search "App Review Demo"
+
+==================================================================
+HOW TO TRIGGER QUESTIONS IN SIMULATOR
+==================================================================
+
+Questions unlock when GPS is within 15 meters of a checkpoint. In the
+iOS Simulator menu, set:
+
+  Features → Location → Custom Location
+    Latitude:  37.3348
+    Longitude: -122.0089
+
+This places the device at the demo walk's first checkpoint (the main
+entrance of Apple Park). After starting the walk, the question modal
+will open automatically within a few seconds.
+
+For checkpoints 2 and 3, the app shows the distance to the next
+checkpoint at the top of the active walk screen — update the custom
+location to:
+  Checkpoint 2: 37.33301, -122.00688 (Apple Visitor Center)
+  Checkpoint 3: 37.33186, -122.03067 (Infinite Loop)
+
+==================================================================
+
+GPS, Apple Maps and standard HTTPS are the only system-level features
+used. No tracking, no third-party analytics, no advertising SDKs.
+
+Contact: support@tipspromenaden.app
+```
+
+Bifoga också QR-kodbilden (genererad t.ex. via qr-code-generator.com
+från demo-walkens URL) i Attachment-fältet under App Review Notes
+i ASC.
+
+### Skapa demo-walk inför nästa info-needed
+
+```
+# Behöver du en ny demo-walk (t.ex. annan kontinent eller annat språk):
+node scripts/create-review-demo-walk.mjs --from-walk=<någon walk-id du äger>
+
+# Skriptet returnerar nya walkens ID + first-checkpoint-koordinater
+# som du klistrar in i Notes-texten ovan.
+```
+
 ## 2. App Store-listing-metadata  **[förberett]**
 
 | Fält | Värde |
