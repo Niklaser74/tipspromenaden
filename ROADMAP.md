@@ -715,11 +715,28 @@ Plocka det som passar humöret. Förslag i grov ordning:
     `user.email.split("@")[0]` som default när displayName saknas.
     Edge case (Google-inlogg sätter normalt displayName) men fixa via
     tom default eller hjälptext "Detta visas på topplistan".
-15. **Evenemang Fas 2 — påminnelse-notiser** — när en användare tappar
+17. **Security regression smoke-test** — efter sec-review 2026-05-21:
+    skriv `scripts/security-smoke-test.mjs` som programmatiskt försöker
+    bryta firestore-reglerna (skriva andra usares walks, manipulera
+    andras participant-docs, höja score över taket, återuppliva
+    completed-sessioner, m.m.). Använder två firebase-admin-instanser
+    eller två separata test-uids över firebase JS-SDK för att simulera
+    olika klienter. Förväntar att alla brott returnerar
+    `permission-denied` — fångar regressioner i rules om/när vi rör dem
+    nästa gång. Estimat: 2-3 h. Värde: varaktigt regression-skydd.
+18. **ADMIN_UIDS sync-check** — listan finns hardcoded i två filer:
+    `tipspromenaden-app/firestore.rules` (`isAdmin()`) och
+    `tipspromenaden-web/src/lib/admin.ts` (`ADMIN_UIDS`). Divergens
+    skulle bryta `/admin`-modereringen eller låsa ut admin från att
+    skriva moderation-doc. Lägg en pre-deploy-check (i `eas build`-
+    wrappern eller `update-all.mjs`) som extraherar UIDs från båda
+    filerna och jämför. Avbryt om de skiljer sig. Estimat: 30 min.
+    Lågt aktivt värde men hög "kostnad om det går snett"-faktor.
+19. **Evenemang Fas 2 — påminnelse-notiser** — när en användare tappar
     "Påminn mig" på ett event-kort, schemalägg en lokal notification
     24h innan via `expo-notifications`. Native dep, kräver ny AAB-cykel.
     Lokal-only (ingen Cloud Function-backend) håller det enkelt.
-16. **Offline iter 2 — kart-tiles offline** — ✅ KLART & VERIFIERAT på
+20. **Offline iter 2 — kart-tiles offline** — ✅ KLART & VERIFIERAT på
     enhet 2026-05-19 (OTA på runtime 1.8.0). Ingen MapLibre-swap behövdes: `react-native-maps`
     `UrlTile` har redan inbyggd disk-cache (`tileCachePath` +
     `offlineMode`) i det länkade native-lagret → JS-only, OTA-bart, INGEN
@@ -729,23 +746,26 @@ Plocka det som passar humöret. Förslag i grov ordning:
     får inte proxas; OSM blockerar app-trafik). Detaljer i CLAUDE.md
     "Offline-kartor (iter 2)". Ev. framtid: Settings-knapp som kallar
     `clearAllMapTiles()` + "ladda ner det här området"-UI.
-17. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
+21. **Evenemang Fas 3 — event-topplista** — separat aggregerad topplista
     för en walk under sitt event-fönster (event.startDate–endDate).
     Visar deltagare som spelat under den tiden, sorterat på score → tid.
     Kan landa antingen som ny topplista i appen eller delningsbar
     `tipspromenaden.app/event/<walkId>`-sida på webben. OTA-bart
     om vi gör det i appen, eller kräver bara nya routes på webben.
-18. **Sekventiella frågor** — opt-in-toggle per walk: "Frågor måste
-    besvaras i ordning". När på: bara fråga 1 är aktiv tills den är
-    besvarad, sedan unlockas 2, osv. Bra för storytelling-walks där
-    ordningen bär narrativet. OTA-bart, ny `sequential?: boolean`
-    på Walk + ändring i ActiveWalkScreens trigger-logik.
-19. **Edge-to-edge för Android 15** (Play Console-rekommendation, 1.8.0)
+22. **Sekventiella frågor** — ✅ KLART 2026-05-20 (OTA på runtime
+    1.9.0 + 1.9.1). Skickas som "Tvinga ordning på kontrollerna"-toggle
+    i CreateWalk → Inställningar. Implementation: `Walk.enforceSequentialOrder`-
+    flagga, ActiveWalkScreens GPS-loop filtrerar listan till bara nästa-
+    i-ordning innan distans-koll, ej-i-ordning-pinnar renderas låsta
+    (🔒, grå-blå) utan trigger-cirkel, distans-pillen byter färg/text
+    till "Nästa: kontroll #N — XX m". Resume-funktionen funkar
+    automatiskt.
+23. **Edge-to-edge för Android 15** (Play Console-rekommendation, 1.8.0)
     — Android 15 tvingar edge-to-edge (appen ritar bakom system-barer).
     Vi har redan safe-area-insets på de stora skärmarna men Play
     flaggar fortfarande utfasade edge-to-edge-API:er. Låg prio,
     kosmetiskt på Android 15. Kräver native-cykel (ny AAB).
-20. **Orienterings­stöd för stora skärmar** (Play Console-rekommendation,
+24. **Orienterings­stöd för stora skärmar** (Play Console-rekommendation,
     1.8.0) — Play vill att appen stödjer fri rotation/resize på stora
     skärmar. Vi låser **medvetet** telefoner till portrait men låter
     surfplattor rotera (App.tsx `applyOrientationLock`). Att lyfta
@@ -753,7 +773,7 @@ Plocka det som passar humöret. Förslag i grov ordning:
     (Active/Results/Leaderboard är portrait-tunade). Delvis giltig men
     medvetet designval — låg prio. (Play-rek #2 "bild-i-bild" är
     irrelevant för en GPS-quizapp och ignoreras permanent.)
-21. **Marknadsförings-creative: testpilot → nedladdning** —
+25. **Marknadsförings-creative: testpilot → nedladdning** —
     `docs/marketing/build-flyer*.mjs` + `build-social-onepager.mjs`
     är byggda runt testpilot-värvning (rubriker "TESTPILOTER SÖKES",
     steg "Bli testare → Ask to join", filnamn `*-bli-testare.png`).
@@ -767,7 +787,7 @@ Plocka det som passar humöret. Förslag i grov ordning:
 
 ---
 
-22. **Mörkt tema** — LÅGT PRIO, stort. Kodbasen har MEDVETET
+26. **Mörkt tema** — LÅGT PRIO, stort. Kodbasen har MEDVETET
     ingen theme-fil (CLAUDE.md: "färger inline med hex — medveten
     enkelhet"): ~81 unika hex-färger inline över 17 skärmar +
     komponenter. Riktig dark mode = införa theme.ts + useTheme() +

@@ -18,6 +18,7 @@ import admin from "firebase-admin";
 import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { randomBytes } from "node:crypto";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const keyPath = join(__dirname, "..", "firebase-admin-key.json");
@@ -55,12 +56,26 @@ if (uidArg) {
   process.exit(1);
 }
 
+// Speglar src/utils/qr.ts generateId() exakt: tidsstämpel (base36) + 12
+// crypto-secure random bytes som hex. Stannar bort från Math.random() så
+// admin-skapade walk-id:n inte är förutsägbara — walkId fungerar som
+// capability där den som kan gissa det ser hela facit.
+// Säkerhetsspärr: admin SDK bypassar alla Firestore-rules, så ett
+// felskrivet --uid skulle ohelig skapa walks i någon annans namn.
+// 3 sek delay + tydlig utskrift ger användaren tid att Ctrl+C:a om
+// uid:t ser fel ut. Inte hård säkerhet (skriptet körs lokalt med
+// admin-nyckeln på samma maskin), men minskar fötter-på-foten-risk.
+console.log(`\n⚠️  Kommer att skapa walk under uid: ${createdBy}`);
+console.log(`   Avbryt med Ctrl+C inom 3 sekunder om det är fel uid.\n`);
+await new Promise((resolve) => setTimeout(resolve, 3000));
+
 function generateId() {
-  // Samma stil som utils/qr.ts generateId — 24 tecken random
-  return (
-    Math.random().toString(36).slice(2, 14) +
-    Math.random().toString(36).slice(2, 14)
-  );
+  const bytes = randomBytes(12);
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+  return Date.now().toString(36) + hex;
 }
 
 const walkId = generateId();
