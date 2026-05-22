@@ -693,9 +693,21 @@ Plocka det som passar humöret. Förslag i grov ordning:
     kostar 1–3 h och kan bryta Cloudflare Pages-byggen. Gör när Astro 6
     varit ute ≥1 månad och alla `@astrojs/*`-integrations är v6-klara,
     eller när vi ändå rör build-pipelinen.
-14. **App Check Stage 1 → Enforce** — när Stage 2 (native Play Integrity)
-    är på och vi sett Monitor-läget gå rent ett tag, flippa både
-    Firestore och Storage från Monitor till Enforce i Firebase Console.
+14. **App Check Stage 2/3 → Enforce** — kräver att iOS Stage 3
+    (AppAttest/DeviceCheck) konfigureras FÖRST. Enforce är per-tjänst
+    (Firestore, Storage) i Firebase Console, inte per-plattform: när
+    Firestore är i Enforce-läge rejecteras alla anrop utan giltig
+    token, oavsett varifrån de kommer. Idag skickar bara Android
+    tokens (Play Integrity); iOS-klienten initierar inte App Check
+    SDK alls (gated på `Platform.OS === "android"` i firebase.ts +
+    plugin exkluderad via react-native.config.js). Flippa Enforce
+    nu = iOS dör. Vänteläge: håll Monitor-läget tills iOS är publik
+    på App Store, sen konfigurera Stage 3 (re-aktivera @react-native-
+    firebase/app-check på iOS-autolinking, AppAttestProvider i
+    firebase.ts, ny iOS-build, ny App Store-submission), sen flippa
+    Enforce på båda tjänsterna. Övervakning under tiden: Firebase
+    Console → Build → App Check → kolla att Android-andelen
+    "Verified" är ~95%+.
 15. **Slug-byte vid redigering av tipspack** — admin-editor:n låser
     slug i edit-läge eftersom byte är en flytt-operation (kopiera +
     radera + uppdatera referenser). Lägg till om behov uppstår.
