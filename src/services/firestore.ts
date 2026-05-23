@@ -29,11 +29,12 @@ import {
   Unsubscribe,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { Walk, Session, Participant } from "../types";
+import { Walk, Session, Participant, WalkFeedback } from "../types";
 
 const WALKS_COLLECTION = "walks";
 const SESSIONS_COLLECTION = "sessions";
 const PARTICIPANTS_SUBCOLLECTION = "participants";
+const WALK_FEEDBACK_COLLECTION = "walkFeedback";
 
 // ===== PROMENADER =====
 
@@ -423,6 +424,37 @@ export async function updateParticipant(
       // Det är inte kritiskt om statusuppdateringen misslyckas — topplistan
       // beräknar själv `allDone` från deltagarnas completedAt.
     }
+  }
+}
+
+// ===== WALK FEEDBACK =====
+
+/**
+ * Skickar in en deltagares feedback efter en slutförd promenad.
+ * Skapar ett dokument i `walkFeedback/{id}` med tumme upp/ner + ev.
+ * tre kategori-omdömen (frågor, punkter, gränssnitt). Walk-ägaren
+ * läser senare i en framtida WalkInsights-sektion för felsökning.
+ *
+ * `stripUndefined` körs så vi inte triggar Firestores "Unsupported
+ * field value: undefined" om kategori-fältet utelämnas vid tumme-upp.
+ *
+ * Försök-och-glöm: skickar inte tillbaka något fel om skrivningen
+ * misslyckas (offline eller transient nätfel). Feedback är trevligt
+ * att ha men inget vi bör blockera resultat-skärmen på.
+ */
+export async function submitWalkFeedback(
+  feedback: WalkFeedback
+): Promise<void> {
+  try {
+    await setDoc(
+      doc(db, WALK_FEEDBACK_COLLECTION, feedback.id),
+      stripUndefined(feedback)
+    );
+  } catch (e) {
+    // Tyst miss — användaren ska inte se ett fel för att en åsikt
+    // inte landade. Felet loggas till konsolen för utvecklarens
+    // skull (om de råkar ha Metro öppen).
+    console.log("submitWalkFeedback misslyckades:", (e as Error).message);
   }
 }
 

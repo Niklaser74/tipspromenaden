@@ -215,3 +215,43 @@ export interface SavedWalk {
    */
   alias?: string;
 }
+
+/**
+ * Användarens feedback efter en slutförd promenad. Samlas i Firestore-
+ * kollektionen `walkFeedback/{feedbackId}` så att skaparen kan se vad
+ * deltagarna tyckte om sin walk (typiskt i en framtida WalkInsights-
+ * sektion). Lagras separat från Participant så att en deltagare kan
+ * radera sin spelhistorik utan att deras feedback följer med — och
+ * tvärtom.
+ *
+ * Kategori-fälten är `null` när användaren bara gav övergripande tumme-
+ * upp (eller hoppade över detaljen).
+ */
+export interface WalkFeedback {
+  /** Genererad av klienten (utils/qr.ts generateId()) — används som doc-id. */
+  id: string;
+  /** Vilken walk feedback:en gäller (matchar `walks/{walkId}.id`). */
+  walkId: string;
+  /** Vilken session den slutfördes i. */
+  sessionId: string;
+  /** Skribentens Firebase Auth UID. */
+  userId: string;
+  /** Övergripande omdöme — tumme upp eller tumme ner. */
+  overall: "up" | "down";
+  /**
+   * Detalj-omdömen — bara satta när användaren följde upp en tumme-ner
+   * med specifika kategori-omdömen. `null` = "ingen åsikt / hoppade
+   * över". Hjälper skaparen pinpointa vad i en mindre lyckad runda
+   * som var dåligt.
+   */
+  details?: {
+    /** Frågornas kvalitet (text, alternativ, svårighetsgrad). */
+    questions: "up" | "down" | null;
+    /** Punkternas placering (GPS-koordinater, svårtfunna kontroller). */
+    points: "up" | "down" | null;
+    /** Gränssnittet / appens upplevelse. */
+    ui: "up" | "down" | null;
+  };
+  /** Unix-tidsstämpel (millisekunder). */
+  createdAt: number;
+}

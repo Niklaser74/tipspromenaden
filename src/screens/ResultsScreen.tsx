@@ -29,18 +29,20 @@ import { useTranslation } from "../i18n";
 import { buildWalkLink } from "../constants/deepLinks";
 import { shareContent } from "../utils/shareContent";
 import Confetti from "../components/Confetti";
+import WalkFeedbackPrompt from "../components/WalkFeedbackPrompt";
 
 export default function ResultsScreen() {
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const { walk, participantName, answers, score, total, steps } = route.params as {
+  const { walk, participantName, answers, score, total, steps, sessionId } = route.params as {
     walk: Walk;
     participantName: string;
     answers: Answer[];
     score: number;
     total: number;
     steps?: number;
+    sessionId?: string;
   };
 
   const percentage = Math.round((score / total) * 100);
@@ -263,6 +265,16 @@ export default function ResultsScreen() {
           );
         })}
       </Animated.View>
+
+      {/* Feedback-prompt — tumme upp/ner + ev. detalj-kategorier.
+          Visas bara om vi har sessionId (= riktiga walks, inte test-
+          flöden). Komponenten gömmer sig själv om feedback redan
+          skickats för denna session. */}
+      {sessionId && (
+        <Animated.View style={{ opacity: restOpacity }}>
+          <WalkFeedbackPrompt walkId={walk.id} sessionId={sessionId} />
+        </Animated.View>
+      )}
 
       {/* Home button */}
       <Animated.View style={{ opacity: restOpacity }}>

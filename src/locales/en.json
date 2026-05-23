@@ -139,6 +139,17 @@
     "tagAlreadyExists": "A tag with that name already exists",
     "nameTooLong": "Max 30 characters"
   },
+  "feedback": {
+    "title": "How was the walk?",
+    "thanks": "Thanks for your feedback!",
+    "detailsTitle": "What didn't work?",
+    "detailsHint": "Mark any row that applies — or skip.",
+    "catQuestions": "The questions",
+    "catPoints": "Checkpoint placement",
+    "catUi": "App interface",
+    "skip": "Skip",
+    "submit": "Send"
+  },
   "results": {
     "done": "Walk complete!",
     "messagePerfect": "Perfect score!",

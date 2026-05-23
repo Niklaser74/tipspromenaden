@@ -224,8 +224,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Karta-läget i Bibliotek visar nu en antal-badge när flera promenader delar samma startpunkt. Tryck nålen → lista över alla promenader på platsen → välj den du vill spela.",
-        en: "The Library map now shows a count badge when multiple walks share the same starting point. Tap the pin → list of all walks at that spot → pick the one you want to play.",
+        sv: "Ny tumme upp/ner-fråga efter slutförd promenad. Om du svarar tumme ner får du säga vad som inte var bra (frågorna, kontrollernas placering, eller gränssnittet). Skaparen kan se feedbacken och förbättra sin promenad.",
+        en: "New thumbs up/down prompt after finishing a walk. Thumbs down opens a follow-up where you can tell us what didn't work (questions, checkpoint placement, or app interface). The creator can read the feedback and improve their walk.",
       },
     },
   },

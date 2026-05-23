@@ -566,6 +566,9 @@ export default function ActiveWalkScreen() {
                 score: newScore,
                 total: walk.questions.length,
                 steps,
+                // sessionId behövs för att kunna skicka in feedback
+                // tied till rätt omgång (WalkFeedback.sessionId).
+                sessionId,
               });
             }
           }, 500);

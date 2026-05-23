@@ -158,6 +158,37 @@ service cloud.firestore {
       allow write: if isSignedIn() && isAdmin();
     }
 
+    // -------------------- walkFeedback --------------------
+    // Användares omdömen om en walk efter slutförd promenad. En tumme-
+    // upp/ner + ev. detaljerade kategori-omdömen (frågor/punkter/UI).
+    // Lagras separat från participants så att radera-konto-flödet inte
+    // tar med feedback (och tvärtom).
+    //
+    // Vem som helst inloggad (inkl. anonym) får skapa — annars kan inte
+    // anonyma deltagare ge feedback. Bara walk-ägaren får läsa — det
+    // är skaparens debug-data, inte ett publikt omdömes-system.
+    match /walkFeedback/{feedbackId} {
+      allow read: if isSignedIn()
+                  && resource.data.walkId is string
+                  && isWalkOwner(resource.data.walkId);
+
+      allow create: if isSignedIn()
+                    && request.resource.data.id == feedbackId
+                    && request.resource.data.userId == request.auth.uid
+                    && hasValidFeedbackShape(request.resource.data)
+                    // Walken måste finnas — blockerar feedback-spam mot
+                    // påhittade walkId:n.
+                    && exists(/databases/$(database)/documents/walks/$(request.resource.data.walkId));
+
+      // Feedback är inte redigerbart — det är en ögonblicksbild av
+      // användarens åsikt direkt efter promenaden. Walk-ägaren får
+      // dock radera (för städning eller GDPR).
+      allow delete: if isSignedIn()
+                    && resource.data.walkId is string
+                    && (isWalkOwner(resource.data.walkId)
+                        || request.auth.uid == resource.data.userId);
+    }
+
     // -------------------- tipspacks --------------------
     // Användar-uppladdade .tipspack-filer (frågebatterier) som kan delas
     // via tipspromenaden.app/tipspack. Doc-id == slug (genereras från
@@ -248,6 +279,29 @@ function hasValidTipspackShape(data) {
              || (data.fileSizeBytes is number && data.fileSizeBytes <= 5 * 1024 * 1024))
          && (!('ownerName' in data)
              || (data.ownerName is string && data.ownerName.size() <= 100));
+}
+
+// Walk-feedback: tumme-upp/ner + ev. tre kategori-omdömen. Endast
+// "up"/"down" på övergripande nivå; kategorier får också vara null
+// (= "hoppade över / ingen åsikt").
+function hasValidFeedbackShape(data) {
+  return data.id is string
+         && data.walkId is string
+         && data.sessionId is string
+         && data.userId is string
+         && data.overall in ['up', 'down']
+         && data.createdAt is number
+         && (!('details' in data)
+             || (data.details is map
+                 && (!('questions' in data.details)
+                     || data.details.questions == null
+                     || data.details.questions in ['up', 'down'])
+                 && (!('points' in data.details)
+                     || data.details.points == null
+                     || data.details.points in ['up', 'down'])
+                 && (!('ui' in data.details)
+                     || data.details.ui == null
+                     || data.details.ui in ['up', 'down'])));
 }
 
 function hasValidWalkShape(data) {

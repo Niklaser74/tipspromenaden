@@ -139,6 +139,17 @@
     "tagAlreadyExists": "En tagg med det namnet finns redan",
     "nameTooLong": "Max 30 tecken"
   },
+  "feedback": {
+    "title": "Hur kändes promenaden?",
+    "thanks": "Tack för din återkoppling!",
+    "detailsTitle": "Vad var det som inte var bra?",
+    "detailsHint": "Markera valfri rad — eller hoppa över.",
+    "catQuestions": "Frågorna",
+    "catPoints": "Kontrollernas placering",
+    "catUi": "Gränssnittet i appen",
+    "skip": "Hoppa över",
+    "submit": "Skicka"
+  },
   "results": {
     "done": "Promenaden klar!",
     "messagePerfect": "Perfekt resultat!",

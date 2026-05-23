@@ -181,6 +181,46 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-21 — Tumme upp/ner-feedback efter slutförd promenad
+
+Ny `WalkFeedbackPrompt`-komponent renderas i ResultsScreen efter
+slutförd promenad. Två-stegs-UI: övergripande tumme upp/ner, och
+vid tumme ner en följdfråga med tre kategorier (frågorna,
+kontrollernas placering, gränssnittet). Användaren kan hoppa över
+detalj-steget.
+
+Data sparas i ny Firestore-kollektion `walkFeedback/{id}` med
+walkId + sessionId + uid + overall + ev. detail-objekt. Lagras
+separat från participants så att konto-radering inte tar med
+feedback (och vice versa).
+
+Säkerhetsregel: vem som helst inloggad (inkl. anonym) får skapa,
+bara walk-ägaren får läsa (debug-data, inte ett publikt
+omdömes-system). Feedback är immutable — bara skribent eller
+walk-ägare får radera (för städning/GDPR).
+
+Visas EN gång per session via AsyncStorage-key
+`feedback_sent_<sessionId>` — om användaren scrollar tillbaka till
+Results ser de ett "Tack!"-tillstånd istället för prompten igen.
+
+OTA-bart, ingen native dep, ingen ny AAB krävs.
+
+**Release notes (svenska):**
+
+> Ny tumme upp/ner-fråga efter slutförd promenad. Om du svarar
+> tumme ner får du säga vad som inte var bra (frågorna,
+> kontrollernas placering, eller gränssnittet). Skaparen kan se
+> feedbacken och förbättra sin promenad.
+
+**Release notes (English):**
+
+> New thumbs up/down prompt after finishing a walk. Thumbs down
+> opens a follow-up where you can tell us what didn't work
+> (questions, checkpoint placement, or app interface). The creator
+> can read the feedback and improve their walk.
+
+---
+
 ### OTA 2026-05-20 (VI) — Shared-point-gruppering i kart-vyn
 
 När flera promenader delar samma fysiska startpunkt (skapare har gjort
