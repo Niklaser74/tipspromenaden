@@ -168,9 +168,13 @@ service cloud.firestore {
     // anonyma deltagare ge feedback. Bara walk-ägaren får läsa — det
     // är skaparens debug-data, inte ett publikt omdömes-system.
     match /walkFeedback/{feedbackId} {
+      // Walk-ägaren ser sin egen feedback. Admin ser ALL feedback —
+      // används av /admin-dashboarden på webben för att aggregera
+      // statistik över alla walks (t.ex. övergripande positivitets-
+      // andel, vilka walks som har problem). Övriga: ingen läsning.
       allow read: if isSignedIn()
                   && resource.data.walkId is string
-                  && isWalkOwner(resource.data.walkId);
+                  && (isWalkOwner(resource.data.walkId) || isAdmin());
 
       allow create: if isSignedIn()
                     && request.resource.data.id == feedbackId
