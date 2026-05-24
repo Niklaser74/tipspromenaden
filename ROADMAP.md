@@ -645,21 +645,20 @@ Plocka det som passar humöret. Förslag i grov ordning:
    att legitim trafik syns som *verified* i Monitor en stund, sen flippa
    Firestore + Storage till **Enforce** (samordnas med web Stage 1, se
    punkt 13).
-3. **iOS-build** — ✅ KLART & VERIFIERAT. 1.8.0 build 12 + 1.9.1
-   build 21 på TestFlight (Sign in with Apple). Apple Developer
-   (individuell), ASC API-nyckel, EAS-credentials på Expo-servern.
-   iOS = Apple Maps, App Check Android-only. **Sign in with Apple
-   (Plan B, 1.9.1)** → Guideline 4.8 löst, inte bara åberopad;
-   Apple-provider aktiverad i Firebase Console 2026-05-20. Native-
-   bygget krävde manuell Sign-In-with-Apple-capability-toggle i
-   Apple Developer Portal + rensning av cachad provisioning profile
-   i Expo Dashboard + `EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` env-var —
-   recept i `docs/ios-setup.md` §6b + #9. Apple-login verifierad
-   på iPhone 2026-05-20. **Återstår före publik App Store-release**
-   (alla [DU]-steg, dokumenterade i `docs/app-store-release.md`):
-   screenshots 6.9"/6.5", App Privacy-label, metadata, submit för
-   review. Post-launch (ej blockerare):
-   Universal Links, iOS App Check Stage 3 (DeviceCheck).
+3. **iOS-launch** — ✅ HELT KLART 2026-05-24. Appen är publikt
+   tillgänglig på App Store: `apps.apple.com/se/app/id6770503457`.
+   Full kedja: 1.9.1 build 21 till TestFlight → Apple-godkänt efter
+   1 omgång info-needed (löst med engelsk demo-walk vid Apple Park
+   + simulator-koordinater) → DSA Trader-verifiering inskickad
+   (svenskt pass + elräkning) → DSA godkänd → Release tryckt
+   2026-05-24. Sign in with Apple (Plan B) → Guideline 4.8 löst,
+   Apple-provider aktiv i Firebase Console. Native-bygget krävde
+   manuell Sign-In-with-Apple-capability-toggle i Apple Developer
+   Portal + rensning av cachad provisioning profile i Expo
+   Dashboard + `EXPO_APPLE_TEAM_TYPE=INDIVIDUAL` env-var — recept
+   i `docs/ios-setup.md` §6b + #9. Post-launch (ej blockerare):
+   Universal Links, iOS App Check Stage 3 (DeviceCheck — ROADMAP
+   #14).
 4. **Ljudeffekter + haptics** — ✅ KLART 1.9.0.
 5. **Pause & resume — proaktiva entry-points** — basics (auto-resume
    via JoinWalkScreen + hydrerad ActiveWalkScreen) gjort 2026-05-20
