@@ -429,6 +429,37 @@ biblioteket + Home-banner som genväg, utan att gå via biblioteket först.
 
 ---
 
+### iOS 1.9.2 — Fix: språk på App Store-listningen ("Swedish" istället för "English")
+
+Iconic launch-quirk: Expo defaultar till `en` för
+`CFBundleDevelopmentRegion` när inget annat sätts. App Store läser
+det fältet för "Language" i Information-sektionen → en svensk app
+visades felaktigt som engelska. Fixet är native (inte OTA):
+
+- `ios.infoPlist.CFBundleDevelopmentRegion: "sv"` (default-region)
+- `ios.infoPlist.CFBundleLocalizations: ["sv", "en", "de", "no", "da", "fi", "fr", "es"]` (alla 8 språk vi har översättningar för)
+
+iOS-only-version (Android prod är fortsatt på 1.9.0). Bumpning 1.9.1
+→ 1.9.2 betyder också ny runtime-version för iOS-OTA — alla
+framtida OTA:er till iOS måste dubbel-publishas mot bägge
+runtime-versioner tills 1.9.2 spridit sig (eller tills vi pruner
+1.9.1 från `update:all`-listan när Apple-uppdateringen rullat ut
+brett).
+
+Android berörs inte (Android Play Store-listningen läser från
+resources/values-XX-katalogerna; Expo skapar dem korrekt utifrån
+src/locales/-strukturen).
+
+**Release notes (svenska, för App Store):**
+
+> Fix: appen visas nu korrekt som svenskspråkig på App Store.
+
+**Release notes (English, for App Store):**
+
+> Fix: the app is now correctly listed as Swedish-language on the App Store.
+
+---
+
 ### AAB 1.9.1 — Sign in with Apple (iOS, Guideline 4.8)
 
 iOS-only native-tillägg (`expo-apple-authentication`). Android 1.9.0

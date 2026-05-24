@@ -23,7 +23,7 @@ module.exports = () => ({
     name: "tipspromenaden-app",
     slug: "tipspromenaden-app",
     scheme: "tipspromenaden",
-    version: "1.9.1",
+    version: "1.9.2",
     // EAS Update (OTA) — appVersion-policy: runtimeVersion = `version`-
     // fältet ovan ("1.0.0"). Både build-servern och `eas update` räknar ut
     // samma värde, vilket ger stabil matchning för OTA-delivery.
@@ -90,6 +90,16 @@ module.exports = () => ({
       // cirklar, position). Android behåller Google Maps via
       // android.config.googleMaps nedan.
       infoPlist: {
+        // App Store visar "Language" på den publika listningen baserat
+        // på CFBundleDevelopmentRegion + CFBundleLocalizations i
+        // iOS-bundlen. Utan dessa defaultar Expo till "en", och en
+        // svensk app visas felaktigt som "English" i Information-
+        // sektionen. Sätter svensk som default-region + listar alla
+        // 8 språk vi har översättningar för (matchar src/locales/).
+        // Lagt till 2026-05-24 i v1.9.2 efter att issue:t märktes på
+        // den publika App Store-sidan.
+        CFBundleDevelopmentRegion: "sv",
+        CFBundleLocalizations: ["sv", "en", "de", "no", "da", "fi", "fr", "es"],
         // Appen använder bara standard-HTTPS/TLS → undantagen från
         // amerikansk export-krypteringsreglering. `false` gör att App
         // Store Connect inte frågar om krypterings-compliance vid varje
