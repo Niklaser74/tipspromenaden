@@ -23,8 +23,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 import GIFEncoder from "gif-encoder-2";
+import ffmpegPath from "ffmpeg-static";
 
 // Importera renderFrame från walk-animation-scriptet
 import { renderFrame, WALK_W, WALK_H, TOTAL_FRAMES, FPS } from "./build-walk-animation.mjs";
@@ -50,16 +52,38 @@ function getArg(name, fallback) {
   const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
   return arg ? arg.slice(`--${name}=`.length) : fallback;
 }
+function hasFlag(name) {
+  return process.argv.some((a) => a === `--${name}` || a === `--${name}=true`);
+}
 const OUTPUT_NAME = getArg("output", "social-walk-animation.gif");
 const OUTPUT = path.join(__dirname, OUTPUT_NAME);
 
-// Banner-dimensioner
-const W = 1080;
-const H = 1350;
-const MARGIN = 80;
+// Format-flagga: feed (4:5, 1080×1350) eller stories (9:16, 1080×1920)
+const FORMAT = getArg("format", "feed"); // "feed" | "stories"
+const IS_STORIES = FORMAT === "stories";
 
-const COLORS = {
+// Theme-flagga: dark (cream/varmt, default) eller light (pure white/luftigt)
+const THEME = getArg("theme", "dark"); // "dark" | "light"
+const IS_LIGHT = THEME === "light";
+
+// MP4-export efter GIF (kräver ffmpeg i PATH)
+const MAKE_MP4 = hasFlag("mp4");
+
+// Banner-dimensioner (format-styrt)
+const W = 1080;
+const H = IS_STORIES ? 1920 : 1350;
+const MARGIN = IS_STORIES ? 90 : 80;
+
+// I Stories-format: vertical offset så hela kompositionen sjunker mot
+// mitten — överst ~200px reserverat för IG/FB Story-overlay (profil),
+// nederst ~330px för "Svara"-fält + sticker-yta. Säker zon: 200-1590.
+const TOP_OFFSET = IS_STORIES ? 100 : 0;
+
+// Färg-paletter — "light" = pure white background, ljusare text-tone,
+// resten av greens/yellow stannar för brand-konsistens.
+const DARK_PALETTE = {
   cream: "#F5F0E8",
+  bg: "#F5F0E8",
   green: "#1B6B35",
   greenDark: "#1B3D2B",
   text: "#2C3E2D",
@@ -70,22 +94,36 @@ const COLORS = {
   yellow: "#E8B830",
   phoneBezel: "#2C3E2D",
 };
+const LIGHT_PALETTE = {
+  cream: "#FAFAF7",       // nästan vit, drag av cream
+  bg: "#FFFFFF",          // pure white-yta
+  green: "#1B6B35",       // brand-grön behålls
+  greenDark: "#1B3D2B",   // brand-mörk-grön behålls
+  text: "#1B3D2B",        // mörkare text för bättre kontrast mot vitt
+  sage: "#6B7B6E",        // något mörkare sage så det syns på vit bg
+  rule: "#E6E2D6",        // mjukare divider
+  white: "#FFFFFF",
+  ctaBody: "#E8E8DC",
+  yellow: "#E8B830",
+  phoneBezel: "#1B3D2B",
+};
+const COLORS = IS_LIGHT ? LIGHT_PALETTE : DARK_PALETTE;
 
 // Telefon-frame: ner-skalad så att release-budskapet får dominera
 // kompositionen. Animationen är "supporting evidence", inte huvudfokus.
 const PHONE = (() => {
-  // 280 wide × ~498 tall — kompakt, ramar in skärmen som en illustration
-  // i mitten av kompositionen. Placerad tätt under huvudtexten så
-  // CTA-blocket nedanför får plats för en större QR-kod.
-  const phoneW = 280;
-  const phoneH = Math.round(phoneW * (WALK_H / WALK_W)); // 280 * 854/480 = 498
+  // Feed (4:5): kompakt 280×498 så textmassan dominerar.
+  // Stories (9:16): något större 320×569 eftersom vi har mer höjd
+  // att fördela och animationen tål att synas tydligare.
+  const phoneW = IS_STORIES ? 320 : 280;
+  const phoneH = Math.round(phoneW * (WALK_H / WALK_W));
   return {
     x: (W - phoneW) / 2,
-    y: 440,
+    y: IS_STORIES ? 690 : 440,
     w: phoneW,
     h: phoneH,
-    bezel: 10,
-    cornerR: 28,
+    bezel: IS_STORIES ? 12 : 10,
+    cornerR: IS_STORIES ? 32 : 28,
   };
 })();
 
@@ -144,12 +182,12 @@ function wrapText(ctx, text, maxW) {
 //   y=1240: CTA-block (kompakt, QR + "Skanna här")
 //   y=1320: Footer "tipspromenaden.app"
 function drawBanner(ctx) {
-  // Bakgrund
-  ctx.fillStyle = COLORS.cream;
+  // Bakgrund (cream på dark-theme, pure white på light-theme)
+  ctx.fillStyle = COLORS.bg;
   ctx.fillRect(0, 0, W, H);
 
   // ─── EYEBROW + HEADLINE ────────────────────────────────────────
-  let y = 56;
+  let y = 56 + TOP_OFFSET;
 
   ctx.fillStyle = COLORS.sage;
   ctx.font = `18px InstSansBold`;
@@ -344,3 +382,56 @@ const stats = fs.statSync(OUTPUT);
 console.log(
   `\n✅ Klar: ${path.basename(OUTPUT)} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`
 );
+
+// ─── MP4-konvertering (för IG-stöd) ──────────────────────────────────
+// IG/Reels föredrar MP4 över GIF: bättre kvalitet, mindre fil, autoplay
+// med ljud. ffmpeg-static buntar ffmpeg-binär så vi slipper systemdep.
+//
+// Render-frames sparas till temp-katalog och stitchas till h264-mp4.
+// Frame-rate matchar GIF FPS (15). pix_fmt yuv420p för kompatibilitet
+// med IG/FB-spelare (kräver jämn dimension; W=1080, H=1350 eller 1920
+// är alla jämna).
+if (MAKE_MP4) {
+  console.log(`\nKonverterar till MP4…`);
+  const tmpDir = path.join(__dirname, `.mp4-tmp-${Date.now()}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  try {
+    // Rendera om frames som PNG i temp-mapp (en gång till — alternativet
+    // är att hålla alla Canvas i minne, vilket äter RAM för 120 stora
+    // frames).
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      const canvas = renderCombinedFrame(i);
+      const fname = `frame-${String(i).padStart(4, "0")}.png`;
+      fs.writeFileSync(path.join(tmpDir, fname), canvas.toBuffer("image/png"));
+      if (i % 10 === 0) {
+        process.stdout.write(`  mp4-frame ${i}/${TOTAL_FRAMES}\r`);
+      }
+    }
+
+    const mp4Out = OUTPUT.replace(/\.gif$/, ".mp4");
+    execFileSync(
+      ffmpegPath,
+      [
+        "-y",                                       // overwrite
+        "-framerate", String(FPS),
+        "-i", path.join(tmpDir, "frame-%04d.png"),
+        "-c:v", "libx264",
+        "-pix_fmt", "yuv420p",
+        "-crf", "23",                               // kvalitet (0-51, lägre=bättre)
+        "-movflags", "+faststart",                  // streaming-optimering
+        "-loop", "0",                               // loopa (h264 ignorerar men dokumentation)
+        mp4Out,
+      ],
+      { stdio: "inherit" }
+    );
+
+    const mp4Stats = fs.statSync(mp4Out);
+    console.log(
+      `\n✅ MP4: ${path.basename(mp4Out)} (${(mp4Stats.size / 1024 / 1024).toFixed(2)} MB)`
+    );
+  } finally {
+    // Rensa temp
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+}
