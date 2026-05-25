@@ -7,5 +7,8 @@
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.6.205",
     "pdfkit": "^0.18.0"
+  },
+  "devDependencies": {
+    "gif-encoder-2": "^1.0.5"
   }
 }
