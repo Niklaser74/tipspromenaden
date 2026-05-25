@@ -75,13 +75,13 @@ const COLORS = {
 // kompositionen. Animationen är "supporting evidence", inte huvudfokus.
 const PHONE = (() => {
   // 280 wide × ~498 tall — kompakt, ramar in skärmen som en illustration
-  // i mitten av kompositionen. Lämnar gott om plats för tack-rad +
-  // CTA + footer nedanför utan att klippas.
+  // i mitten av kompositionen. Placerad tätt under huvudtexten så
+  // CTA-blocket nedanför får plats för en större QR-kod.
   const phoneW = 280;
   const phoneH = Math.round(phoneW * (WALK_H / WALK_W)); // 280 * 854/480 = 498
   return {
     x: (W - phoneW) / 2,
-    y: 540,
+    y: 440,
     w: phoneW,
     h: phoneH,
     bezel: 10,
@@ -238,41 +238,45 @@ function drawBanner(ctx) {
   }
 
   // ─── CTA: QR + "Skanna här" ────────────────────────────────────
-  const ctaTop = dividerY + 100;
-  const ctaH = 100;
-  const ctaW = 560;
+  // Större block nu när vi har plats. QR växt från 76 → 130px så
+  // den är skannings-bar även när bilden visas mindre i feed:en.
+  const ctaTop = dividerY + 105;
+  const ctaH = 170;
+  const ctaW = 640;
   const ctaX = (W - ctaW) / 2;
 
   ctx.fillStyle = COLORS.greenDark;
-  roundRect(ctx, ctaX, ctaTop, ctaW, ctaH, 14);
+  roundRect(ctx, ctaX, ctaTop, ctaW, ctaH, 18);
   ctx.fill();
 
   // QR till vänster i CTA-block
-  const qrSize = 76;
-  const qrX = ctaX + 14;
+  const qrSize = 130;
+  const qrX = ctaX + 20;
   const qrY = ctaTop + (ctaH - qrSize) / 2;
   ctx.fillStyle = COLORS.white;
-  roundRect(ctx, qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 4);
+  roundRect(ctx, qrX - 8, qrY - 8, qrSize + 16, qrSize + 16, 6);
   ctx.fill();
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
   // Text höger om QR
-  const tx = qrX + qrSize + 22;
+  const tx = qrX + qrSize + 28;
   ctx.fillStyle = COLORS.cream;
-  ctx.font = `bold 20px LoraBold`;
+  ctx.font = `bold 28px LoraBold`;
   ctx.textAlign = "left";
-  ctx.fillText("Skanna för installation", tx, ctaTop + 38);
+  ctx.fillText("Skanna för", tx, ctaTop + 52);
+  ctx.fillText("installation", tx, ctaTop + 88);
 
   ctx.strokeStyle = COLORS.yellow;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(tx, ctaTop + 50);
-  ctx.lineTo(tx + 40, ctaTop + 50);
+  ctx.moveTo(tx, ctaTop + 102);
+  ctx.lineTo(tx + 56, ctaTop + 102);
   ctx.stroke();
 
   ctx.fillStyle = COLORS.ctaBody;
-  ctx.font = `14px InstSans`;
-  ctx.fillText("Android → Play Store, iPhone → App Store.", tx, ctaTop + 74);
+  ctx.font = `16px InstSans`;
+  ctx.fillText("Android → Play Store", tx, ctaTop + 128);
+  ctx.fillText("iPhone → App Store", tx, ctaTop + 152);
 
   // ─── FOOTER ─────────────────────────────────────────────────────
   ctx.fillStyle = COLORS.sage;
