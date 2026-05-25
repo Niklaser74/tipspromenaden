@@ -198,7 +198,7 @@
     "settingsEndButton": "End event mode",
     "settingsActivateLabel": "Activate event code",
     "settingsActivateHint": "Got a QR code or event code from an organizer? Scan or type the code here.",
-    "settingsPlaceholder": "e.g. scania2026",
+    "settingsPlaceholder": "event code",
     "settingsActivateButton": "Activate",
     "settingsActivatedTitle": "Event activated",
     "settingsActivatedMessage": "You're now in {{name}} mode.",

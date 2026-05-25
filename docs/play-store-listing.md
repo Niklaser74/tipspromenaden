@@ -181,6 +181,25 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25f — Generiska placeholders
+
+Bytte "t.ex. scania2026" / "e.g. scania2026" mot "eventkod" / "event
+code" i `settingsPlaceholder`. Web-admin fick samma fix
+(EventsManager id-fält → "eventkod", namn-fält → "Event").
+
+Kod-kommentarer/JSDoc behåller Scania som konkret exempel — det är
+utvecklar-dokumentation, inte UI.
+
+**Release notes till användarna (sv):**
+Mindre språk-fix: generisk "eventkod"-platshållare i fältet under
+Inställningar → Event-läge istället för det tidigare exempel-namnet.
+
+**Release notes (en):**
+Minor text fix: generic "event code" placeholder in the input under
+Settings → Event mode instead of the previous example name.
+
+---
+
 ### OTA 2026-05-25e — Sekundärfärg på event-läge
 
 Ny `secondaryColor`-prop på `EventBranding`. Används för

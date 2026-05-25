@@ -198,7 +198,7 @@
     "settingsEndButton": "Avsluta event-läge",
     "settingsActivateLabel": "Aktivera event-kod",
     "settingsActivateHint": "Har du en QR-kod eller event-kod från en arrangör? Skanna eller skriv in koden här.",
-    "settingsPlaceholder": "t.ex. scania2026",
+    "settingsPlaceholder": "eventkod",
     "settingsActivateButton": "Aktivera",
     "settingsActivatedTitle": "Event aktiverat",
     "settingsActivatedMessage": "Du är nu i {{name}}-läge.",

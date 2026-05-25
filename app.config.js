@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Event-läget stöder nu en valfri sekundärfärg som driver \"Skapa promenad\"-kortet på hemskärmen. Arrangörer kan sätta den i admin-panelen så slipper man att samma färg upprepas på två närliggande ytor.",
-        en: "Event mode now supports an optional secondary color driving the \"Create walk\" card on the home screen. Organizers can set it in the admin panel so the same color isn't repeated on adjacent surfaces.",
+        sv: "Mindre språk-fix: generisk \"eventkod\"-platshållare i fältet under Inställningar → Event-läge istället för det tidigare exempel-namnet.",
+        en: "Minor text fix: generic \"event code\" placeholder in the input under Settings → Event mode instead of the previous example name.",
       },
     },
   },
