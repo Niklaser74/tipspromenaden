@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Nytt event-läge: arrangörer kan ge en QR-kod som anpassar appen med eget namn, logo och färger. Skanna eller skriv in event-koden under Inställningar → Event-läge. Appen återgår till standard så fort du avslutar event-läget.",
-        en: "New event mode: organizers can hand out a QR code that customizes the app with their own name, logo and colors. Scan it or enter the event code under Settings → Event mode. The app returns to normal as soon as you end event mode.",
+        sv: "Fix: event-läge fastnade på välkomstskärmen efter QR-skanning. Du kommer nu vidare till hemskärmen efter 2 sekunder som tänkt.",
+        en: "Fix: event mode got stuck on the welcome screen after scanning a QR code. You now move on to home after 2 seconds as intended.",
       },
     },
   },

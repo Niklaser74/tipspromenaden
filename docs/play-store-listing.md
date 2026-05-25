@@ -181,6 +181,27 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25b — Fix: event-välkomstskärm fastnade
+
+Bug i `OpenEventScreen` — `useEffect`-deps inkluderade `t`/`locale`/
+`activateEvent` som var instabila (`t` är ny funktion på varje render).
+Resultat: kontext-uppdateringen efter `activateEvent` triggade re-render
+→ cleanup → cancelled=true → `setTimeout`-callbacken hoppade
+`navigation.replace("Home")`. Användaren fastnade på välkomstskärmen.
+
+Fix: bara `[eventId]` i deps + explicit `clearTimeout` i cleanup.
+Effekten kör nu exakt en gång per eventId och timern fyrar som tänkt.
+
+**Release notes till användarna (sv):**
+Fix: event-läge fastnade på välkomstskärmen efter QR-skanning. Du
+kommer nu vidare till hemskärmen efter 2 sekunder som tänkt.
+
+**Release notes (en):**
+Fix: event mode got stuck on the welcome screen after scanning a QR
+code. You now move on to home after 2 seconds as intended.
+
+---
+
 ### OTA 2026-05-25 — Event-läge (branded customization)
 
 Nytt event-läge för sponsorade event (t.ex. Scania Family Day). En

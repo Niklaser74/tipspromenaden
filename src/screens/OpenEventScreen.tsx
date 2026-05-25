@@ -35,7 +35,13 @@ export default function OpenEventScreen() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    // OBS: Behåll bara `eventId` som dep — `t`, `locale` och `activateEvent`
+    // är instabila/triggar re-renders och skulle få cleanup att fyra mellan
+    // welcome-rendering och setTimeout, vilket dödar navigeringen och
+    // låser användaren på välkomstskärmen. Vi vill att effekten kör EXAKT
+    // en gång per eventId.
+    let unmounted = false;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
     (async () => {
       if (!eventId) {
         setError(t("event.openMissing") as string);
@@ -43,7 +49,7 @@ export default function OpenEventScreen() {
       }
       try {
         const event = await activateEvent(eventId);
-        if (cancelled) return;
+        if (unmounted) return;
         setWelcomeName(event.name);
         setLogoUrl(event.logoUrl || null);
         const lang: "sv" | "en" = locale?.startsWith("en") ? "en" : "sv";
@@ -53,19 +59,22 @@ export default function OpenEventScreen() {
             event.welcomeText?.en ||
             null
         );
-        // Visa välkomst i 2 sek, replace:a sedan till Home
-        setTimeout(() => {
-          if (!cancelled) navigation.replace("Home");
+        // Visa välkomst i 2 sek, replace:a sedan till Home. Timer-ID:t
+        // sparas så cleanup kan rensa det om användaren backar tidigare.
+        timerId = setTimeout(() => {
+          if (!unmounted) navigation.replace("Home");
         }, 2000);
       } catch (e: any) {
-        if (cancelled) return;
+        if (unmounted) return;
         setError(e?.message || (t("common.error") as string));
       }
     })();
     return () => {
-      cancelled = true;
+      unmounted = true;
+      if (timerId) clearTimeout(timerId);
     };
-  }, [eventId, activateEvent, navigation, t, locale]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
 
   if (error) {
     return (
