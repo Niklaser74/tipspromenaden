@@ -17,11 +17,13 @@ import {
   Image,
   ScrollView,
   Platform,
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getSavedWalks } from "../services/storage";
-import { getPublicWalks } from "../services/firestore";
+import { getPublicWalks, getWalk } from "../services/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { signOut } from "../services/auth";
 import { useAuth } from "../context/AuthContext";
 import { Walk } from "../types";
@@ -54,6 +56,11 @@ export default function HomeScreen() {
     moreCount: number;
   } | null>(null);
 
+  // Event-läge: walks som event.walkIds pekar på. Visas som klickbar
+  // lista mellan hero och action-korten så användaren kan starta direkt
+  // utan att gå via Bibliotek. null = inte hämtat än, [] = inga walks.
+  const [eventWalks, setEventWalks] = useState<Walk[] | null>(null);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -70,6 +77,57 @@ export default function HomeScreen() {
       unsub();
     };
   }, [navigation]);
+
+  // Hämta event-walks parallellt så event-läge får snabb lista att
+  // visa. Vi går direkt mot getWalk(id) per id istället för
+  // getPublicWalks + filter — färre läsningar, och funkar även för
+  // walks som inte är opt-in:ade som publika (eventet är "auktoritativt"
+  // för vad som ska visas under det). Tysta fel på enskilda id:n
+  // (t.ex. raderad walk) — hoppar bara över dem.
+  useEffect(() => {
+    if (!event?.walkIds || event.walkIds.length === 0) {
+      setEventWalks(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const ids = event.walkIds!;
+      const results = await Promise.all(
+        ids.map((id) => getWalk(id).catch(() => null))
+      );
+      if (cancelled) return;
+      setEventWalks(results.filter((w): w is Walk => w !== null));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [event?.id, event?.walkIds]);
+
+  // GPS-säkerhetsdisclaimer (samma key som LibraryScreen) — visas första
+  // gången användaren startar en publik walk via event-listan. Krav från ToS.
+  const SAFETY_DISCLAIMER_KEY = "library:safetyDisclaimerAccepted:v1";
+  async function startEventWalk(walk: Walk) {
+    const seen = await AsyncStorage.getItem(SAFETY_DISCLAIMER_KEY);
+    if (!seen) {
+      await new Promise<void>((resolve) => {
+        Alert.alert(
+          t("library.safetyTitle"),
+          t("library.safetyBody"),
+          [
+            {
+              text: t("library.safetyAccept"),
+              onPress: async () => {
+                await AsyncStorage.setItem(SAFETY_DISCLAIMER_KEY, "1");
+                resolve();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      });
+    }
+    navigation.navigate("JoinWalk", { walk });
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -297,6 +355,45 @@ export default function HomeScreen() {
             )}
             <Text style={styles.eventBannerArrow}>›</Text>
           </TouchableOpacity>
+        )}
+
+        {/* Event-walks-sektion — bara i event-läge och om event:et har
+            walks. Klick → JoinWalk direkt (med GPS-safety-disclaimer
+            första gången). Gör att Scania-besökare slipper navigera via
+            Bibliotek. */}
+        {event && eventWalks && eventWalks.length > 0 && (
+          <View style={styles.eventWalksSection}>
+            <Text style={styles.eventWalksHeading}>
+              {t("home.eventWalksHeading", { name: event.name })}
+            </Text>
+            {eventWalks.map((w) => (
+              <TouchableOpacity
+                key={w.id}
+                style={styles.eventWalkRow}
+                onPress={() => startEventWalk(w)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.eventWalkEmoji}>🚶</Text>
+                <View style={styles.eventWalkText}>
+                  <Text style={styles.eventWalkTitle} numberOfLines={1}>
+                    {w.title}
+                  </Text>
+                  {(w.city || w.questions?.length) && (
+                    <Text style={styles.eventWalkMeta}>
+                      {w.city ? `📍 ${w.city}` : ""}
+                      {w.city && w.questions?.length ? " · " : ""}
+                      {w.questions?.length
+                        ? t("home.eventWalkQuestions", {
+                            count: w.questions.length,
+                          })
+                        : ""}
+                    </Text>
+                  )}
+                </View>
+                <Text style={styles.eventWalkArrow}>›</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         )}
 
         {/* Action Cards */}
@@ -536,6 +633,45 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "right",
   },
+
+  // Event-walks-sektion (visas i event-läge mellan hero och action-cards)
+  eventWalksSection: {
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 4,
+    backgroundColor: "#FBF7F0",
+    borderRadius: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+  },
+  eventWalksHeading: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#2C3E2D",
+    letterSpacing: 0.5,
+    paddingHorizontal: 12,
+    paddingTop: 4,
+    paddingBottom: 8,
+    textTransform: "uppercase",
+  },
+  eventWalkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    gap: 12,
+  },
+  eventWalkEmoji: { fontSize: 22 },
+  eventWalkText: { flex: 1 },
+  eventWalkTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2C3E2D",
+  },
+  eventWalkMeta: { fontSize: 12, color: "#8A9A8D", marginTop: 2 },
+  eventWalkArrow: { fontSize: 22, color: "#1B6B35", fontWeight: "300" },
 
   actionsSection: { paddingHorizontal: 20, marginTop: -16, gap: 10 },
   actionCardPrimary: {

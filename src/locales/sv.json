@@ -43,6 +43,8 @@
     "eventBannerTomorrow": "Imorgon",
     "eventBannerInDays": "Om {{count}} dagar",
     "eventBannerMore": "+{{count}} fler",
+    "eventWalksHeading": "Här på {{name}}",
+    "eventWalkQuestions": "{{count}} kontroller",
     "createWalk": "Skapa promenad",
     "createWalkDesc": "Skapa en ny tipspromenad med frågor",
     "createWalkNeedLogin": "Logga in för att skapa",

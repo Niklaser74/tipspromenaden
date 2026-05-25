@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Mindre språk-fix: generisk \"eventkod\"-platshållare i fältet under Inställningar → Event-läge istället för det tidigare exempel-namnet.",
-        en: "Minor text fix: generic \"event code\" placeholder in the input under Settings → Event mode instead of the previous example name.",
+        sv: "Event-läget visar nu eventets walks direkt på hemskärmen — \"Här på <eventets namn>\" med tappbara rader. Du slipper gå via Bibliotek för att hitta dem.",
+        en: "Event mode now shows the event's walks directly on the home screen — \"Here at <event name>\" with tappable rows. No need to dig through the Library to find them.",
       },
     },
   },

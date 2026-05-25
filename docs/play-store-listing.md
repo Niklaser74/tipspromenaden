@@ -181,6 +181,34 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25g — Event-walks direkt på Hem
+
+Ny sektion på `HomeScreen` mellan hero och action-cards när event är
+aktivt OCH `event.walkIds` innehåller minst 1 id. Rubrik "Här på
+{eventName}" + lista över walks (titel, ev. stad, antal kontroller).
+Klick → `JoinWalk` direkt med GPS-säkerhetsdisclaimer första gången
+(samma key som biblioteket: `library:safetyDisclaimerAccepted:v1`).
+
+Fetch via Promise.all över `getWalk(id)` — färre läsningar än
+`getPublicWalks` + filter, och funkar för walks som inte är opt-in:ade
+som publika (eventet är auktoritativt). Tysta fel på enskilda id:n
+(t.ex. raderad walk) — hoppas över.
+
+Tidigare flöde krävde ~4 tap (Hem → Bibliotek → Upptäck → walk).
+Nu 1 tap från Hem.
+
+**Release notes till användarna (sv):**
+Event-läget visar nu eventets walks direkt på hemskärmen — "Här på
+<eventets namn>" med tappbara rader. Du slipper gå via Bibliotek för
+att hitta dem.
+
+**Release notes (en):**
+Event mode now shows the event's walks directly on the home screen —
+"Here at <event name>" with tappable rows. No need to dig through the
+Library to find them.
+
+---
+
 ### OTA 2026-05-25f — Generiska placeholders
 
 Bytte "t.ex. scania2026" / "e.g. scania2026" mot "eventkod" / "event
