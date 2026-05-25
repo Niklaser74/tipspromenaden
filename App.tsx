@@ -13,7 +13,10 @@ import * as Linking from "expo-linking";
 import * as ScreenOrientation from "expo-screen-orientation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthProvider } from "./src/context/AuthContext";
-import { EventThemeProvider } from "./src/context/EventThemeContext";
+import {
+  EventThemeProvider,
+  useEventTheme,
+} from "./src/context/EventThemeContext";
 import EventBanner from "./src/components/EventBanner";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import { initI18n, useTranslation } from "./src/i18n";
@@ -130,6 +133,10 @@ function AppNavigator() {
   // t() används för att få rubriker översatta; hook-en får komponenten
   // att rerenderas när språket byts.
   const { t } = useTranslation();
+  // Event-läge styr accent-färgen i navigatorns header. När inget event
+  // är aktivt får vi tillbaka TP.forest (= #1B6B35) → identiskt utseende.
+  const { colors } = useEventTheme();
+  const primary = colors.primary;
 
   return (
     <NavigationContainer linking={linking}>
@@ -137,7 +144,7 @@ function AppNavigator() {
         initialRouteName="Home"
         screenOptions={{
           headerStyle: {
-            backgroundColor: "#1B6B35",
+            backgroundColor: primary,
           },
           headerTintColor: "#F5F0E8",
           headerTitleStyle: {
@@ -169,7 +176,7 @@ function AppNavigator() {
           component={CreateWalkScreen}
           options={{
             title: t("nav.createWalk"),
-            headerStyle: { backgroundColor: "#1B6B35" },
+            headerStyle: { backgroundColor: primary },
           }}
         />
         <Stack.Screen
@@ -187,7 +194,7 @@ function AppNavigator() {
           component={ScanQRScreen}
           options={{
             title: t("nav.scanQR"),
-            headerStyle: { backgroundColor: "#1B6B35" },
+            headerStyle: { backgroundColor: primary },
           }}
         />
         <Stack.Screen

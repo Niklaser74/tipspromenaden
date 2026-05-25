@@ -46,6 +46,7 @@ import {
 } from "../services/tipspackLibrary";
 import { getPublicWalks } from "../services/firestore";
 import { useAuth } from "../context/AuthContext";
+import { useEventTheme } from "../context/EventThemeContext";
 import { WEB_HOST } from "../constants/deepLinks";
 import { getCurrentLocation, getDistanceInMeters, formatDistance } from "../utils/location";
 import { WALK_CATEGORIES } from "../constants/categories";
@@ -61,6 +62,10 @@ export default function LibraryScreen() {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
   const { user } = useAuth();
+  // Event-läge filtrerar Upptäck-fliken till bara event.walkIds när aktivt.
+  // När inget event är aktivt returnerar hooken `event: null` → ingen
+  // filtrering (bakåtkompatibelt).
+  const { event } = useEventTheme();
   const route = useRoute<any>();
   // Top inset: utan stack-header bor segmented control under status-/notch-
   // raden. Lägg på enhetens safe-area-top som padding så flikarna alltid
@@ -231,7 +236,15 @@ export default function LibraryScreen() {
   const filteredWalks = useMemo(() => {
     if (!walks) return [];
     const term = searchTerm.trim().toLowerCase();
+    // Event-läge: hård filtrering till event.walkIds om event:et har
+    // angett en lista. Tom/saknad lista = "visa allt" (event utan
+    // walk-restriktion, t.ex. bara branding).
+    const eventWalkIds =
+      event?.walkIds && event.walkIds.length > 0
+        ? new Set(event.walkIds)
+        : null;
     return walks.filter((w) => {
+      if (eventWalkIds && !eventWalkIds.has(w.id)) return false;
       if (selectedCategories.size > 0) {
         if (!w.category || !selectedCategories.has(w.category)) return false;
       }
@@ -245,7 +258,7 @@ export default function LibraryScreen() {
         (w.city?.toLowerCase().includes(term) ?? false)
       );
     });
-  }, [walks, searchTerm, selectedCategories, selectedLanguages]);
+  }, [walks, searchTerm, selectedCategories, selectedLanguages, event]);
 
   /**
    * Visar GPS-säkerhets-disclaimer första gången användaren startar en

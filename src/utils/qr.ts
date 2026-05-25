@@ -13,7 +13,12 @@
 
 import * as Crypto from "expo-crypto";
 import { Walk } from "../types";
-import { APP_SCHEME, WALK_PATH, WEB_HOST } from "../constants/deepLinks";
+import {
+  APP_SCHEME,
+  WALK_PATH,
+  WEB_HOST,
+  EVENT_PATH,
+} from "../constants/deepLinks";
 
 /**
  * Datastrukturen som kodas i QR-koden.
@@ -127,6 +132,39 @@ export function parseQRData(raw: string): QRData | null {
     return { type: "tipspromenaden", walkId: trimmed, title: "" };
   }
 
+  return null;
+}
+
+/**
+ * Tolkar en rå sträng och returnerar event-id om strängen är en
+ * event-deep-link (`tipspromenaden://event/<id>`). Returnerar null
+ * om strängen inte är en event-länk.
+ *
+ * ScanQRScreen kallar denna EFTER `parseQRData` fallit — så event-QR
+ * och walk-QR kan separeras utan att bryta befintliga walk-QR-koder.
+ *
+ * @returns Event-id om matchande, annars null.
+ */
+export function parseEventQR(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const lower = trimmed.toLowerCase();
+
+  // Bara custom-scheme stöds — vi vill INTE intercepta
+  // https://tipspromenaden.app/event/<id> eftersom den URL:en är
+  // reserverad för framtida landningssida på webben.
+  const schemeLinkPrefix = `${APP_SCHEME}://${EVENT_PATH}/`;
+  if (lower.startsWith(schemeLinkPrefix)) {
+    try {
+      const id = decodeURIComponent(
+        trimmed.slice(schemeLinkPrefix.length)
+      ).trim();
+      // Slug-form: bara safe URL-tecken (samma policy som isValidEventId).
+      if (/^[a-zA-Z0-9_-]+$/.test(id) && id.length <= 100) return id;
+    } catch {
+      /* trasig URI */
+    }
+  }
   return null;
 }
 

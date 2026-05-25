@@ -29,12 +29,17 @@ import { syncPendingData } from "../services/offlineSync";
 import { getCurrentLocation, formatDistance } from "../utils/location";
 import { distanceToWalk, LatLng } from "../utils/walkGeo";
 import { useTranslation } from "../i18n";
+import { useEventTheme } from "../context/EventThemeContext";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { user } = useAuth();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // Event-läge — override hero-bakgrund och accent-färger när ett event är
+  // aktivt. När inget event är aktivt returnerar hooken TP-defaults så
+  // utseendet är oförändrat för normala användare.
+  const { colors: eventColors, event } = useEventTheme();
 
   // Antal sparade promenader (för badge på Bibliotek-knappen).
   // Laddas vid mount + på navigation-focus så badgen alltid är aktuell.
@@ -146,10 +151,20 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
-        <View style={styles.hero}>
+        {/* Hero — bakgrunden override:as till event-färg om aktivt. */}
+        <View
+          style={[
+            styles.hero,
+            event && { backgroundColor: eventColors.primary },
+          ]}
+        >
           <View style={styles.heroBackground}>
-            <View style={styles.heroGradientTop} />
+            <View
+              style={[
+                styles.heroGradientTop,
+                event && { backgroundColor: eventColors.primary },
+              ]}
+            />
             <View style={styles.heroGradientBottom} />
           </View>
 
@@ -231,9 +246,15 @@ export default function HomeScreen() {
 
           <View style={styles.heroContent}>
             <Text style={styles.heroIcon}>🧭</Text>
-            <Text style={styles.title}>Tipspromenaden</Text>
-            <Text style={styles.subtitleBrand}>{t("home.brandTagline")}</Text>
-            <Text style={styles.subtitle}>{t("home.subtitle")}</Text>
+            <Text style={styles.title}>
+              {event ? event.name : "Tipspromenaden"}
+            </Text>
+            <Text style={styles.subtitleBrand}>
+              {event ? "EVENT-LÄGE" : t("home.brandTagline")}
+            </Text>
+            <Text style={styles.subtitle}>
+              {event ? "Powered by Tipspromenaden" : t("home.subtitle")}
+            </Text>
           </View>
         </View>
 

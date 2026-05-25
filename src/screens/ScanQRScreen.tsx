@@ -12,7 +12,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { parseQRData } from "../utils/qr";
+import { parseQRData, parseEventQR } from "../utils/qr";
 import { getWalk } from "../services/firestore";
 import { saveWalkLocally, getSavedWalks } from "../services/storage";
 import { useTranslation } from "../i18n";
@@ -242,6 +242,15 @@ async function processQRData(
   t: TFn,
   onError?: () => void
 ) {
+  // Försök event-QR först. Event-länkar är custom-scheme bara
+  // (`tipspromenaden://event/<id>`) så de skiljer sig tydligt från
+  // walk-QR och kan inte förväxlas med varandra.
+  const eventId = parseEventQR(data);
+  if (eventId) {
+    navigation.replace("OpenEvent", { eventId });
+    return;
+  }
+
   const qrData = parseQRData(data);
   if (!qrData) {
     Alert.alert(t("scan.invalidTitle"), t("scan.invalidMessage"));
