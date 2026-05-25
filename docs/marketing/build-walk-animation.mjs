@@ -671,6 +671,24 @@ function renderFrame(frame) {
   return canvas;
 }
 
+// ─── Exports för andra scripts (build-social-walk-animation m.fl.) ─
+// Andra scripts kan importera renderFrame + metadata utan att GIF-
+// genereringen nedan körs som side-effect.
+export { renderFrame, W as WALK_W, H as WALK_H, TOTAL_FRAMES, FPS };
+
+// ─── Main-guard: kör bara GIF-genereringen om scriptet körs direkt ─
+// Detta tillåter import utan side-effects. Pattern: jämför import.meta.url
+// med process.argv[1] (det script som node kördes med).
+const __filename = fileURLToPath(import.meta.url);
+const isMain =
+  process.argv[1] === __filename ||
+  process.argv[1]?.replace(/\\/g, "/").endsWith("build-walk-animation.mjs");
+
+if (!isMain) {
+  // Importeras från annat script — gör inget mer. (Exports ovan räcker.)
+  // eslint-disable-next-line no-empty
+} else {
+
 // ─── Preview single frame? (för att inspektera utan att öppna GIF) ─
 const previewFrame = parseInt(getArg("preview-frame", "-1"), 10);
 if (previewFrame >= 0 && previewFrame < TOTAL_FRAMES) {
@@ -703,3 +721,5 @@ fs.writeFileSync(OUTPUT, encoder.out.getData());
 
 const stats = fs.statSync(OUTPUT);
 console.log(`\n✅ Klar: ${path.basename(OUTPUT)} (${(stats.size / 1024 / 1024).toFixed(2)} MB)`);
+
+} // ← stänger main-guarden ovan
