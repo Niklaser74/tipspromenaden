@@ -523,8 +523,10 @@ gång du ändrar reglerna måste du köra:
 
 ```
 npx firebase deploy --only firestore:rules --project tipspromenaden-491207
-npx firebase deploy --only storage:rules --project tipspromenaden-491207
+npx firebase deploy --only storage --project tipspromenaden-491207
 ```
+
+(Obs: storage-rules tar bara `--only storage`, INTE `--only storage:rules`.)
 
 (Projektet är inte aliasat via `.firebaserc` — `--project`-flaggan krävs.)
 
@@ -537,6 +539,7 @@ Web-admin-fliken för Events upptäckte detta 2026-05-25 när
 1. Editera `firestore.rules` / `storage.rules` lokalt
 2. Committa ändringen
 3. Kör `npx firebase deploy --only firestore:rules --project tipspromenaden-491207`
+   (eller `--only storage` för storage.rules)
 4. Verifiera att den nya regeln är aktiv (Firebase Console → Rules-fliken)
 
 ### App-bundle
