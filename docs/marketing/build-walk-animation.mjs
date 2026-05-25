@@ -111,14 +111,15 @@ const COLORS = {
 // ─── Scenes (frames -> what's on screen) ────────────────────────────
 //
 // Tidsplan i frames (15fps = 67ms/frame):
-//   0-15    (0.0-1.0s): Statisk karta, användare nära start
-//   15-30   (1.0-2.0s): Användare promenerar mot pin #1
-//   30-40   (2.0-2.7s): Närmar sig pin #1, puls
-//   40-55   (2.7-3.7s): Fråga-modal slider upp
-//   55-80   (3.7-5.3s): Fråga + alternativ syns, väljer rätt
-//   80-90   (5.3-6.0s): Rätt-feedback (grön highlight)
-//   90-100  (6.0-6.7s): Modal slider ned, pin #1 → grön ✓
-//   100-120 (6.7-8.0s): Användare promenerar mot pin #2, loop
+//   0-12    (0.0-0.8s): Statisk karta, användare nära start
+//   12-25   (0.8-1.7s): Användare promenerar mot pin #1
+//   25-32   (1.7-2.1s): Närmar sig pin #1, puls
+//   32-44   (2.1-2.9s): Fråga-modal slider upp
+//   44-62   (2.9-4.1s): Fråga + alternativ syns
+//   62-68   (4.1-4.5s): User markerar svar (highlight)
+//   68-92   (4.5-6.1s): RÄTT!-feedback (badge + sparkles + pulserande ✓)
+//   92-102  (6.1-6.8s): Modal slidar ned, pin #1 → grön ✓
+//   102-120 (6.8-8.0s): Användare promenerar mot pin #2, loop
 
 // Kontrollpunkter i karta-koordinater (screen-space, hela bilden)
 const POINTS = [
@@ -332,7 +333,7 @@ function drawDistancePill(ctx, distance, target) {
 
   let text;
   if (distance < 15) {
-    text = `📍 Nästan framme!`;
+    text = `Nästan framme!`;
   } else {
     text = `${Math.round(distance)} m till kontroll ${target}`;
   }
@@ -340,8 +341,32 @@ function drawDistancePill(ctx, distance, target) {
   ctx.textBaseline = "alphabetic";
 }
 
+// ─── Ritar sparkles/confetti som flyger ut från rätt svar ─────────
+function drawSparkles(ctx, x, y, progress) {
+  // progress = 0..1 — 0 = nyss exploderat, 1 = nästan borta
+  // Slumpmässig-ish men deterministisk position så det loopar fint.
+  // 12 partiklar i en cirkel runt sourcepunkten.
+  const count = 12;
+  const maxDist = 90;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + 0.3;
+    const dist = maxDist * progress;
+    const px = x + Math.cos(angle) * dist;
+    const py = y + Math.sin(angle) * dist - progress * 20; // lite tyngdkraft
+    const size = 4 * (1 - progress);
+    const alpha = 1 - progress;
+    // Växla mellan grön och gul för variation
+    ctx.fillStyle = i % 2 === 0
+      ? `rgba(232,184,48,${alpha})` // yellow
+      : `rgba(27,107,53,${alpha})`; // green
+    ctx.beginPath();
+    ctx.arc(px, py, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
 // ─── Ritar fråga-modal (slidar in/ut beroende på t = 0..1) ────────
-function drawQuestionModal(ctx, t, selectedAnswer = -1, showCorrect = false) {
+function drawQuestionModal(ctx, t, selectedAnswer = -1, showCorrect = false, correctPhase = 0) {
   if (t <= 0) return;
 
   // Modalen är 80% av höjden, slider upp från botten
@@ -388,26 +413,44 @@ function drawQuestionModal(ctx, t, selectedAnswer = -1, showCorrect = false) {
   const optH = 60;
   const optGap = 12;
 
+  // För rätt-alternativet i feedback-läge: subtil pulsering så ✓ andas
+  // (sinus-baserad scale 1.0 ↔ 1.15 över hela feedback-fasen).
+  const checkPulse = 1 + Math.sin(correctPhase * Math.PI * 4) * 0.08;
+  // Bakgrunden ramper in starkare grön i början av feedback (0..0.3),
+  // sen stannar mättad resten av tiden.
+  const greenIntensity = Math.min(1, correctPhase / 0.3);
+
   for (let i = 0; i < options.length; i++) {
     const y = optY + i * (optH + optGap);
     let bg = COLORS.white;
     let border = COLORS.rule;
     let fg = COLORS.text;
+    let strokeW = 1.5;
 
     if (showCorrect && i === correctIdx) {
-      bg = "#E8F5E9";
+      // Starkare grön bakgrund: lerp från ljus till mättad mellan
+      // svit-färgerna. greenIntensity styr.
+      const r = Math.round(lerp(232, 200, greenIntensity));
+      const g = Math.round(lerp(245, 230, greenIntensity));
+      const b = Math.round(lerp(233, 204, greenIntensity));
+      bg = `rgb(${r},${g},${b})`;
       border = COLORS.green;
       fg = COLORS.greenDark;
+      strokeW = 3;
     } else if (selectedAnswer === i && !showCorrect) {
       // Just selected, ej feedback än
       bg = "#F0EDE5";
+    } else if (showCorrect && i !== correctIdx) {
+      // Övriga alternativ dimmas något i feedback-fasen så ögat dras
+      // till det rätta.
+      ctx.globalAlpha = contentAlpha * (1 - greenIntensity * 0.4);
     }
 
     ctx.fillStyle = bg;
     roundRect(ctx, 24, y, W - 48, optH, 14);
     ctx.fill();
     ctx.strokeStyle = border;
-    ctx.lineWidth = showCorrect && i === correctIdx ? 2.5 : 1.5;
+    ctx.lineWidth = strokeW;
     ctx.stroke();
 
     ctx.fillStyle = fg;
@@ -416,11 +459,93 @@ function drawQuestionModal(ctx, t, selectedAnswer = -1, showCorrect = false) {
     ctx.fillText(options[i], 44, y + 38);
 
     if (showCorrect && i === correctIdx) {
-      ctx.fillStyle = COLORS.green;
-      ctx.font = `bold 20px InstSansBold`;
-      ctx.textAlign = "right";
-      ctx.fillText("✓", W - 44, y + 40);
+      // Pulserande checkmark — ritad som path istället för Unicode
+      // eftersom våra fonter (Lora/InstSans) inte täcker ✓-tecknet.
+      // Center på den högra delen av rutan, scalas pulserande.
+      const checkX = W - 50;
+      const checkY = y + 30;
+      const checkSize = 14 * checkPulse;
+      ctx.save();
+      ctx.strokeStyle = COLORS.green;
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      ctx.moveTo(checkX - checkSize, checkY);
+      ctx.lineTo(checkX - checkSize / 3, checkY + checkSize);
+      ctx.lineTo(checkX + checkSize, checkY - checkSize);
+      ctx.stroke();
+      ctx.restore();
     }
+
+    // Återställ alpha för nästa iteration
+    ctx.globalAlpha = contentAlpha;
+  }
+
+  // RÄTT!-badge — flyger in från botten ovanför första alternativet
+  // i början av feedback-fasen, sen stannar uppe.
+  if (showCorrect && correctPhase > 0) {
+    const badgePopT = Math.min(1, correctPhase / 0.2); // pop-in 0..20% av fasen
+    const badgeY = lerp(optY - 10, optY - 50, easeInOut(badgePopT));
+    const badgeAlpha = badgePopT;
+    const badgeScale = lerp(0.6, 1, easeInOut(badgePopT));
+
+    ctx.save();
+    ctx.globalAlpha = contentAlpha * badgeAlpha;
+    ctx.translate(W / 2, badgeY);
+    ctx.scale(badgeScale, badgeScale);
+
+    // Badge-bakgrund — fyll
+    const badgeW = 130;
+    const badgeH = 44;
+    ctx.fillStyle = COLORS.green;
+    roundRect(ctx, -badgeW / 2, -badgeH / 2, badgeW, badgeH, 22);
+    ctx.fill();
+    // Gul accent-kant under
+    ctx.fillStyle = COLORS.yellow;
+    roundRect(ctx, -badgeW / 2, badgeH / 2 - 4, badgeW, 4, 2);
+    ctx.fill();
+
+    // Text (utan emoji eftersom våra fonter inte stöder 🎉 — ersatt
+    // med ! + en liten stjärna ritad som path till höger).
+    ctx.fillStyle = COLORS.cream;
+    ctx.font = `bold 22px LoraBold`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("RÄTT!", -16, 1);
+    ctx.textBaseline = "alphabetic";
+
+    // Liten gul stjärna som "celebration"-accent
+    ctx.fillStyle = COLORS.yellow;
+    const starX = 28;
+    const starY = 0;
+    const starR = 7;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      const x = starX + Math.cos(a) * starR;
+      const y = starY + Math.sin(a) * starR;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      const ai = a + Math.PI / 5;
+      const xi = starX + Math.cos(ai) * starR * 0.4;
+      const yi = starY + Math.sin(ai) * starR * 0.4;
+      ctx.lineTo(xi, yi);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  // Sparkles — flyger ut från rätt-alternativets center i början av
+  // feedback-fasen, fadar ut efter ~50% av fasen.
+  if (showCorrect && correctPhase < 0.5) {
+    const sparkleX = W - 44;
+    const sparkleY = optY + correctIdx * (optH + optGap) + 30;
+    const sparkleT = correctPhase / 0.5;
+    ctx.globalAlpha = contentAlpha;
+    drawSparkles(ctx, sparkleX, sparkleY, sparkleT);
   }
 
   ctx.globalAlpha = 1;
@@ -464,51 +589,53 @@ function renderFrame(frame) {
   let modalT = 0;
   let selectedAnswer = -1;
   let showCorrect = false;
-  let pin1State = "active"; // ändras till "done" efter frame 90
+  let correctPhase = 0; // 0..1 inom feedback-fasen, styr sparkles + RÄTT-badge
+  let pin1State = "active"; // ändras till "done" efter feedback
   let pulsePhase = 0;
 
-  if (frame < 15) {
-    // Statisk start, användare nära USER_START
+  if (frame < 12) {
+    // Statisk start
     userPos = USER_START;
-  } else if (frame < 30) {
-    // Promenera mot pin #1 (frame 15-30)
-    const t = (frame - 15) / 15;
+  } else if (frame < 25) {
+    // Promenera mot pin #1
+    const t = (frame - 12) / 13;
     userPos = {
       x: lerp(USER_START.x, POINTS[0].x, easeInOut(t)),
       y: lerp(USER_START.y, POINTS[0].y, easeInOut(t)),
     };
-  } else if (frame < 40) {
-    // Pulsera vid pin #1 (frame 30-40)
+  } else if (frame < 32) {
+    // Pulsera vid pin #1
     userPos = POINTS[0];
-    pulsePhase = ((frame - 30) / 10) % 1;
-  } else if (frame < 55) {
-    // Modal slidar upp (frame 40-55)
+    pulsePhase = ((frame - 25) / 7) % 1;
+  } else if (frame < 44) {
+    // Modal slidar upp
     userPos = POINTS[0];
-    modalT = (frame - 40) / 15;
-  } else if (frame < 75) {
-    // Fråga + alternativ syns (frame 55-75)
+    modalT = (frame - 32) / 12;
+  } else if (frame < 62) {
+    // Fråga + alternativ syns
     userPos = POINTS[0];
     modalT = 1;
-  } else if (frame < 80) {
-    // User väljer alternativ (frame 75-80) — alltid det korrekta
+  } else if (frame < 68) {
+    // User markerar svar (highlight, ej rätt-feedback än)
     userPos = POINTS[0];
     modalT = 1;
     selectedAnswer = CORRECT_IDX;
-  } else if (frame < 90) {
-    // Rätt-feedback (frame 80-90)
+  } else if (frame < 92) {
+    // RÄTT!-feedback (frame 68-92 = 24 frames = 1.6s)
     userPos = POINTS[0];
     modalT = 1;
     selectedAnswer = CORRECT_IDX;
     showCorrect = true;
-  } else if (frame < 100) {
-    // Modal slidar ned, pin #1 → done (frame 90-100)
+    correctPhase = (frame - 68) / 24;
+  } else if (frame < 102) {
+    // Modal slidar ned, pin #1 → done
     userPos = POINTS[0];
-    modalT = lerp(1, 0, (frame - 90) / 10);
+    modalT = lerp(1, 0, (frame - 92) / 10);
     pin1State = "done";
   } else {
-    // Promenera mot pin #2 (frame 100-120)
+    // Promenera mot pin #2
     pin1State = "done";
-    const t = (frame - 100) / 20;
+    const t = (frame - 102) / 18;
     userPos = {
       x: lerp(POINTS[0].x, POINTS[1].x, easeInOut(t)),
       y: lerp(POINTS[0].y, POINTS[1].y, easeInOut(t)),
@@ -539,9 +666,19 @@ function renderFrame(frame) {
   drawDistancePill(ctx, dist, target);
 
   // Fråga-modal (rita SIST så den hamnar överst)
-  drawQuestionModal(ctx, modalT, selectedAnswer, showCorrect);
+  drawQuestionModal(ctx, modalT, selectedAnswer, showCorrect, correctPhase);
 
   return canvas;
+}
+
+// ─── Preview single frame? (för att inspektera utan att öppna GIF) ─
+const previewFrame = parseInt(getArg("preview-frame", "-1"), 10);
+if (previewFrame >= 0 && previewFrame < TOTAL_FRAMES) {
+  const canvas = renderFrame(previewFrame);
+  const previewPath = OUTPUT.replace(/\.gif$/, `-frame${previewFrame}.png`);
+  fs.writeFileSync(previewPath, canvas.toBuffer("image/png"));
+  console.log(`✅ Preview-frame: ${path.basename(previewPath)}`);
+  process.exit(0);
 }
 
 // ─── Bygg GIF ───────────────────────────────────────────────────────
