@@ -2,16 +2,22 @@
 // promenera till kontrollpunkt → fråga öppnas → svara → kontrollpunkt
 // markeras som klar → promenera till nästa.
 //
-// Output: walk-animation.gif (~3MB, ~8 sekunder, loopar)
+// Output: walk-animation.gif (~1.5MB, ~8 sekunder, loopar)
 //
 // Stil: Friluft Folio (samma som social-launch + flygblad). UI:t är
 // canvas-tecknat från grunden — inte skärmdumpar — för konsekvent
 // stil och full kontroll över animationen. Ingen telefon-frame
 // (mockup-look känns konstgjord); bara skärm-innehållet.
 //
-// Användning:
-//   cd tipspromenaden-app/docs/marketing
+// Användning (default-värdena är det vi har idag):
 //   node build-walk-animation.mjs
+//
+// Anpassa frågan + alternativ + output:
+//   node build-walk-animation.mjs \
+//     --question "Vilken är internets roligaste app?" \
+//     --options "Tipsrundan,Strava,Tipspromenaden,Wordle" \
+//     --correct 2 \
+//     --output walk-animation-fun.gif
 
 import fs from "node:fs";
 import path from "node:path";
@@ -34,7 +40,57 @@ const W = 480;
 const H = 854; // ~16:9 portrait, lättare än 1080-bredd för GIF-fil
 const FPS = 15;
 const TOTAL_FRAMES = 120; // 8 sek loop
-const OUTPUT = path.join(__dirname, "walk-animation.gif");
+
+// ─── CLI-args ───────────────────────────────────────────────────────
+// Defaults: realistisk höjd-fråga (samma som första versionen). Override
+// via --question / --options / --correct / --output för andra varianter.
+function getArg(name, fallback) {
+  const arg = process.argv.find((a) => a.startsWith(`--${name}=`));
+  return arg ? arg.slice(`--${name}=`.length) : fallback;
+}
+
+const QUESTION = getArg(
+  "question",
+  "Hur många meter över havet ligger denna plats?"
+);
+const OPTIONS_RAW = getArg("options", "12 m,47 m,108 m,203 m");
+const OPTIONS = OPTIONS_RAW.split(",").map((s) => s.trim());
+const CORRECT_IDX = parseInt(getArg("correct", "1"), 10);
+const OUTPUT_NAME = getArg("output", "walk-animation.gif");
+const OUTPUT = path.join(__dirname, OUTPUT_NAME);
+
+if (OPTIONS.length !== 4) {
+  console.error(
+    `--options måste vara exakt 4 kommaseparerade alternativ (fick ${OPTIONS.length})`
+  );
+  process.exit(1);
+}
+if (CORRECT_IDX < 0 || CORRECT_IDX > 3) {
+  console.error(`--correct måste vara 0-3 (fick ${CORRECT_IDX})`);
+  process.exit(1);
+}
+
+// Dela frågetexten i två rader om den är lång. Brytpunkt vid mellanslag
+// nära mitten så typografi-rytmen blir balanserad.
+function wrapQuestion(text) {
+  if (text.length < 32) return [text, ""];
+  const mid = Math.floor(text.length / 2);
+  // Sök närmaste mellanslag före och efter mitten, ta den som ger
+  // jämnast split
+  let breakAt = mid;
+  for (let i = 0; i < 15; i++) {
+    if (text[mid - i] === " ") {
+      breakAt = mid - i;
+      break;
+    }
+    if (text[mid + i] === " ") {
+      breakAt = mid + i;
+      break;
+    }
+  }
+  return [text.slice(0, breakAt).trim(), text.slice(breakAt).trim()];
+}
+const [QUESTION_L1, QUESTION_L2] = wrapQuestion(QUESTION);
 
 const COLORS = {
   cream: "#F5F0E8",
@@ -319,18 +375,16 @@ function drawQuestionModal(ctx, t, selectedAnswer = -1, showCorrect = false) {
   ctx.textAlign = "left";
   ctx.fillText("K O N T R O L L   1", 32, modalTop + 56);
 
-  // Frågetext
+  // Frågetext (parametriserad via CLI --question)
   ctx.fillStyle = COLORS.greenDark;
   ctx.font = `bold 22px LoraBold`;
-  const question = "Hur många meter över havet";
-  const question2 = "ligger denna plats?";
-  ctx.fillText(question, 32, modalTop + 96);
-  ctx.fillText(question2, 32, modalTop + 124);
+  ctx.fillText(QUESTION_L1, 32, modalTop + 96);
+  if (QUESTION_L2) ctx.fillText(QUESTION_L2, 32, modalTop + 124);
 
-  // Svarsalternativ
-  const options = ["12 m", "47 m", "108 m", "203 m"];
-  const correctIdx = 1; // "47 m"
-  const optY = modalTop + 170;
+  // Svarsalternativ (parametriserade via CLI --options + --correct)
+  const options = OPTIONS;
+  const correctIdx = CORRECT_IDX;
+  const optY = modalTop + (QUESTION_L2 ? 170 : 140);
   const optH = 60;
   const optGap = 12;
 
@@ -436,15 +490,15 @@ function renderFrame(frame) {
     userPos = POINTS[0];
     modalT = 1;
   } else if (frame < 80) {
-    // User väljer alternativ (frame 75-80)
+    // User väljer alternativ (frame 75-80) — alltid det korrekta
     userPos = POINTS[0];
     modalT = 1;
-    selectedAnswer = 1;
+    selectedAnswer = CORRECT_IDX;
   } else if (frame < 90) {
     // Rätt-feedback (frame 80-90)
     userPos = POINTS[0];
     modalT = 1;
-    selectedAnswer = 1;
+    selectedAnswer = CORRECT_IDX;
     showCorrect = true;
   } else if (frame < 100) {
     // Modal slidar ned, pin #1 → done (frame 90-100)
