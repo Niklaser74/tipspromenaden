@@ -515,6 +515,32 @@ AAB:n kan publiceras:
 
 ## Byggflöde
 
+### Firestore-regler — separat deploy (HÅRT KRAV vid varje ändring)
+
+`firestore.rules` (och `storage.rules`) deploy:as **inte** av `eas build`
+eller `eas update` — de bor i Firebase Cloud, inte i app-bundeln. Varje
+gång du ändrar reglerna måste du köra:
+
+```
+npx firebase deploy --only firestore:rules --project tipspromenaden-491207
+npx firebase deploy --only storage:rules --project tipspromenaden-491207
+```
+
+(Projektet är inte aliasat via `.firebaserc` — `--project`-flaggan krävs.)
+
+**Symptom om du glömmer:** klient-skrivningar (eller läsningar mot
+nya collections) returnerar `Missing or insufficient permissions`.
+Web-admin-fliken för Events upptäckte detta 2026-05-25 när
+`events/{id}`-regeln var committad lokalt men aldrig deployad.
+
+**Checklista efter regel-ändring:**
+1. Editera `firestore.rules` / `storage.rules` lokalt
+2. Committa ändringen
+3. Kör `npx firebase deploy --only firestore:rules --project tipspromenaden-491207`
+4. Verifiera att den nya regeln är aktiv (Firebase Console → Rules-fliken)
+
+### App-bundle
+
 ```
 eas build -p android --profile preview     # APK för sideload
 eas build -p android --profile production  # AAB för Play
