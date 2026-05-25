@@ -12,6 +12,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import * as Linking from "expo-linking";
 import * as ScreenOrientation from "expo-screen-orientation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "./src/context/AuthContext";
 import {
   EventThemeProvider,
@@ -382,14 +383,21 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <EventThemeProvider>
-          <EventBanner />
-          <OfflineBanner />
-          <AppNavigator />
-          <UpdateNotifier />
-        </EventThemeProvider>
-      </AuthProvider>
+      {/* SafeAreaProvider behövs HÄR ovanför NavigationContainer eftersom
+          EventBanner använder useSafeAreaInsets och ligger som sibling
+          till AppNavigator (NavigationContainers inbyggda SafeAreaProvider
+          räcker bara inom navigatorn). Utan denna kraschar appen i event-
+          läge med "No safe area value available". */}
+      <SafeAreaProvider>
+        <AuthProvider>
+          <EventThemeProvider>
+            <EventBanner />
+            <OfflineBanner />
+            <AppNavigator />
+            <UpdateNotifier />
+          </EventThemeProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }

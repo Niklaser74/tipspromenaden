@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Event-läge ser snyggare ut: status-bar krockar inte längre med eventets banner högst upp, och hemskärmens hero visar nu eventets färg rent utan grön gradient blandad i botten.",
-        en: "Event mode looks cleaner: status bar no longer collides with the event banner at the top, and the home hero now shows the event color cleanly without a green gradient bleeding into the bottom.",
+        sv: "Akut fix: event-läget kraschade med \"No safe area value available\" efter förra uppdateringen. Detta är åtgärdat — banner och hemskärm ska nu fungera normalt.",
+        en: "Hotfix: event mode crashed with \"No safe area value available\" after the last update. Fixed — banner and home screen should work normally again.",
       },
     },
   },

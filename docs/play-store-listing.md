@@ -181,6 +181,33 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25d — Hotfix: SafeAreaProvider för EventBanner
+
+Förra OTA:n (25c) introducerade `useSafeAreaInsets` i EventBanner men
+banner mountas ovanför `NavigationContainer` i App.tsx. NavigationContainers
+inbyggda SafeAreaProvider når bara skärmar inuti navigatorn — siblingen
+EventBanner kraschade med "No safe area value available".
+
+Fix: explicit `<SafeAreaProvider>` från `react-native-safe-area-context`
+wrappar hela tree:t direkt under `<ErrorBoundary>`. Inga andra ändringar.
+
+**Lärdom:** när nya UI-komponenter mountas ovanför navigatorn (banners,
+modaler, overlays) — kom ihåg att de saknar navigatorns kontext. Den
+befintliga OfflineBanner använde inte safe-area-hooken, så den missade
+fallgropen.
+
+**Release notes till användarna (sv):**
+Akut fix: event-läget kraschade med "No safe area value available" efter
+förra uppdateringen. Detta är åtgärdat — banner och hemskärm ska nu
+fungera normalt.
+
+**Release notes (en):**
+Hotfix: event mode crashed with "No safe area value available" after
+the last update. Fixed — banner and home screen should work normally
+again.
+
+---
+
 ### OTA 2026-05-25c — Polish event-läge (banner-padding + hero-färg)
 
 Två kosmetiska fixar efter dogfooding med Scania-event:
