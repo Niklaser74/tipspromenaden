@@ -650,8 +650,11 @@ Plocka det som passar humöret. Förslag i grov ordning:
    Full kedja: 1.9.1 build 21 till TestFlight → Apple-godkänt efter
    1 omgång info-needed (löst med engelsk demo-walk vid Apple Park
    + simulator-koordinater) → DSA Trader-verifiering inskickad
-   (svenskt pass + elräkning) → DSA godkänd → Release tryckt
-   2026-05-24. Sign in with Apple (Plan B) → Guideline 4.8 löst,
+   (svenskt pass + elräkning) → DSA godkänd → 1.9.1 auto-released
+   2026-05-24 → upptäckt Language-fält visade "English" istället
+   för "Swedish" → 1.9.2 build 22 med CFBundleDevelopmentRegion +
+   CFBundleLocalizations-fix → submittad samma dag → auto-released
+   ~6h senare. Sign in with Apple (Plan B) → Guideline 4.8 löst,
    Apple-provider aktiv i Firebase Console. Native-bygget krävde
    manuell Sign-In-with-Apple-capability-toggle i Apple Developer
    Portal + rensning av cachad provisioning profile i Expo
