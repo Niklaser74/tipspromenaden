@@ -71,20 +71,21 @@ const COLORS = {
   phoneBezel: "#2C3E2D",
 };
 
-// Telefon-frame: justerat för 1080×1350-banner så det får plats med
-// header ovanför + CTA nedanför utan att klippas.
+// Telefon-frame: ner-skalad så att release-budskapet får dominera
+// kompositionen. Animationen är "supporting evidence", inte huvudfokus.
 const PHONE = (() => {
-  // 400 wide × ~711 tall — proportionellt 9:16, ramar in skärmen utan
-  // att kannibalisera CTA-blocket.
-  const phoneW = 400;
-  const phoneH = Math.round(phoneW * (WALK_H / WALK_W)); // 400 * 854/480 = 711
+  // 280 wide × ~498 tall — kompakt, ramar in skärmen som en illustration
+  // i mitten av kompositionen. Lämnar gott om plats för tack-rad +
+  // CTA + footer nedanför utan att klippas.
+  const phoneW = 280;
+  const phoneH = Math.round(phoneW * (WALK_H / WALK_W)); // 280 * 854/480 = 498
   return {
     x: (W - phoneW) / 2,
-    y: 380,
+    y: 540,
     w: phoneW,
     h: phoneH,
-    bezel: 14,
-    cornerR: 42,
+    bezel: 10,
+    cornerR: 28,
   };
 })();
 
@@ -130,47 +131,74 @@ function wrapText(ctx, text, maxW) {
 }
 
 // ─── Banner template (statisk del, samma varje frame) ──────────────
+//
+// Layout (release-meddelandet är hjälten, animationen supporting):
+//   y= 50:  Eyebrow "NU LIVE · ANDROID OCH iOS"
+//   y= 80:  Hairline
+//   y=120:  "Tipspromenaden" headline (Lora Bold)
+//   y=200:  Sub-headline (italic)
+//   y=270:  Release-meddelande (huvudtext, 3-4 rader)
+//   y=540:  Telefon-frame med walk-animation (300×534, centrerad)
+//   y=1110: Hairline divider
+//   y=1140: Tack-rad italic (2 rader)
+//   y=1240: CTA-block (kompakt, QR + "Skanna här")
+//   y=1320: Footer "tipspromenaden.app"
 function drawBanner(ctx) {
   // Bakgrund
   ctx.fillStyle = COLORS.cream;
   ctx.fillRect(0, 0, W, H);
 
-  // ─── HEADER ─────────────────────────────────────────────────────
+  // ─── EYEBROW + HEADLINE ────────────────────────────────────────
   let y = 56;
 
-  // Eyebrow
   ctx.fillStyle = COLORS.sage;
   ctx.font = `18px InstSansBold`;
   ctx.textAlign = "center";
   ctx.fillText(trackedUpper("NU LIVE  ·  ANDROID OCH iOS", 1), W / 2, y);
   y += 18;
 
-  // Hairline
   ctx.strokeStyle = COLORS.green;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   ctx.moveTo(W / 2 - 24, y);
   ctx.lineTo(W / 2 + 24, y);
   ctx.stroke();
-  y += 24;
+  y += 36;
 
-  // App-ikon liten — bredvid headline istället för ovanför så vi
-  // sparar höjd och får tightare layout
-  const iconSize = 64;
-  ctx.drawImage(iconImg, W / 2 - 270, y + 6, iconSize, iconSize);
-
-  // Headline (centrerad bredvid ikonen)
   ctx.fillStyle = COLORS.greenDark;
-  ctx.font = `64px LoraBold`;
-  ctx.textAlign = "left";
-  ctx.fillText("Tipspromenaden", W / 2 - 190, y + 56);
-  y += 88;
+  ctx.font = `68px LoraBold`;
+  ctx.fillText("Tipspromenaden", W / 2, y + 56);
+  y += 84;
 
-  // Italic sub
   ctx.fillStyle = COLORS.green;
-  ctx.font = `italic 24px LoraItalic`;
+  ctx.font = `italic 26px LoraItalic`;
+  ctx.fillText("På App Store och Google Play", W / 2, y + 22);
+  y += 60;
+
+  // ─── RELEASE-MEDDELANDE (HJÄLTEN) ──────────────────────────────
+  // Lora regular-vikt skulle vara estetiskt finare men vi har inte
+  // Lora Regular i font-paketet — InstSans får göra jobbet i större
+  // storlek så det känns betydligt.
+  ctx.fillStyle = COLORS.text;
+  ctx.font = `24px InstSans`;
   ctx.textAlign = "center";
-  ctx.fillText("Så här fungerar det", W / 2, y + 18);
+  const messageBlock1 = "Nu kan ni äntligen testa Tipspromenaden!";
+  const messageBlock2 =
+    "I biblioteket i appen hittar du promenader nära dig — eller skapar egna.";
+
+  // Linje 1: bolded för att kalla på blicken
+  ctx.font = `bold 26px InstSansBold`;
+  ctx.fillStyle = COLORS.greenDark;
+  ctx.fillText(messageBlock1, W / 2, y + 24);
+  y += 50;
+
+  // Linje 2: vanlig sub-message, kan wrappa
+  ctx.font = `22px InstSans`;
+  ctx.fillStyle = COLORS.text;
+  const subLines = wrapText(ctx, messageBlock2, W - 2 * MARGIN);
+  for (let i = 0; i < subLines.length; i++) {
+    ctx.fillText(subLines[i], W / 2, y + 22 + i * 32);
+  }
 
   // ─── PHONE FRAME ────────────────────────────────────────────────
   // Yttre svart bezel (rundad rektangel)
@@ -184,59 +212,73 @@ function drawBanner(ctx) {
     PHONE.cornerR + PHONE.bezel
   );
   ctx.fill();
-
   // (Walk-frame ritas separat i renderCombinedFrame eftersom den
   // varierar per frame.)
 
-  // ─── CTA-fot ────────────────────────────────────────────────────
-  const ctaTop = PHONE.y + PHONE.h + PHONE.bezel * 2 + 30;
-  const ctaH = 130;
-  const ctaW = W - 2 * MARGIN;
+  // ─── DIVIDER ───────────────────────────────────────────────────
+  const phoneBottom = PHONE.y + PHONE.h + PHONE.bezel;
+  const dividerY = phoneBottom + 30;
+  ctx.strokeStyle = COLORS.rule;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(MARGIN + 80, dividerY);
+  ctx.lineTo(W - MARGIN - 80, dividerY);
+  ctx.stroke();
+
+  // ─── TACK-RAD ───────────────────────────────────────────────────
+  ctx.fillStyle = COLORS.green;
+  ctx.font = `italic 22px LoraItalic`;
+  ctx.textAlign = "center";
+  const thanksLines = [
+    "Stort tack till alla testare som varit med",
+    "och gjort detta möjligt.",
+  ];
+  for (let i = 0; i < thanksLines.length; i++) {
+    ctx.fillText(thanksLines[i], W / 2, dividerY + 36 + i * 30);
+  }
+
+  // ─── CTA: QR + "Skanna här" ────────────────────────────────────
+  const ctaTop = dividerY + 100;
+  const ctaH = 100;
+  const ctaW = 560;
+  const ctaX = (W - ctaW) / 2;
 
   ctx.fillStyle = COLORS.greenDark;
-  roundRect(ctx, MARGIN, ctaTop, ctaW, ctaH, 16);
+  roundRect(ctx, ctaX, ctaTop, ctaW, ctaH, 14);
   ctx.fill();
 
-  // QR-kod till höger
-  const qrSize = 100;
-  const qrX = MARGIN + ctaW - 20 - qrSize;
+  // QR till vänster i CTA-block
+  const qrSize = 76;
+  const qrX = ctaX + 14;
   const qrY = ctaTop + (ctaH - qrSize) / 2;
   ctx.fillStyle = COLORS.white;
-  roundRect(ctx, qrX - 6, qrY - 6, qrSize + 12, qrSize + 12, 6);
+  roundRect(ctx, qrX - 5, qrY - 5, qrSize + 10, qrSize + 10, 4);
   ctx.fill();
   ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
 
-  // Text till vänster
-  const tx = MARGIN + 24;
-  const tw = qrX - tx - 18;
+  // Text höger om QR
+  const tx = qrX + qrSize + 22;
   ctx.fillStyle = COLORS.cream;
-  ctx.font = `bold 24px LoraBold`;
+  ctx.font = `bold 20px LoraBold`;
   ctx.textAlign = "left";
-  ctx.fillText("En QR för båda", tx, ctaTop + 38);
+  ctx.fillText("Skanna för installation", tx, ctaTop + 38);
 
   ctx.strokeStyle = COLORS.yellow;
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(tx, ctaTop + 52);
-  ctx.lineTo(tx + 44, ctaTop + 52);
+  ctx.moveTo(tx, ctaTop + 50);
+  ctx.lineTo(tx + 40, ctaTop + 50);
   ctx.stroke();
 
   ctx.fillStyle = COLORS.ctaBody;
-  ctx.font = `16px InstSans`;
-  const ctaLines = wrapText(
-    ctx,
-    "Skanna — Android öppnar Play Store, iPhone öppnar App Store.",
-    tw
-  );
-  for (let i = 0; i < ctaLines.length; i++) {
-    ctx.fillText(ctaLines[i], tx, ctaTop + 78 + i * 22);
-  }
+  ctx.font = `14px InstSans`;
+  ctx.fillText("Android → Play Store, iPhone → App Store.", tx, ctaTop + 74);
 
-  // ─── Footer ─────────────────────────────────────────────────────
+  // ─── FOOTER ─────────────────────────────────────────────────────
   ctx.fillStyle = COLORS.sage;
   ctx.font = `italic 18px InstSansItalic`;
   ctx.textAlign = "center";
-  ctx.fillText("tipspromenaden.app", W / 2, H - 30);
+  ctx.fillText("tipspromenaden.app", W / 2, H - 26);
 }
 
 // ─── Composite frame: banner + walk-animation inuti telefonen ──────
