@@ -193,6 +193,20 @@ service cloud.firestore {
                         || request.auth.uid == resource.data.userId);
     }
 
+    // -------------------- events --------------------
+    // Event-doc:er (branded customization för sponsor-event som Scania
+    // Family Day). Public read så vem som helst med event-koden kan
+    // aktivera det i appen utan auth. Endast admin-UID:n får skriva —
+    // skapas via webbens /admin → Events-flik.
+    //
+    // Inget shape-validering här eftersom vi vill kunna lägga till nya
+    // fält utan att bumpa reglerna; admin-UI:t på webben är ansvarigt
+    // för att skicka korrekt struktur.
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isAdmin();
+    }
+
     // -------------------- tipspacks --------------------
     // Användar-uppladdade .tipspack-filer (frågebatterier) som kan delas
     // via tipspromenaden.app/tipspack. Doc-id == slug (genereras från

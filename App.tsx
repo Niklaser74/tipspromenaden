@@ -13,6 +13,8 @@ import * as Linking from "expo-linking";
 import * as ScreenOrientation from "expo-screen-orientation";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AuthProvider } from "./src/context/AuthContext";
+import { EventThemeProvider } from "./src/context/EventThemeContext";
+import EventBanner from "./src/components/EventBanner";
 import ErrorBoundary from "./src/components/ErrorBoundary";
 import { initI18n, useTranslation } from "./src/i18n";
 import { installWalkTagsSync } from "./src/services/walkTagsSync";
@@ -71,12 +73,14 @@ import LeaderboardScreen from "./src/screens/LeaderboardScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
 import OpenWalkScreen from "./src/screens/OpenWalkScreen";
 import OpenTipspackScreen from "./src/screens/OpenTipspackScreen";
+import OpenEventScreen from "./src/screens/OpenEventScreen";
 import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import WalkInsightsScreen from "./src/screens/WalkInsightsScreen";
 import {
   APP_SCHEME,
   WALK_PATH,
   TIPSPACK_PATH,
+  EVENT_PATH,
 } from "./src/constants/deepLinks";
 
 const Stack = createNativeStackNavigator();
@@ -109,6 +113,12 @@ const linking: LinkingOptions<ReactNavigation.RootParamList> = {
         path: `${TIPSPACK_PATH}/:slug`,
         parse: {
           slug: (v: string) => decodeURIComponent(v),
+        },
+      },
+      OpenEvent: {
+        path: `${EVENT_PATH}/:eventId`,
+        parse: {
+          eventId: (v: string) => decodeURIComponent(v),
         },
       },
       Settings: "settings",
@@ -252,6 +262,11 @@ function AppNavigator() {
           component={OpenTipspackScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="OpenEvent"
+          component={OpenEventScreen}
+          options={{ headerShown: false }}
+        />
         {/* Library är inte längre en egen stack-skärm — den bor som en
             top-tab-flik inom HomeTabs (sibling till HomeMain + Stats).
             Navigationskommandot `navigate("Library")` från en sibling-tab
@@ -361,9 +376,12 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <OfflineBanner />
-        <AppNavigator />
-        <UpdateNotifier />
+        <EventThemeProvider>
+          <EventBanner />
+          <OfflineBanner />
+          <AppNavigator />
+          <UpdateNotifier />
+        </EventThemeProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

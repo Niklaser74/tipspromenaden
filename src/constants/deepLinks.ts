@@ -40,6 +40,21 @@ export const WALK_PATH = "walk";
 export const TIPSPACK_PATH = "tipspack";
 
 /**
+ * Path-prefix för event-läge (branded customization för en sponsor).
+ *
+ * Format: `tipspromenaden://event/<id>` — appen hämtar då event-doc:en
+ * från Firestore (`events/<id>`), aktiverar EventTheme och navigerar
+ * hem. Custom-scheme bara (inte App Link) eftersom vi inte vill
+ * intercepta `https://tipspromenaden.app/event/<id>` — den URL:en
+ * är reserverad för en framtida landningssida på webben.
+ *
+ * Genereras typiskt som QR-kod på Scanias roll-ups / flygblad / mötes-
+ * material. Skannas med kameran från startsidan → appen öppnas direkt
+ * i event-läge.
+ */
+export const EVENT_PATH = "event";
+
+/**
  * Bygger en delningsbar länk till en specifik promenad.
  *
  * Använder https-formatet sedan v1.3.0 — länken är klickbar i alla

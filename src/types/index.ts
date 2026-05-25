@@ -217,6 +217,57 @@ export interface SavedWalk {
 }
 
 /**
+ * Branding/anpassning för ett event (t.ex. Scania Family Day).
+ * Lagras som `events/{id}` i Firestore — publik läsning så att
+ * appen kan hämta utan auth (event-koden = "lösenordet"). Skrivs
+ * via webbens /admin-flik (admin-UID-gated).
+ *
+ * När en användare aktiverar ett event (via deep link
+ * `tipspromenaden://event/<id>` eller manuell inmatning i Settings)
+ * sparas id:t i AsyncStorage och `EventThemeContext` patchar färger,
+ * visar logo + välkomsttext och filtrerar Biblioteket till `walkIds`.
+ *
+ * Bakåtkompatibelt: alla fält utom `id` och `name` är optionella.
+ * En event-doc med bara id/name ger en namngiven session utan
+ * visuell skillnad — användbart för enkla "kiosk-mode"-event där
+ * sponsorn bara vill att deras walks ska synas.
+ */
+export interface EventBranding {
+  /** Unik event-kod, t.ex. "scania2026". Doc-id i Firestore. */
+  id: string;
+  /** Visningsnamn, t.ex. "Scania Family Day 2026". */
+  name: string;
+  /**
+   * Publik URL till logo (PNG/SVG-rasteriserad). Visas i HomeScreen-hero
+   * och eventbannerns vänsterkant. Rekommenderad höjd: 48-96 px @1x.
+   */
+  logoUrl?: string;
+  /** Hex-färg som ersätter TP.forest (primär accent — knappar, rubriker). */
+  primaryColor?: string;
+  /** Hex-färg som ersätter TP.pin (checkpoint-pin på kartan). */
+  accentColor?: string;
+  /** Välkomsttext på event-skärmen, per språk. */
+  welcomeText?: {
+    sv?: string;
+    en?: string;
+  };
+  /** Filtrera Biblioteket till bara dessa walks. Tom/saknas = visa alla. */
+  walkIds?: string[];
+  /** Curated tipspack-slugs som ska prioriteras i Paket-fliken. */
+  tipspackSlugs?: string[];
+  /** ISO-datum när eventet startar (för auto-aktivering i framtiden). */
+  startDate?: string;
+  /** ISO-datum när eventet slutar — efter detta auto-avslutar appen läget. */
+  endDate?: string;
+  /**
+   * Hård kiosk-mode: göm helt "Mina walks" och "Upptäck" i biblioteket,
+   * visa bara event-walks. För publika installationer på t.ex. Scanias
+   * surfplattor. Default false.
+   */
+  hideLibrary?: boolean;
+}
+
+/**
  * Användarens feedback efter en slutförd promenad. Samlas i Firestore-
  * kollektionen `walkFeedback/{feedbackId}` så att skaparen kan se vad
  * deltagarna tyckte om sin walk (typiskt i en framtida WalkInsights-

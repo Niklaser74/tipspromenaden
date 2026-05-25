@@ -26,6 +26,7 @@ import { syncMyWalksFromCloud } from "../services/walkSync";
 import { pullWalkTagsFromCloud } from "../services/walkTagsSync";
 import { deleteAccountAndData } from "../services/auth";
 import { isFeedbackEnabled, setFeedbackEnabled } from "../services/feedback";
+import { useEventTheme } from "../context/EventThemeContext";
 import { ONBOARDED_STORAGE_KEY } from "./OnboardingScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -42,6 +43,44 @@ export default function SettingsScreen() {
     setFeedbackOn(v);
     setFeedbackEnabled(v);
   };
+  // Event-läge (branded customization för sponsorade event).
+  const { event, isActive: eventActive, activateEvent, deactivateEvent } =
+    useEventTheme();
+  const [eventCodeInput, setEventCodeInput] = useState("");
+  const [eventBusy, setEventBusy] = useState(false);
+
+  const handleActivateEvent = async () => {
+    const id = eventCodeInput.trim();
+    if (!id) return;
+    setEventBusy(true);
+    try {
+      const ev = await activateEvent(id);
+      Alert.alert("Event aktiverat", `Du är nu i ${ev.name}-läge.`);
+      setEventCodeInput("");
+    } catch (e: any) {
+      Alert.alert("Kunde inte aktivera", e?.message || "Okänt fel");
+    } finally {
+      setEventBusy(false);
+    }
+  };
+
+  const handleDeactivateEvent = () => {
+    Alert.alert(
+      "Avsluta event-läge?",
+      `Du lämnar ${event?.name || "eventet"} och appen återgår till standard-utseendet.`,
+      [
+        { text: "Avbryt", style: "cancel" },
+        {
+          text: "Avsluta",
+          style: "destructive",
+          onPress: () => {
+            deactivateEvent().catch(() => {});
+          },
+        },
+      ]
+    );
+  };
+
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -181,6 +220,95 @@ export default function SettingsScreen() {
             trackColor={{ false: "#C4CCC6", true: "#2D7A3A" }}
           />
         </View>
+      </View>
+
+      {/* Event-läge — branded customization för sponsorade event.
+          Skanna en QR-kod på Scanias roll-up för automatisk aktivering,
+          eller mata in event-koden manuellt här. */}
+      <Text style={styles.sectionTitle}>Event-läge</Text>
+      <View style={styles.card}>
+        {eventActive && event ? (
+          <>
+            <View style={[styles.row, styles.rowBorder]}>
+              <View style={styles.syncLabelWrap}>
+                <Text style={styles.rowLabel}>{event.name}</Text>
+                <Text style={styles.rowHint}>
+                  Event-kod: {event.id}
+                  {event.endDate ? ` · slutar ${event.endDate}` : ""}
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.row}
+              onPress={handleDeactivateEvent}
+              activeOpacity={0.6}
+            >
+              <Text style={[styles.rowLabel, { color: "#C8362D" }]}>
+                Avsluta event-läge
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.row}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={styles.rowLabel}>Aktivera event-kod</Text>
+              <Text style={styles.rowHint}>
+                Har du en QR-kod eller event-kod från en arrangör? Skanna eller
+                skriv in koden här.
+              </Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  marginTop: 12,
+                  gap: 8,
+                }}
+              >
+                <TextInput
+                  value={eventCodeInput}
+                  onChangeText={setEventCodeInput}
+                  placeholder="t.ex. scania2026"
+                  placeholderTextColor="#8A9A8D"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  style={{
+                    flex: 1,
+                    borderWidth: 1,
+                    borderColor: "#D9D2C2",
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    color: "#2C3E2D",
+                    backgroundColor: "#FBF7F0",
+                  }}
+                  editable={!eventBusy}
+                />
+                <TouchableOpacity
+                  onPress={handleActivateEvent}
+                  disabled={eventBusy || !eventCodeInput.trim()}
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingVertical: 8,
+                    borderRadius: 10,
+                    backgroundColor:
+                      eventBusy || !eventCodeInput.trim()
+                        ? "#8A9A8D"
+                        : "#1B6B35",
+                    justifyContent: "center",
+                  }}
+                  activeOpacity={0.8}
+                >
+                  {eventBusy ? (
+                    <ActivityIndicator size="small" color="#F5F0E8" />
+                  ) : (
+                    <Text style={{ color: "#F5F0E8", fontWeight: "700" }}>
+                      Aktivera
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        )}
       </View>
 
       {/* Kontosynk — återställ promenader från molnet */}
