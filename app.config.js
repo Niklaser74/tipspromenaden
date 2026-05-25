@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Akut fix: event-läget kraschade med \"No safe area value available\" efter förra uppdateringen. Detta är åtgärdat — banner och hemskärm ska nu fungera normalt.",
-        en: "Hotfix: event mode crashed with \"No safe area value available\" after the last update. Fixed — banner and home screen should work normally again.",
+        sv: "Event-läget stöder nu en valfri sekundärfärg som driver \"Skapa promenad\"-kortet på hemskärmen. Arrangörer kan sätta den i admin-panelen så slipper man att samma färg upprepas på två närliggande ytor.",
+        en: "Event mode now supports an optional secondary color driving the \"Create walk\" card on the home screen. Organizers can set it in the admin panel so the same color isn't repeated on adjacent surfaces.",
       },
     },
   },

@@ -181,6 +181,28 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25e — Sekundärfärg på event-läge
+
+Ny `secondaryColor`-prop på `EventBranding`. Används för
+`actionCardPrimary` ("Skapa promenad") på HomeScreen så att Scania-blå
+inte upprepas på två närliggande ytor (hero + kortet). Fallback-kedja:
+secondaryColor → primaryColor → TP.forest.
+
+Sätts via tredje color-picker i webbens /admin → Events.
+
+**Release notes till användarna (sv):**
+Event-läget stöder nu en valfri sekundärfärg som driver "Skapa
+promenad"-kortet på hemskärmen. Arrangörer kan sätta den i admin-
+panelen så slipper man att samma färg upprepas på två närliggande
+ytor.
+
+**Release notes (en):**
+Event mode now supports an optional secondary color driving the
+"Create walk" card on the home screen. Organizers can set it in the
+admin panel so the same color isn't repeated on adjacent surfaces.
+
+---
+
 ### OTA 2026-05-25d — Hotfix: SafeAreaProvider för EventBanner
 
 Förra OTA:n (25c) introducerade `useSafeAreaInsets` i EventBanner men

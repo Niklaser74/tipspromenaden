@@ -42,6 +42,12 @@ export interface EventColors {
   primary: string;
   /** Checkpoint-pin på kartan. Default `TP.pin`. */
   accent: string;
+  /**
+   * Sekundärfärg — supporterande ytor som "Skapa promenad"-kortet
+   * på Hem. Default `TP.forest` (samma som primary i standardläge,
+   * vilket är OK eftersom den används på andra ytor än primary).
+   */
+  secondary: string;
   /** Hela TP-paletten — för komponenter som behöver mer än bara accenterna. */
   tp: typeof TP;
 }
@@ -68,6 +74,7 @@ interface EventThemeContextType {
 const defaultColors: EventColors = {
   primary: TP.forest,
   accent: TP.pin,
+  secondary: TP.forest,
   tp: TP,
 };
 
@@ -119,6 +126,11 @@ export function EventThemeProvider({ children }: { children: React.ReactNode }) 
     return {
       primary: event.primaryColor || TP.forest,
       accent: event.accentColor || TP.pin,
+      // Saknas secondaryColor — fall tillbaka på primary istället för
+      // TP.forest. Annars skulle Scania-event få en grön "Skapa
+      // promenad"-knapp mitt i en blå hemskärm, vilket är värre än
+      // att två ytor delar primärfärg.
+      secondary: event.secondaryColor || event.primaryColor || TP.forest,
       tp: TP,
     };
   }, [event]);

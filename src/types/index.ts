@@ -246,6 +246,14 @@ export interface EventBranding {
   primaryColor?: string;
   /** Hex-färg som ersätter TP.pin (checkpoint-pin på kartan). */
   accentColor?: string;
+  /**
+   * Sekundärfärg — används för supporterande gröna ytor som
+   * "Skapa promenad"-kortet på Hem. Ersätter TP.forest på de
+   * platser där primary-färgen redan finns nära (annars skulle
+   * primary upprepas och bli enformigt). Saknas → faller tillbaka
+   * på TP.forest precis som primary.
+   */
+  secondaryColor?: string;
   /** Välkomsttext på event-skärmen, per språk. */
   welcomeText?: {
     sv?: string;

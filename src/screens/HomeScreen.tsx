@@ -302,7 +302,10 @@ export default function HomeScreen() {
         {/* Action Cards */}
         <View style={styles.actionsSection}>
           <TouchableOpacity
-            style={styles.actionCardPrimary}
+            style={[
+              styles.actionCardPrimary,
+              event && { backgroundColor: eventColors.secondary },
+            ]}
             onPress={handleCreate}
             activeOpacity={0.8}
           >
