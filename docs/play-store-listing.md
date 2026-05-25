@@ -181,6 +181,46 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25 — Event-läge (branded customization)
+
+Nytt event-läge för sponsorade event (t.ex. Scania Family Day). En
+event-doc i Firestore (`events/{id}`) bär logo, primär- och accent-
+färg, välkomsttext och valfri lista över vilka walks som ska synas i
+biblioteket. Användaren aktiverar via deep link
+`tipspromenaden://event/<id>`, QR-kod-skanning, eller manuell kod-
+input i Settings → Event-läge.
+
+Aktivt event persistas i AsyncStorage (`active_event_v1`) + cachad
+event-doc → snabb start även offline. Auto-expirerar klient-side om
+`endDate` passerar. Banner högst upp i appen visar event-namn + en
+"Avsluta"-knapp.
+
+Appliceras på: Stack-navigatorns header-färg, HomeScreen hero
+(bakgrund + event-namn som titel + "Powered by Tipspromenaden"-
+subtitel), och hård filtrering av bibliotekets Upptäck-flik till
+`event.walkIds` när angiven.
+
+Firestore-regel: `events/{id}` public read, admin-write. ScanQRScreen
+känner igen `tipspromenaden://event/<id>` före walk-QR-fallthrough.
+Bakåtkompatibelt — alla ändringar är no-op när inget event är aktivt.
+
+Svenska + engelska strängar tillagda. OTA-bart, ingen native dep,
+ingen ny AAB krävs.
+
+**Release notes till användarna (sv):**
+Nytt event-läge: arrangörer kan ge en QR-kod som anpassar appen med
+eget namn, logo och färger. Skanna eller skriv in event-koden under
+Inställningar → Event-läge. Appen återgår till standard så fort du
+avslutar event-läget.
+
+**Release notes (en):**
+New event mode: organizers can hand out a QR code that customizes
+the app with their own name, logo and colors. Scan it or enter the
+event code under Settings → Event mode. The app returns to normal
+as soon as you end event mode.
+
+---
+
 ### OTA 2026-05-21 — Tumme upp/ner-feedback efter slutförd promenad
 
 Ny `WalkFeedbackPrompt`-komponent renderas i ResultsScreen efter

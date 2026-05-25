@@ -38,7 +38,7 @@ export default function OpenEventScreen() {
     let cancelled = false;
     (async () => {
       if (!eventId) {
-        setError("Saknad event-kod");
+        setError(t("event.openMissing") as string);
         return;
       }
       try {
@@ -71,7 +71,7 @@ export default function OpenEventScreen() {
     return (
       <View style={styles.container}>
         <Text style={styles.errorIcon}>⚠️</Text>
-        <Text style={styles.errorTitle}>Kunde inte aktivera event</Text>
+        <Text style={styles.errorTitle}>{t("event.openCantActivate")}</Text>
         <Text style={styles.errorMessage}>{error}</Text>
         <TouchableOpacity
           style={styles.homeButton}
@@ -79,7 +79,7 @@ export default function OpenEventScreen() {
           activeOpacity={0.8}
         >
           <Text style={styles.homeButtonText}>
-            {(t("results.backHome") as string) || "Till hem"}
+            {(t("results.backHome") as string) || t("event.openBackHome")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -96,7 +96,7 @@ export default function OpenEventScreen() {
             resizeMode="contain"
           />
         )}
-        <Text style={styles.welcomeTitle}>Välkommen till</Text>
+        <Text style={styles.welcomeTitle}>{t("event.openWelcomeTitle")}</Text>
         <Text style={styles.eventName}>{welcomeName}</Text>
         {welcomeText && <Text style={styles.welcomeText}>{welcomeText}</Text>}
       </View>
@@ -106,7 +106,7 @@ export default function OpenEventScreen() {
   return (
     <View style={styles.container}>
       <ActivityIndicator size="large" color="#1B6B35" />
-      <Text style={styles.loadingText}>Aktiverar event…</Text>
+      <Text style={styles.loadingText}>{t("event.openActivating")}</Text>
     </View>
   );
 }

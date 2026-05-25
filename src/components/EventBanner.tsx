@@ -18,20 +18,22 @@ import {
   Alert,
 } from "react-native";
 import { useEventTheme } from "../context/EventThemeContext";
+import { useTranslation } from "../i18n";
 
 export default function EventBanner() {
   const { event, isActive, colors, deactivateEvent } = useEventTheme();
+  const { t } = useTranslation();
 
   if (!isActive || !event) return null;
 
   const handleEnd = () => {
     Alert.alert(
-      "Avsluta event-läge?",
-      `Du lämnar ${event.name} och appen återgår till standard-utseendet.`,
+      t("event.endConfirmTitle"),
+      t("event.endConfirmMessage", { name: event.name }),
       [
-        { text: "Avbryt", style: "cancel" },
+        { text: t("event.endConfirmCancel"), style: "cancel" },
         {
-          text: "Avsluta",
+          text: t("event.endConfirmConfirm"),
           style: "destructive",
           onPress: () => {
             deactivateEvent().catch(() => {});
@@ -58,9 +60,9 @@ export default function EventBanner() {
       <TouchableOpacity
         onPress={handleEnd}
         style={styles.endButton}
-        accessibilityLabel="Avsluta event-läge"
+        accessibilityLabel={t("event.bannerEndA11y")}
       >
-        <Text style={styles.endText}>Avsluta</Text>
+        <Text style={styles.endText}>{t("event.bannerEnd")}</Text>
       </TouchableOpacity>
     </View>
   );

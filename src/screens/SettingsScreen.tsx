@@ -55,10 +55,16 @@ export default function SettingsScreen() {
     setEventBusy(true);
     try {
       const ev = await activateEvent(id);
-      Alert.alert("Event aktiverat", `Du är nu i ${ev.name}-läge.`);
+      Alert.alert(
+        t("event.settingsActivatedTitle"),
+        t("event.settingsActivatedMessage", { name: ev.name })
+      );
       setEventCodeInput("");
     } catch (e: any) {
-      Alert.alert("Kunde inte aktivera", e?.message || "Okänt fel");
+      Alert.alert(
+        t("event.settingsActivateFailed"),
+        e?.message || t("event.settingsUnknownError")
+      );
     } finally {
       setEventBusy(false);
     }
@@ -66,12 +72,12 @@ export default function SettingsScreen() {
 
   const handleDeactivateEvent = () => {
     Alert.alert(
-      "Avsluta event-läge?",
-      `Du lämnar ${event?.name || "eventet"} och appen återgår till standard-utseendet.`,
+      t("event.endConfirmTitle"),
+      t("event.endConfirmMessage", { name: event?.name || "—" }),
       [
-        { text: "Avbryt", style: "cancel" },
+        { text: t("event.endConfirmCancel"), style: "cancel" },
         {
-          text: "Avsluta",
+          text: t("event.endConfirmConfirm"),
           style: "destructive",
           onPress: () => {
             deactivateEvent().catch(() => {});
@@ -225,7 +231,7 @@ export default function SettingsScreen() {
       {/* Event-läge — branded customization för sponsorade event.
           Skanna en QR-kod på Scanias roll-up för automatisk aktivering,
           eller mata in event-koden manuellt här. */}
-      <Text style={styles.sectionTitle}>Event-läge</Text>
+      <Text style={styles.sectionTitle}>{t("event.settingsTitle")}</Text>
       <View style={styles.card}>
         {eventActive && event ? (
           <>
@@ -233,8 +239,10 @@ export default function SettingsScreen() {
               <View style={styles.syncLabelWrap}>
                 <Text style={styles.rowLabel}>{event.name}</Text>
                 <Text style={styles.rowHint}>
-                  Event-kod: {event.id}
-                  {event.endDate ? ` · slutar ${event.endDate}` : ""}
+                  {t("event.settingsCodeLabel", { id: event.id })}
+                  {event.endDate
+                    ? t("event.settingsEndsAt", { date: event.endDate })
+                    : ""}
                 </Text>
               </View>
             </View>
@@ -244,17 +252,18 @@ export default function SettingsScreen() {
               activeOpacity={0.6}
             >
               <Text style={[styles.rowLabel, { color: "#C8362D" }]}>
-                Avsluta event-läge
+                {t("event.settingsEndButton")}
               </Text>
             </TouchableOpacity>
           </>
         ) : (
           <View style={styles.row}>
             <View style={{ flex: 1, paddingRight: 12 }}>
-              <Text style={styles.rowLabel}>Aktivera event-kod</Text>
+              <Text style={styles.rowLabel}>
+                {t("event.settingsActivateLabel")}
+              </Text>
               <Text style={styles.rowHint}>
-                Har du en QR-kod eller event-kod från en arrangör? Skanna eller
-                skriv in koden här.
+                {t("event.settingsActivateHint")}
               </Text>
               <View
                 style={{
@@ -266,7 +275,7 @@ export default function SettingsScreen() {
                 <TextInput
                   value={eventCodeInput}
                   onChangeText={setEventCodeInput}
-                  placeholder="t.ex. scania2026"
+                  placeholder={t("event.settingsPlaceholder")}
                   placeholderTextColor="#8A9A8D"
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -301,7 +310,7 @@ export default function SettingsScreen() {
                     <ActivityIndicator size="small" color="#F5F0E8" />
                   ) : (
                     <Text style={{ color: "#F5F0E8", fontWeight: "700" }}>
-                      Aktivera
+                      {t("event.settingsActivateButton")}
                     </Text>
                   )}
                 </TouchableOpacity>

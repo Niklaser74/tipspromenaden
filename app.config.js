@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Ny tumme upp/ner-fråga efter slutförd promenad. Om du svarar tumme ner får du säga vad som inte var bra (frågorna, kontrollernas placering, eller gränssnittet). Skaparen kan se feedbacken och förbättra sin promenad.",
-        en: "New thumbs up/down prompt after finishing a walk. Thumbs down opens a follow-up where you can tell us what didn't work (questions, checkpoint placement, or app interface). The creator can read the feedback and improve their walk.",
+        sv: "Nytt event-läge: arrangörer kan ge en QR-kod som anpassar appen med eget namn, logo och färger. Skanna eller skriv in event-koden under Inställningar → Event-läge. Appen återgår till standard så fort du avslutar event-läget.",
+        en: "New event mode: organizers can hand out a QR code that customizes the app with their own name, logo and colors. Scan it or enter the event code under Settings → Event mode. The app returns to normal as soon as you end event mode.",
       },
     },
   },

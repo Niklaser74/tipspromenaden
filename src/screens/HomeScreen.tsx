@@ -250,10 +250,10 @@ export default function HomeScreen() {
               {event ? event.name : "Tipspromenaden"}
             </Text>
             <Text style={styles.subtitleBrand}>
-              {event ? "EVENT-LÄGE" : t("home.brandTagline")}
+              {event ? t("event.modeLabel") : t("home.brandTagline")}
             </Text>
             <Text style={styles.subtitle}>
-              {event ? "Powered by Tipspromenaden" : t("home.subtitle")}
+              {event ? t("event.poweredBy") : t("home.subtitle")}
             </Text>
           </View>
         </View>
