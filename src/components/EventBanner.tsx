@@ -19,10 +19,15 @@ import {
 } from "react-native";
 import { useEventTheme } from "../context/EventThemeContext";
 import { useTranslation } from "../i18n";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function EventBanner() {
   const { event, isActive, colors, deactivateEvent } = useEventTheme();
   const { t } = useTranslation();
+  // Banner ligger högst upp i App.tsx, ovan navigatorn → INGEN egen header
+  // skuggar status-bar:n. Vi måste själva pad:a för notch/status-ikoner,
+  // annars krockar Samsung/iPhone-statusbaren med logo + namn.
+  const insets = useSafeAreaInsets();
 
   if (!isActive || !event) return null;
 
@@ -44,7 +49,15 @@ export default function EventBanner() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.primary }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.primary,
+          paddingTop: insets.top + 6,
+        },
+      ]}
+    >
       {event.logoUrl ? (
         <Image
           source={{ uri: event.logoUrl }}

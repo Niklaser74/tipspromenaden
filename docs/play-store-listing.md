@@ -181,6 +181,33 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25c — Polish event-läge (banner-padding + hero-färg)
+
+Två kosmetiska fixar efter dogfooding med Scania-event:
+
+1. `EventBanner` saknade safe-area-top-padding → status-bar:s ikoner
+   (klocka, wifi, batteri) krockade med eventets logo + namn. Använder
+   nu `useSafeAreaInsets().top + 6` som top-padding så bannerns innehåll
+   alltid får luft från notch/statusrad.
+
+2. `HomeScreen` hero hade kvar den nedre gröna gradient-overlayen
+   (`heroGradientBottom`, #2D7A3A 50%) i event-läge. När primärfärgen
+   var blå (Scania) gav det en sumpig blå-grön blandning i botten.
+   I event-läge renderas nu hela `heroBackground`-blocket inte alls —
+   bara solid primärfärg från det yttre View:t.
+
+**Release notes till användarna (sv):**
+Event-läge ser snyggare ut: status-bar krockar inte längre med
+eventets banner högst upp, och hemskärmens hero visar nu eventets
+färg rent utan grön gradient blandad i botten.
+
+**Release notes (en):**
+Event mode looks cleaner: status bar no longer collides with the
+event banner at the top, and the home hero now shows the event color
+cleanly without a green gradient bleeding into the bottom.
+
+---
+
 ### OTA 2026-05-25b — Fix: event-välkomstskärm fastnade
 
 Bug i `OpenEventScreen` — `useEffect`-deps inkluderade `t`/`locale`/

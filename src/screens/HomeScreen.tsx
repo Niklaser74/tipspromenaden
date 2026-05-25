@@ -151,22 +151,22 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero — bakgrunden override:as till event-färg om aktivt. */}
+        {/* Hero — bakgrunden override:as till event-färg om aktivt. I
+            event-läge skippar vi den nedre gröna gradient-overlay:en
+            helt (den gav en sumpig blå-grön blandning på t.ex. Scania-
+            blått) och kör ren primärfärg istället. */}
         <View
           style={[
             styles.hero,
             event && { backgroundColor: eventColors.primary },
           ]}
         >
-          <View style={styles.heroBackground}>
-            <View
-              style={[
-                styles.heroGradientTop,
-                event && { backgroundColor: eventColors.primary },
-              ]}
-            />
-            <View style={styles.heroGradientBottom} />
-          </View>
+          {!event && (
+            <View style={styles.heroBackground}>
+              <View style={styles.heroGradientTop} />
+              <View style={styles.heroGradientBottom} />
+            </View>
+          )}
 
           {/* User bar */}
           {user && !user.isAnonymous ? (

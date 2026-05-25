@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Fix: event-läge fastnade på välkomstskärmen efter QR-skanning. Du kommer nu vidare till hemskärmen efter 2 sekunder som tänkt.",
-        en: "Fix: event mode got stuck on the welcome screen after scanning a QR code. You now move on to home after 2 seconds as intended.",
+        sv: "Event-läge ser snyggare ut: status-bar krockar inte längre med eventets banner högst upp, och hemskärmens hero visar nu eventets färg rent utan grön gradient blandad i botten.",
+        en: "Event mode looks cleaner: status bar no longer collides with the event banner at the top, and the home hero now shows the event color cleanly without a green gradient bleeding into the bottom.",
       },
     },
   },
