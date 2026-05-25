@@ -64,13 +64,29 @@ release-firanden där appen som helhet är subjektet — animationen
 
 | Fil | Format | Dim | Storlek | Tema | Använd |
 |---|---|---|---|---|---|
+**Allvarlig "så fungerar det"-version (höjd-fråga):**
+
+| Fil | Format | Dim | Storlek | Tema | Använd |
+|---|---|---|---|---|---|
 | `social-walk-animation.gif` | feed | 1080×1350 | 5.9 MB | dark (cream) | FB/IG feed (om MP4 inte funkar) |
 | `social-walk-animation.mp4` | feed | 1080×1350 | 110 KB | dark | **FB/IG/LinkedIn feed-video** |
 | `social-walk-animation-light.gif` | feed | 1080×1350 | 5.9 MB | light (vit) | Alt-design för poster mot mörk bg |
-| `social-walk-animation-fun.gif` | feed | 1080×1350 | 5.9 MB | dark | Skämt-version, "internets roligaste app" |
 | `social-walk-stories.gif` | stories | 1080×1920 | 6.2 MB | dark | IG/FB Stories (om MP4 inte funkar) |
 | `social-walk-stories.mp4` | stories | 1080×1920 | 120 KB | dark | **IG Reels/Stories** |
 | `social-walk-stories-light.gif` | stories | 1080×1920 | 6.0 MB | light | Stories alt-design |
+
+**Skämt-version ("internets roligaste app" — Tipspromenaden är rätt svar):**
+
+| Fil | Format | Dim | Storlek | Tema | Använd |
+|---|---|---|---|---|---|
+| `social-walk-animation-fun.gif` | feed | 1080×1350 | 5.9 MB | dark | FB/Twitter buskig post |
+| `social-walk-animation-fun.mp4` | feed | 1080×1350 | 110 KB | dark | **Sociala-medier skämt-version** |
+| `social-walk-animation-fun-light.gif` | feed | 1080×1350 | 5.9 MB | light | Skämt-version, ljusare palett |
+| `social-walk-animation-fun-light.mp4` | feed | 1080×1350 | 110 KB | light | Skämt + light, MP4 |
+| `social-walk-stories-fun.gif` | stories | 1080×1920 | 6.2 MB | dark | IG Stories skämt-version |
+| `social-walk-stories-fun.mp4` | stories | 1080×1920 | 130 KB | dark | **IG Reels/Stories skämt** |
+| `social-walk-stories-fun-light.gif` | stories | 1080×1920 | 6.1 MB | light | Stories skämt + light |
+| `social-walk-stories-fun-light.mp4` | stories | 1080×1920 | 130 KB | light | Stories skämt + light, MP4 |
 
 **Generera med:**
 ```bash
