@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Event-logos visas större och tar nu hänsyn till proportioner: bred plats i toppbannern för wordmark-logos, stor logo på välkomstskärmen och en framträdande logo i hero på Hem istället för kompass-ikonen.",
-        en: "Event logos now render larger and respect aspect ratio: wide slot in the top banner for wordmark logos, large welcome-screen logo, and a prominent logo in the Home hero in place of the compass icon.",
+        sv: "Mindre putts på event-bannern: logon i topplisten är nu liten ikon-storlek igen och event-namnet visas alltid bredvid, eftersom den stora logo-platsen finns på hemskärmens hero.",
+        en: "Small polish on the event banner: the top-bar logo is back to a small icon size and the event name is always shown beside it, since the large logo slot lives on the home hero.",
       },
     },
   },

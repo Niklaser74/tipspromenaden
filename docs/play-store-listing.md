@@ -181,6 +181,27 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25i — Återställ banner-logo
+
+Återställer EventBanner.logo till 24×24 ikon-storlek efter 25h-bumpen.
+Eftersom hero på HomeScreen nu visar den stora wordmark-logon behöver
+banner-rollen bara vara en diskret "påminnelse om aktivt event".
+Event-namnet visas alltid bredvid den lilla ikonen.
+
+OpenEventScreen (280×140) och HomeScreen hero (240×80) oförändrade.
+
+**Release notes till användarna (sv):**
+Mindre putts på event-bannern: logon i topplisten är nu liten ikon-
+storlek igen och event-namnet visas alltid bredvid, eftersom den stora
+logo-platsen finns på hemskärmens hero.
+
+**Release notes (en):**
+Small polish on the event banner: the top-bar logo is back to a small
+icon size and the event name is always shown beside it, since the
+large logo slot lives on the home hero.
+
+---
+
 ### OTA 2026-05-25h — Större event-logos + hero-plats
 
 Wordmark-logos var oläsbara i 24×24 px-rutan i banner. Tre fixar:
