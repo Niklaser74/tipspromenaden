@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Event-läget visar nu eventets walks direkt på hemskärmen — \"Här på <eventets namn>\" med tappbara rader. Du slipper gå via Bibliotek för att hitta dem.",
-        en: "Event mode now shows the event's walks directly on the home screen — \"Here at <event name>\" with tappable rows. No need to dig through the Library to find them.",
+        sv: "Event-logos visas större och tar nu hänsyn till proportioner: bred plats i toppbannern för wordmark-logos, stor logo på välkomstskärmen och en framträdande logo i hero på Hem istället för kompass-ikonen.",
+        en: "Event logos now render larger and respect aspect ratio: wide slot in the top banner for wordmark logos, large welcome-screen logo, and a prominent logo in the Home hero in place of the compass icon.",
       },
     },
   },

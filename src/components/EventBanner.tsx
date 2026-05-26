@@ -67,9 +67,13 @@ export default function EventBanner() {
       ) : (
         <Text style={styles.emoji}>🏁</Text>
       )}
-      <Text style={styles.name} numberOfLines={1}>
-        {event.name}
-      </Text>
+      {/* Visa event-namn i banner endast om logon saknas — annars upprepas
+          informationen och stjäl plats från wordmark-logos. */}
+      {!event.logoUrl && (
+        <Text style={styles.name} numberOfLines={1}>
+          {event.name}
+        </Text>
+      )}
       <TouchableOpacity
         onPress={handleEnd}
         style={styles.endButton}
@@ -93,8 +97,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   logo: {
-    width: 24,
-    height: 24,
+    // Wordmark-vänlig storlek: brett rektangulärt utrymme, höjd ~32 px
+    // för att inte spränga bannerns vertikala layout. flex: 1 låter
+    // logon ta tillgängligt utrymme efter Avsluta-knappen. resizeMode
+    // "contain" (sätts på Image) bevarar proportioner.
+    flex: 1,
+    height: 32,
   },
   name: {
     flex: 1,

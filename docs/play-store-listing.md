@@ -181,6 +181,32 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-25h — Större event-logos + hero-plats
+
+Wordmark-logos var oläsbara i 24×24 px-rutan i banner. Tre fixar:
+
+1. **EventBanner**: logo bytte från fixed 24×24 till `flex: 1, height: 32`
+   så bred wordmark får utrymme. Event-namn visas BARA om logo saknas
+   (annars upprepades info och stal plats).
+2. **OpenEventScreen**: välkomstlogon från 160×80 → 280×140.
+3. **HomeScreen hero**: när event har logo renderas den (240×80) istället
+   för kompass-emojin 🧭. Saknas logo → fallback till 🧭 som tidigare.
+
+Alla tre använder `resizeMode="contain"` så aspect ratio bevaras —
+kvadratiska och avlånga logos fungerar båda.
+
+**Release notes till användarna (sv):**
+Event-logos visas större och tar nu hänsyn till proportioner: bred plats
+i toppbannern för wordmark-logos, stor logo på välkomstskärmen och en
+framträdande logo i hero på Hem istället för kompass-ikonen.
+
+**Release notes (en):**
+Event logos now render larger and respect aspect ratio: wide slot in
+the top banner for wordmark logos, large welcome-screen logo, and a
+prominent logo in the Home hero in place of the compass icon.
+
+---
+
 ### OTA 2026-05-25g — Event-walks direkt på Hem
 
 Ny sektion på `HomeScreen` mellan hero och action-cards när event är

@@ -303,7 +303,15 @@ export default function HomeScreen() {
           )}
 
           <View style={styles.heroContent}>
-            <Text style={styles.heroIcon}>🧭</Text>
+            {event?.logoUrl ? (
+              <Image
+                source={{ uri: event.logoUrl }}
+                style={styles.heroEventLogo}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text style={styles.heroIcon}>🧭</Text>
+            )}
             <Text style={styles.title}>
               {event ? event.name : "Tipspromenaden"}
             </Text>
@@ -513,6 +521,9 @@ const styles = StyleSheet.create({
   },
   heroContent: { alignItems: "center", marginTop: 8 },
   heroIcon: { fontSize: 40, marginBottom: 8 },
+  // Event-logo i hero — generösa proportioner så wordmark-logos blir
+  // läsbara. resizeMode="contain" (på Image) bevarar aspect ratio.
+  heroEventLogo: { width: 240, height: 80, marginBottom: 8 },
   title: {
     fontSize: 34,
     fontWeight: "800",
