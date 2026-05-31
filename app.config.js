@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "QR-skärmen: dela-knapparna är nu centrerade under QR-koden istället för att ligga vänsterförskjutna på surfplatta i landscape.",
-        en: "QR screen: the share buttons are now centred under the QR code instead of being offset to the left on tablet landscape.",
+        sv: "Surfplatte-landscape iter 2: Aktiv promenad har nu en sidopanel höger om kartan med alla kontrollpunkter och deras status — tap för att zooma till kontrollen. Resultat- och Toppliste-skärmen cappade i centrerad kolumn. Promenadkort i Mina-listan har inte längre stort tomrum mellan titel och status-badge.",
+        en: "Tablet landscape iter 2: Active walk now has a side panel to the right of the map listing all checkpoints with their status — tap to zoom to one. Results and Leaderboard screens capped in a centred column. Walk cards in the My list no longer have a big empty gap between title and status badge.",
       },
     },
   },

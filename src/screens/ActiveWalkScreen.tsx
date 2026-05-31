@@ -9,6 +9,8 @@ import {
   Platform,
   Image,
   Vibration,
+  ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import * as Speech from "expo-speech";
 import { useKeepAwake } from "expo-keep-awake";
@@ -626,8 +628,28 @@ export default function ActiveWalkScreen() {
     return undefined;
   };
 
+  // Surfplatte-landscape (≥ 900 px): visa kontroll-listan som en
+  // sidopanel höger om kartan istället för att alla overlays/bottom-bar
+  // ska försöka samexistera ovanpå kartan. På telefon-portrait (default
+  // < 900 px) ändras ingenting — alla overlays och bottomBar fortsätter
+  // ligga ovanpå kartan precis som tidigare. useWindowDimensions
+  // uppdateras automatiskt vid rotation.
+  const { width: screenWidth } = useWindowDimensions();
+  const isWide = screenWidth >= 900;
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isWide && styles.containerRow]}>
+      {/* mapArea omsluter karta + alla absolut-positionerade overlays
+          (statusPill, distancePill, mapTypeToggle, centerOnMeButton)
+          + bottomBar. Vi ger det `flex: 1` så det fyller hela skärmen
+          i portrait, och i landscape delar det utrymmet 1.2 / 1 med
+          sidePanel. Eftersom overlays:erna är `position: absolute`
+          räcker det att de hamnar inuti en flex-container med
+          definierade dimensioner — de positioneras nu mot mapArea
+          istället för screen-rooten, men ankarpunkterna (top:16,
+          right:16, etc) är samma så det syns ingen skillnad i
+          portrait. */}
+      <View style={[styles.mapArea, isWide && styles.mapAreaSplit]}>
       {/* Full-screen map */}
       <MapView
         ref={mapRef}
@@ -844,6 +866,91 @@ export default function ActiveWalkScreen() {
           ))}
         </View>
       </View>
+      </View>{/* end mapArea */}
+
+      {/* Sidopanel — endast i landscape ≥ 900 px. Visar samma data som
+          bottomBar + en scrollbar lista över alla kontrollpunkter med
+          status (✓ klar, 🔒 låst i strict-order, ●  nästa, ○ obesvarad).
+          Tap på en obesvarad rad centrerar kartan på den kontrollen.
+          Komplement till — inte ersättning för — bottomBar (vi behåller
+          den så den känns naturlig i nedre kant). */}
+      {isWide && (
+        <View style={styles.sidePanel}>
+          <View style={styles.sidePanelHeader}>
+            <Text style={styles.sidePanelTitle}>{t("active.controlsLabel")}</Text>
+            <Text style={styles.sidePanelSubtitle}>
+              {t("active.progressOf", { progress, total })}
+            </Text>
+          </View>
+          <ScrollView
+            style={styles.sidePanelList}
+            contentContainerStyle={styles.sidePanelListContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {walk.questions.map((q, idx) => {
+              const isDone = answeredIds.has(q.id);
+              const isLocked =
+                strictMode && !isDone && nextExpectedQuestion?.id !== q.id;
+              const isNearest = nearestQuestion?.id === q.id && !isDone;
+              const distanceLabel =
+                isNearest && nearestDistance !== null
+                  ? nearestDistance > 1000
+                    ? `${(nearestDistance / 1000).toFixed(1)} km`
+                    : `${nearestDistance} m`
+                  : null;
+              return (
+                <TouchableOpacity
+                  key={q.id}
+                  style={[
+                    styles.sidePanelRow,
+                    isDone && styles.sidePanelRowDone,
+                    isNearest && styles.sidePanelRowNearest,
+                    isLocked && styles.sidePanelRowLocked,
+                  ]}
+                  disabled={isLocked}
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    // Centrera kartan på kontrollen vid tap (bara
+                    // obesvarade och olåsta — för redan-klara
+                    // kontroller är pin redan grön så ingen action).
+                    if (!isDone && !isLocked && mapRef.current) {
+                      mapRef.current.animateToRegion({
+                        latitude: q.coordinate.latitude,
+                        longitude: q.coordinate.longitude,
+                        latitudeDelta: 0.005,
+                        longitudeDelta: 0.005,
+                      });
+                    }
+                  }}
+                >
+                  <View
+                    style={[
+                      styles.sidePanelBadge,
+                      isDone && styles.sidePanelBadgeDone,
+                      isLocked && styles.sidePanelBadgeLocked,
+                      isNearest && styles.sidePanelBadgeNearest,
+                    ]}
+                  >
+                    <Text style={styles.sidePanelBadgeText}>
+                      {isDone ? "✓" : isLocked ? "🔒" : idx + 1}
+                    </Text>
+                  </View>
+                  <View style={styles.sidePanelRowText}>
+                    <Text style={styles.sidePanelRowTitle} numberOfLines={1}>
+                      {q.text || t("create.markerEditHint")}
+                    </Text>
+                    {distanceLabel && (
+                      <Text style={styles.sidePanelRowMeta}>
+                        {distanceLabel}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Question modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -995,6 +1102,116 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F5F0E8",
+  },
+  // Splitvy i landscape ≥ 900 px: container blir row, mapArea + sidePanel
+  // staplas horisontellt. I portrait (default) är container column med
+  // bara mapArea som fyller hela skärmen.
+  containerRow: {
+    flexDirection: "row",
+  },
+  mapArea: {
+    flex: 1,
+  },
+  mapAreaSplit: {
+    flex: 1.2,
+  },
+  // Sidopanel — bara i landscape. flex: 1 (kapad till maxWidth 480)
+  // ger ~40 % av skärmen på 2560 px-surfplattor, vilket räcker för
+  // läsbar kontroll-lista utan att äta för mycket kartyta.
+  sidePanel: {
+    flex: 1,
+    maxWidth: 480,
+    minWidth: 320,
+    backgroundColor: "#FBF7F0",
+    borderLeftWidth: 1,
+    borderLeftColor: "#E8E8E4",
+  },
+  sidePanelHeader: {
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === "web" ? 16 : 56,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0EC",
+    backgroundColor: "#FFFFFF",
+  },
+  sidePanelTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2C3E2D",
+    letterSpacing: -0.2,
+  },
+  sidePanelSubtitle: {
+    fontSize: 13,
+    color: "#8A9A8D",
+    marginTop: 2,
+  },
+  sidePanelList: {
+    flex: 1,
+  },
+  sidePanelListContent: {
+    paddingVertical: 8,
+    paddingBottom: 40,
+  },
+  sidePanelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 12,
+    backgroundColor: "#FFFFFF",
+    marginHorizontal: 12,
+    marginVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#F0F0EC",
+  },
+  sidePanelRowDone: {
+    backgroundColor: "#EAF3EC",
+    borderColor: "#C8DCC8",
+  },
+  sidePanelRowNearest: {
+    borderColor: "#E53935",
+    borderWidth: 2,
+  },
+  sidePanelRowLocked: {
+    backgroundColor: "#F5F5F5",
+    borderColor: "#E0E0E0",
+    opacity: 0.6,
+  },
+  sidePanelBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E53935",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sidePanelBadgeDone: {
+    backgroundColor: "#2D7A3A",
+  },
+  sidePanelBadgeNearest: {
+    backgroundColor: "#E53935",
+  },
+  sidePanelBadgeLocked: {
+    backgroundColor: "#6B7B8E",
+  },
+  sidePanelBadgeText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  sidePanelRowText: {
+    flex: 1,
+  },
+  sidePanelRowTitle: {
+    color: "#2C3E2D",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  sidePanelRowMeta: {
+    color: "#8A9A8D",
+    fontSize: 12,
+    marginTop: 2,
   },
   map: {
     flex: 1,

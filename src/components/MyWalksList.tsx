@@ -908,7 +908,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 3,
   },
-  walkTitle: { color: "#2C3E2D", fontSize: 16, fontWeight: "600", flex: 1 },
+  // `flexShrink: 1` (utan flexGrow) gör att långa titlar fortfarande
+  // krymper och wrappar (numberOfLines={2}) medan korta titlar nu sitter
+  // tight bredvid SKAPAD-badge:n istället för att blåsas upp till hela
+  // kortets bredd. På surfplatte-landscape (880 px-kolumn) blev annars
+  // ~600 px tomrum mellan titel och badge.
+  walkTitle: { color: "#2C3E2D", fontSize: 16, fontWeight: "600", flexShrink: 1 },
   creatorBadge: {
     backgroundColor: "#E8B830",
     paddingHorizontal: 8,

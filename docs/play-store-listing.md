@@ -181,6 +181,49 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-31c — Surfplatte-landscape iter 2
+
+Nästa pass på landscape-finputs (från roadmap-punkten "Per-skärm
+landscape-finputs"). Fyra ändringar:
+
+1. **ActiveWalkScreen** — ny sidopanel höger om kartan i landscape
+   ≥ 900 px. Visar alla kontrollpunkter med status (✓ klar, 🔒 låst i
+   strict-order, röd ring runt nästa, distance på nästa). Tap på en
+   obesvarad rad centrerar kartan på kontrollen. mapArea wrappar
+   karta + overlays + bottomBar i en flex:1.2-container; sidePanel
+   är flex:1, maxWidth 480, minWidth 320. Portrait oförändrat —
+   alla overlays/bottomBar ligger ovanpå kartan precis som tidigare.
+
+2. **ResultsScreen** — wrappad i ContentContainer + alignItems:"center"
+   så score-card, dela-knapp och svars-genomgång centreras i 720 px-
+   kolumn istället för att sträcka ut sig över 2560 px.
+
+3. **LeaderboardScreen** — wrappad i ContentContainer wide (880 px) +
+   flex:1. Header, banners, podium, FlatList och bottom-bar cappade.
+   Mörkgrön bakgrund går fortfarande edge-to-edge.
+
+4. **MyWalksList walk-cards** — `walkTitle` ändrad från `flex: 1` till
+   `flexShrink: 1`. Tidigare blåste flexGrow:1 upp titeln till full
+   bredd vilket pushade SKAPAD-badge:n långt åt höger med 400 px
+   tomrum mellan. Nu sitter de tight ihop med tomrummet till höger
+   istället.
+
+**Release notes (sv):**
+Surfplatte-landscape iter 2: Aktiv promenad har nu en sidopanel höger
+om kartan med alla kontrollpunkter och deras status — tap för att
+zooma till kontrollen. Resultat- och Toppliste-skärmen cappade i
+centrerad kolumn. Promenadkort i Mina-listan har inte längre stort
+tomrum mellan titel och status-badge.
+
+**Release notes (en):**
+Tablet landscape iter 2: Active walk now has a side panel to the right
+of the map listing all checkpoints with their status — tap to zoom to
+one. Results and Leaderboard screens capped in a centred column. Walk
+cards in the My list no longer have a big empty gap between title and
+status badge.
+
+---
+
 ### OTA 2026-05-31b — Fix: QR-knappar centrerade
 
 Snabbfix ovanpå iter 1. `ShowQRScreen.tsx styles.container` hade

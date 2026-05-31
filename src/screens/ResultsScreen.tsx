@@ -30,6 +30,7 @@ import { buildWalkLink } from "../constants/deepLinks";
 import { shareContent } from "../utils/shareContent";
 import Confetti from "../components/Confetti";
 import WalkFeedbackPrompt from "../components/WalkFeedbackPrompt";
+import ContentContainer from "../components/ContentContainer";
 
 export default function ResultsScreen() {
   const route = useRoute<any>();
@@ -163,6 +164,10 @@ export default function ResultsScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
+      {/* alignItems: "center" speglar ursprungliga styles.container-
+          beteendet så att score-cardet, dela-knappen och tillbaka-knappen
+          fortsätter centreras inom 720 px-kolumnen på surfplatta. */}
+      <ContentContainer style={styles.contentInner}>
       {/* Celebration header */}
       <View style={styles.header}>
         <Animated.Text style={[styles.emoji, { transform: [{ scale: emojiScale }] }]}>
@@ -286,6 +291,7 @@ export default function ResultsScreen() {
           <Text style={styles.homeButtonText}>{t("results.backHome")}</Text>
         </TouchableOpacity>
       </Animated.View>
+      </ContentContainer>
     </ScrollView>
     {showConfetti && <Confetti active />}
     </>
@@ -301,6 +307,9 @@ const styles = StyleSheet.create({
     padding: 24,
     alignItems: "center",
     paddingBottom: 40,
+  },
+  contentInner: {
+    alignItems: "center",
   },
 
   // Header

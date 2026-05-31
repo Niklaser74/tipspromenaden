@@ -18,6 +18,7 @@ import { Session, Participant } from "../types";
 import { useTranslation } from "../i18n";
 import { ShareBadge } from "../components/ShareBadge";
 import { shareContent } from "../utils/shareContent";
+import ContentContainer from "../components/ContentContainer";
 
 export default function LeaderboardScreen() {
   const route = useRoute<any>();
@@ -183,6 +184,10 @@ export default function LeaderboardScreen() {
 
   return (
     <View style={styles.container}>
+      {/* ContentContainer cappar header, banners, FlatList och bottom-bar
+          till en centrerad 880 px-kolumn på surfplatta-landscape.
+          Container-bakgrunden (mörkgrön) går fortfarande edge-to-edge. */}
+      <ContentContainer wide style={styles.contentInner}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>{t("leaderboard.title")}</Text>
@@ -325,6 +330,7 @@ export default function LeaderboardScreen() {
         </TouchableOpacity>
       </View>
 
+      </ContentContainer>
       {/* Offscreen badge — måste finnas i view-trädet för att captureRef ska
           kunna rasterisera den. Placeras långt utanför skärmen och blockerar
           inga interaktioner. */}
@@ -363,6 +369,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#1B3D2B",
+  },
+  contentInner: {
+    flex: 1,
   },
   loadingContainer: {
     flex: 1,
