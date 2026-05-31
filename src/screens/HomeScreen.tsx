@@ -32,6 +32,7 @@ import { getCurrentLocation, formatDistance } from "../utils/location";
 import { distanceToWalk, LatLng } from "../utils/walkGeo";
 import { useTranslation } from "../i18n";
 import { useEventTheme } from "../context/EventThemeContext";
+import ContentContainer from "../components/ContentContainer";
 
 export default function HomeScreen() {
   const navigation = useNavigation<any>();
@@ -226,6 +227,7 @@ export default function HomeScreen() {
             </View>
           )}
 
+          <ContentContainer wide>
           {/* User bar */}
           {user && !user.isAnonymous ? (
             <View style={styles.userBar}>
@@ -322,10 +324,12 @@ export default function HomeScreen() {
               {event ? t("event.poweredBy") : t("home.subtitle")}
             </Text>
           </View>
+          </ContentContainer>
         </View>
 
         {/* Närmaste event-banner */}
         {nearestEvent && (
+          <ContentContainer wide>
           <TouchableOpacity
             style={styles.eventBanner}
             onPress={() =>
@@ -363,6 +367,7 @@ export default function HomeScreen() {
             )}
             <Text style={styles.eventBannerArrow}>›</Text>
           </TouchableOpacity>
+          </ContentContainer>
         )}
 
         {/* Event-walks-sektion — bara i event-läge och om event:et har
@@ -370,6 +375,7 @@ export default function HomeScreen() {
             första gången). Gör att Scania-besökare slipper navigera via
             Bibliotek. */}
         {event && eventWalks && eventWalks.length > 0 && (
+          <ContentContainer wide>
           <View style={styles.eventWalksSection}>
             <Text style={styles.eventWalksHeading}>
               {t("home.eventWalksHeading", { name: event.name })}
@@ -402,9 +408,11 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
           </View>
+          </ContentContainer>
         )}
 
         {/* Action Cards */}
+        <ContentContainer wide>
         <View style={styles.actionsSection}>
           <TouchableOpacity
             style={[
@@ -471,6 +479,7 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
         </View>
+        </ContentContainer>
 
         {/* Swipe-hint */}
         <Text style={styles.swipeHint}>{t("home.swipeHint")}</Text>

@@ -22,6 +22,7 @@ import {
   UserStats,
 } from "../services/stats";
 import { useTranslation } from "../i18n";
+import ContentContainer from "../components/ContentContainer";
 
 export default function StatsScreen() {
   const { t } = useTranslation();
@@ -79,6 +80,7 @@ export default function StatsScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
+      <ContentContainer>
       <Text style={styles.header}>{t("stats.title")}</Text>
       <Text style={styles.subtitle}>{t("stats.subtitle")}</Text>
 
@@ -142,6 +144,7 @@ export default function StatsScreen() {
       )}
 
       <Text style={styles.footnote}>{t("stats.footnote")}</Text>
+      </ContentContainer>
     </ScrollView>
   );
 }

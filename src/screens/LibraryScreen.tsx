@@ -50,6 +50,7 @@ import { useEventTheme } from "../context/EventThemeContext";
 import { WEB_HOST } from "../constants/deepLinks";
 import { getCurrentLocation, getDistanceInMeters, formatDistance } from "../utils/location";
 import { WALK_CATEGORIES } from "../constants/categories";
+import ContentContainer from "../components/ContentContainer";
 import { Walk } from "../types";
 import MyWalksList from "../components/MyWalksList";
 import LibraryMapView from "../components/LibraryMapView";
@@ -581,6 +582,7 @@ export default function LibraryScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
+      <ContentContainer wide style={styles.flexFill}>
       {/* Segmented control: Mina · Upptäck · Event · Frågebatterier
           Emoji och etikett ligger i SEPARATA <Text>-noder. På Android
           korrumperar en <Text> med blandad emoji + latinsk text vars
@@ -1145,6 +1147,7 @@ export default function LibraryScreen() {
           })}
         </ScrollView>
       )}
+      </ContentContainer>
     </View>
   );
 }
@@ -1154,6 +1157,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F5F0E8",
   },
+  // Säkerställer att ContentContainer-wrappern växer ut och fyller
+  // tillgänglig vertikal yta på surfplattor (utan flex: 1 skulle den
+  // krympa till sitt innehålls min-höjd).
+  flexFill: { flex: 1 },
   segmented: {
     flexDirection: "row",
     marginHorizontal: 16,

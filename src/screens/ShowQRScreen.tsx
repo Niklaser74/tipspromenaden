@@ -15,6 +15,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { Walk } from "../types";
 import { useTranslation } from "../i18n";
 import { shareContent } from "../utils/shareContent";
+import ContentContainer from "../components/ContentContainer";
 
 export default function ShowQRScreen() {
   const route = useRoute<any>();
@@ -234,6 +235,7 @@ export default function ShowQRScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
+      <ContentContainer>
       {/* Success header */}
       <View style={styles.header}>
         <View style={styles.successIcon}>
@@ -330,6 +332,7 @@ export default function ShowQRScreen() {
       >
         <Text style={styles.homeButtonText}>{t("showQR.backHome")}</Text>
       </TouchableOpacity>
+      </ContentContainer>
     </ScrollView>
   );
 }

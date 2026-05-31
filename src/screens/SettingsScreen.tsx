@@ -29,6 +29,7 @@ import { isFeedbackEnabled, setFeedbackEnabled } from "../services/feedback";
 import { useEventTheme } from "../context/EventThemeContext";
 import { ONBOARDED_STORAGE_KEY } from "./OnboardingScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ContentContainer from "../components/ContentContainer";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -190,6 +191,7 @@ export default function SettingsScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
+      <ContentContainer>
       {/* Språkval */}
       <Text style={styles.sectionTitle}>{t("settings.language")}</Text>
       <View style={styles.card}>
@@ -477,6 +479,7 @@ export default function SettingsScreen() {
           </View>
         </View>
       </View>
+      </ContentContainer>
     </ScrollView>
 
     {/* Sista bekräftelse-modal: kräver att användaren skriver

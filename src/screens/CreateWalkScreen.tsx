@@ -1100,7 +1100,10 @@ export default function CreateWalkScreen() {
         style={[styles.bottomPanel, isWide && styles.sidePanel]}
         contentContainerStyle={[
           styles.bottomPanelContent,
-          { paddingBottom: 32 + insets.bottom },
+          // Extra-marginal i splitvy så att Android-gester/home-indicator
+          // inte klipper sista raden i panelen (insets.bottom är 0 på
+          // gesture-nav-enheter i landscape).
+          { paddingBottom: (isWide ? 48 : 32) + insets.bottom },
         ]}
         keyboardShouldPersistTaps="handled"
         nestedScrollEnabled
@@ -1627,16 +1630,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapWrapWide: {
-    flex: 1,
+    flex: 1.2,
   },
   // Sidopanel-stil — overlay:as ovanpå bottomPanel-stilarna i splitvy.
-  // Fast bredd så att kartan fortfarande får merparten av skärmen, men
-  // tillräckligt bred för att frågelistan ska vara läsbar.
+  // Tidigare hade vi `width: 380 + flexGrow: 1` vilket på breda
+  // surfplattor (≥ 2000 px) blåste upp panelen till ~2/3 av skärmen
+  // och gjorde kartan onödigt smal. Nu kör vi explicit flex-ratio:
+  // kartan får 55 %, panelen 45 %, capad till 560 px så vi inte får
+  // löjligt breda formulärrader på 2560 px-skärmar.
   sidePanel: {
-    width: 380,
-    flex: undefined,
+    width: undefined,
+    flex: 1,
+    maxWidth: 560,
+    minWidth: 380,
     maxHeight: undefined,
-    flexGrow: 1,
     borderTopWidth: 0,
     borderLeftWidth: 1,
     borderLeftColor: "#F0F0EC",

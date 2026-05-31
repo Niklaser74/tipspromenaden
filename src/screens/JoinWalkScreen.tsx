@@ -23,6 +23,7 @@ import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { refreshSavedWalk } from "../services/walkRefresh";
 import { useTranslation } from "../i18n";
+import ContentContainer from "../components/ContentContainer";
 
 export default function JoinWalkScreen() {
   const route = useRoute<any>();
@@ -274,6 +275,7 @@ export default function JoinWalkScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        <ContentContainer>
         {/* Walk info card */}
         <View style={styles.walkCard}>
           <View style={styles.walkCardIcon}>
@@ -414,6 +416,7 @@ export default function JoinWalkScreen() {
         {!eventNotStarted && !eventEnded && (
           <Text style={styles.hint}>{t("join.gpsHint")}</Text>
         )}
+        </ContentContainer>
       </ScrollView>
     </KeyboardAvoidingView>
   );

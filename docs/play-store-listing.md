@@ -181,6 +181,43 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-31a — Surfplatte-landscape iter 1
+
+Första passet på "per-skärm landscape-finputs" från roadmappen. Tidigare
+sträckte sig kort, listor och knappar över hela 2560 px-bredden på
+surfplatta-landscape, vilket gav löjligt tomma mittpartier och knappar
+2000 px breda. Nu finns en ny `ContentContainer` (max 720 px / 880 px
+wide) som cappar och centrerar innehållet på följande skärmar:
+
+- **HomeScreen** — hero, userBar, event-banner, event-walks-sektion, action-cards
+- **LibraryScreen** — alla 4 flikar (Mina/Upptäck/Event/Paket) + filter-/sökrad
+- **JoinWalkScreen** — walkCard, namnfält, "Starta promenaden"-knapp
+- **ShowQRScreen** — succéheader, QR-kort, dela-knappar
+- **SettingsScreen** — språk, account, preferens-rader
+- **StatsScreen** — 2×2 kortgrid, best-results-listan
+
+**CreateWalkScreen** (som redan hade splitvy): rättat split-ratio från
+~28/72 till ~55/45 (karta får större andel), `sidePanel` cappad till
+560 px maxWidth + 380 px minWidth, paddingBottom bumpad i splitvy så
+sista raden inte klipps under Samsung-gester/home-indicator.
+
+Telefoner: oförändrat (maxWidth slår inte in under 720 px).
+
+**Release notes (sv):**
+Surfplatte-landscape: vi cappar nu kort, listor och knappar på en
+centrerad kolumn istället för att sträcka ut dem över hela bredden.
+Snyggare på Hem, Bibliotek, Gå med, QR, Inställningar och Statistik.
+Skapa promenad delar nu kartan och sidopanelen jämnare och klipper
+inte panelens sista rad.
+
+**Release notes (en):**
+Tablet landscape: cards, lists and buttons are now capped in a centred
+column instead of stretching across the full width. Cleaner on Home,
+Library, Join, QR, Settings and Stats. Create-walk now splits the map
+and side panel more evenly and stops clipping the panel's last row.
+
+---
+
 ### OTA 2026-05-25i — Återställ banner-logo
 
 Återställer EventBanner.logo till 24×24 ikon-storlek efter 25h-bumpen.
