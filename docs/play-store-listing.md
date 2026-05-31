@@ -181,6 +181,26 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-05-31b — Fix: QR-knappar centrerade
+
+Snabbfix ovanpå iter 1. `ShowQRScreen.tsx styles.container` hade
+`alignItems: "center"` på ScrollView contentContainerStyle — det centrerade
+tidigare dela-knapparna (320 px maxWidth) under den centrerade QR-koden.
+När jag wrappade allt i `ContentContainer` (720 px maxWidth) flyttade
+barnen in en nivå och tappade den centreringen, så knapparna hamnade
+vänsterställda i 720 px-kolumnen. Lade en `contentInner` style med
+`alignItems: "center"` på själva ContentContainern.
+
+**Release notes (sv):**
+QR-skärmen: dela-knapparna är nu centrerade under QR-koden istället
+för att ligga vänsterförskjutna på surfplatta i landscape.
+
+**Release notes (en):**
+QR screen: the share buttons are now centred under the QR code instead
+of being offset to the left on tablet landscape.
+
+---
+
 ### OTA 2026-05-31a — Surfplatte-landscape iter 1
 
 Första passet på "per-skärm landscape-finputs" från roadmappen. Tidigare

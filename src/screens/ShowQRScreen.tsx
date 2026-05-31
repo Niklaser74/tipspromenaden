@@ -235,7 +235,11 @@ export default function ShowQRScreen() {
       contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <ContentContainer>
+      {/* alignItems: "center" på ContentContainern speglar det ursprungliga
+          beteendet på styles.container — utan det blev shareSection (320 px
+          maxWidth) vänsterställd i den 720 px breda kolumnen, asymmetriskt
+          mot QR-koden som har egen alignItems:"center". */}
+      <ContentContainer style={styles.contentInner}>
       {/* Success header */}
       <View style={styles.header}>
         <View style={styles.successIcon}>
@@ -346,6 +350,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 24,
     paddingVertical: 32,
+  },
+  contentInner: {
+    alignItems: "center",
   },
 
   // Header

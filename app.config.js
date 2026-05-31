@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Surfplatte-landscape: vi cappar nu kort, listor och knappar på en centrerad kolumn istället för att sträcka ut dem över hela bredden. Snyggare på Hem, Bibliotek, Gå med, QR, Inställningar och Statistik. Skapa promenad delar nu kartan och sidopanelen jämnare och klipper inte panelens sista rad.",
-        en: "Tablet landscape: cards, lists and buttons are now capped in a centred column instead of stretching across the full width. Cleaner on Home, Library, Join, QR, Settings and Stats. Create-walk now splits the map and side panel more evenly and stops clipping the panel's last row.",
+        sv: "QR-skärmen: dela-knapparna är nu centrerade under QR-koden istället för att ligga vänsterförskjutna på surfplatta i landscape.",
+        en: "QR screen: the share buttons are now centred under the QR code instead of being offset to the left on tablet landscape.",
       },
     },
   },
