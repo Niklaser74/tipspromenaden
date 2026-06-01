@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Surfplatte-landscape iter 2: Aktiv promenad har nu en sidopanel höger om kartan med alla kontrollpunkter och deras status — tap för att zooma till kontrollen. Resultat- och Toppliste-skärmen cappade i centrerad kolumn. Promenadkort i Mina-listan har inte längre stort tomrum mellan titel och status-badge.",
-        en: "Tablet landscape iter 2: Active walk now has a side panel to the right of the map listing all checkpoints with their status — tap to zoom to one. Results and Leaderboard screens capped in a centred column. Walk cards in the My list no longer have a big empty gap between title and status badge.",
+        sv: "🎲 Slumpa frågor från bibliotek: Ny knapp i Skapa-vyn — droppa pins på kartan och fyll dem automatiskt med slumpade frågor från ett publikt frågebatteri. Funkar även ovanpå Återanvänd positioner: kopiera koordinater från en tidigare promenad och låt biblioteket fylla i frågorna åt dig. Färdig promenad på under en minut.",
+        en: "🎲 Random questions from library: New button in Create — drop pins on the map and fill them automatically with random questions from a public question pack. Also works on top of Reuse positions: copy coordinates from an earlier walk and let the library fill in the questions for you. Complete walk in under a minute.",
       },
     },
   },

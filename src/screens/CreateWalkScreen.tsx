@@ -48,6 +48,11 @@ import {
   QuestionBattery,
 } from "../services/questionBattery";
 import {
+  getLibraryTipspacks,
+  fetchTipspackContent,
+  type LibraryTipspack,
+} from "../services/tipspackLibrary";
+import {
   pickAndUploadQuestionImage,
   deleteQuestionImage,
 } from "../services/questionImage";
@@ -437,6 +442,14 @@ export default function CreateWalkScreen() {
   const [reuseCandidates, setReuseCandidates] = useState<SavedWalk[]>([]);
   const [reusedFromTitle, setReusedFromTitle] = useState<string | null>(null);
 
+  // "Slumpa från bibliotek": modal listar publika tipspacks; vid val hämtas
+  // hela paketet, frågorna shufflas och appliceras via samma helper som
+  // fil-importen. Loading-flag visas medan content fetchas.
+  const [tipspackPickerVisible, setTipspackPickerVisible] = useState(false);
+  const [tipspackList, setTipspackList] = useState<LibraryTipspack[]>([]);
+  const [tipspackLoading, setTipspackLoading] = useState(false);
+  const [tipspackFetching, setTipspackFetching] = useState<string | null>(null);
+
   // Autospar (draft) — hydratedRef hindrar att första render fyr:ar en
   // save innan vi hunnit ladda ev. lagrad draft. Debounce-timer rensas
   // när komponenten unmountar.
@@ -601,6 +614,88 @@ export default function CreateWalkScreen() {
   };
 
   /**
+   * Applicerar ett frågebatteri på state:n. Delas mellan fil-import
+   * (handleImportBattery) och bibliotek-slumpning (handleSelectFromLibrary).
+   * Fyller tomma pre-laddade positioner i ordning, köar resten, sätter titel +
+   * språk om de var tomma, och visar lämplig alert. `randomized=true` byter
+   * alert-strängarna så att användaren vet att frågorna är slumpvalda.
+   */
+  const applyBattery = (
+    batteryQuestions: BatteryQuestion[],
+    batteryDisplayName: string,
+    batteryLanguage: string | undefined,
+    randomized: boolean
+  ) => {
+    setBatteryName(batteryDisplayName);
+
+    const emptyIndices: number[] = [];
+    questions.forEach((q, i) => {
+      if (!q.text.trim()) emptyIndices.push(i);
+    });
+    const toFillCount = Math.min(emptyIndices.length, batteryQuestions.length);
+    let filledCount = 0;
+    if (toFillCount > 0) {
+      const filled = [...questions];
+      for (let i = 0; i < toFillCount; i++) {
+        const bq = batteryQuestions[i];
+        const idx = emptyIndices[i];
+        filled[idx] = {
+          ...filled[idx],
+          text: bq.text,
+          options: [...bq.options],
+          correctOptionIndex: bq.correctOptionIndex,
+        };
+      }
+      setQuestions(filled);
+      filledCount = toFillCount;
+    }
+    setBatteryQueue(batteryQuestions.slice(filledCount));
+
+    if (!title.trim()) {
+      setTitle(batteryDisplayName);
+    }
+    let languageNote = "";
+    if (batteryLanguage && !language) {
+      setLanguage(batteryLanguage);
+      const flag = flagForLanguage(batteryLanguage);
+      languageNote = "\n\n" + t("create.batteryLanguageSet", {
+        flag: flag || batteryLanguage,
+        code: batteryLanguage,
+      });
+    } else if (!batteryLanguage && !language) {
+      languageNote = "\n\n" + t("create.batteryLanguageUnknown");
+    }
+
+    const remaining = batteryQuestions.length - filledCount;
+    const baseMessage = randomized
+      ? filledCount > 0
+        ? t("create.randomMatchedMessage", {
+            matched: filledCount,
+            remaining,
+            name: batteryDisplayName,
+          })
+        : t("create.randomImportedMessage", {
+            count: batteryQuestions.length,
+            name: batteryDisplayName,
+          })
+      : filledCount > 0
+        ? t("create.batteryMatchedMessage", {
+            matched: filledCount,
+            remaining,
+            name: batteryDisplayName,
+          })
+        : t("create.batteryImportedMessage", {
+            count: batteryQuestions.length,
+            name: batteryDisplayName,
+          });
+
+    const title_ = randomized
+      ? t("create.randomImportedTitle")
+      : t("create.batteryImportedTitle");
+    Alert.alert(title_, baseMessage + languageNote);
+  };
+
+  /**
    * Öppnar filväljaren och importerar ett frågebatteri (.tipspack-fil).
    * Vid lyckad import sätts batteriets frågor i kön så att skaparen kan
    * placera dem en efter en genom att trycka på kartan. Promenadens titel
@@ -617,65 +712,54 @@ export default function CreateWalkScreen() {
       }
 
       const battery = result.battery;
-      setBatteryName(battery.name);
-
-      // Om vi har pre-laddade tomma kontroller (via "återanvänd positioner")
-      // fyller vi dem i ordning innan resten köas. Tomma = text är trim-tom.
-      const emptyIndices: number[] = [];
-      questions.forEach((q, i) => {
-        if (!q.text.trim()) emptyIndices.push(i);
-      });
-      const toFillCount = Math.min(emptyIndices.length, battery.questions.length);
-      let filledCount = 0;
-      if (toFillCount > 0) {
-        const filled = [...questions];
-        for (let i = 0; i < toFillCount; i++) {
-          const bq = battery.questions[i];
-          const idx = emptyIndices[i];
-          filled[idx] = {
-            ...filled[idx],
-            text: bq.text,
-            options: [...bq.options],
-            correctOptionIndex: bq.correctOptionIndex,
-          };
-        }
-        setQuestions(filled);
-        filledCount = toFillCount;
-      }
-      setBatteryQueue(battery.questions.slice(filledCount));
-
-      // Auto-fyll titel om tom
-      if (!title.trim()) {
-        setTitle(battery.name);
-      }
-      // Sätt språk från batteriet om det finns och inget valts än
-      let languageNote = "";
-      if (battery.language && !language) {
-        setLanguage(battery.language);
-        const flag = flagForLanguage(battery.language);
-        languageNote = "\n\n" + t("create.batteryLanguageSet", {
-          flag: flag || battery.language,
-          code: battery.language,
-        });
-      } else if (!battery.language && !language) {
-        languageNote = "\n\n" + t("create.batteryLanguageUnknown");
-      }
-      // Meddelandet varierar beroende på om batteriet auto-matchades mot
-      // pre-laddade positioner (reuse-flöde) eller köades som vanligt.
-      const baseMessage =
-        filledCount > 0
-          ? t("create.batteryMatchedMessage", {
-              matched: filledCount,
-              remaining: battery.questions.length - filledCount,
-              name: battery.name,
-            })
-          : t("create.batteryImportedMessage", {
-              count: battery.questions.length,
-              name: battery.name,
-            });
-      Alert.alert(t("create.batteryImportedTitle"), baseMessage + languageNote);
+      applyBattery(battery.questions, battery.name, battery.language, false);
     } catch (e: any) {
       Alert.alert(t("common.errorTitle"), t("create.importGenericError", { message: e?.message || String(e) }));
+    }
+  };
+
+  /**
+   * Öppnar tipspack-bibliotekets modal. Hämtar listan lat — tom kö visar
+   * spinner medan getLibraryTipspacks resolvar. Modalen öppnas direkt så
+   * användaren ser progress; även vid fel visas modalen med tom-state-text.
+   */
+  const openTipspackPicker = async () => {
+    setTipspackPickerVisible(true);
+    setTipspackLoading(true);
+    try {
+      const list = await getLibraryTipspacks();
+      setTipspackList(list);
+    } catch {
+      setTipspackList([]);
+    } finally {
+      setTipspackLoading(false);
+    }
+  };
+
+  /**
+   * Slumpa frågor från ett valt tipspack och applicera dem. Fisher-Yates
+   * shuffle på en kopia av batteryets frågor — `pack.questionCount` ≤ 500
+   * (validator-tak) så O(n) räcker. Stänger modalen efter lyckad apply;
+   * vid nät-fel håller modalen sig öppen så användaren kan välja ett annat.
+   */
+  const handleSelectFromLibrary = async (pack: LibraryTipspack) => {
+    setTipspackFetching(pack.slug);
+    try {
+      const content = await fetchTipspackContent(pack);
+      const shuffled = [...content.questions];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      setTipspackPickerVisible(false);
+      applyBattery(shuffled, content.name, content.language ?? pack.language, true);
+    } catch (e: any) {
+      Alert.alert(
+        t("common.errorTitle"),
+        t("create.randomFetchError", { message: e?.message || String(e) })
+      );
+    } finally {
+      setTipspackFetching(null);
     }
   };
 
@@ -1116,18 +1200,32 @@ export default function CreateWalkScreen() {
         {!isEditing && questions.length === 0 && (
           <>
             {batteryQueue.length === 0 && (
-              <TouchableOpacity
-                style={styles.importBatteryButton}
-                onPress={handleImportBattery}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.importBatteryIcon}>📋</Text>
-                <View style={styles.importBatteryContent}>
-                  <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
-                  <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
-                </View>
-                <Text style={styles.importBatteryArrow}>›</Text>
-              </TouchableOpacity>
+              <>
+                <TouchableOpacity
+                  style={styles.randomBatteryButton}
+                  onPress={openTipspackPicker}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.importBatteryIcon}>🎲</Text>
+                  <View style={styles.importBatteryContent}>
+                    <Text style={styles.randomBatteryTitle}>{t("create.randomBatteryTitle")}</Text>
+                    <Text style={styles.randomBatterySubtitle}>{t("create.randomBatteryDesc")}</Text>
+                  </View>
+                  <Text style={styles.randomBatteryArrow}>›</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.importBatteryButton}
+                  onPress={handleImportBattery}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.importBatteryIcon}>📋</Text>
+                  <View style={styles.importBatteryContent}>
+                    <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
+                    <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
+                  </View>
+                  <Text style={styles.importBatteryArrow}>›</Text>
+                </TouchableOpacity>
+              </>
             )}
             <TouchableOpacity
               style={styles.reusePositionsButton}
@@ -1156,6 +1254,17 @@ export default function CreateWalkScreen() {
             <Text style={styles.reusedBannerText}>
               {t("create.reusedBanner", { name: reusedFromTitle })}
             </Text>
+            <TouchableOpacity
+              style={styles.reusedBannerButton}
+              onPress={openTipspackPicker}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.reusedBannerButtonIcon}>🎲</Text>
+              <Text style={styles.reusedBannerButtonText}>
+                {t("create.randomBatteryTitle")}
+              </Text>
+              <Text style={styles.reusedBannerButtonArrow}>›</Text>
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.reusedBannerButton}
               onPress={handleImportBattery}
@@ -1508,6 +1617,73 @@ export default function CreateWalkScreen() {
           På Android: ingen KeyboardAvoidingView (orsakar flimmer) — ScrollView
           hanterar scrollning när tangentbordet dyker upp istället. */}
 
+      {/* Tipspack-picker: slumpa frågor från publika bibliotek */}
+      <Modal
+        visible={tipspackPickerVisible}
+        animationType="slide"
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => setTipspackPickerVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.reusePickerModal}>
+            <Text style={styles.reusePickerTitle}>{t("create.randomPickerTitle")}</Text>
+            <Text style={styles.reusePickerHint}>{t("create.randomPickerHint")}</Text>
+            {tipspackLoading ? (
+              <View style={styles.tipspackLoadingWrap}>
+                <ActivityIndicator size="large" color="#1B6B35" />
+                <Text style={styles.tipspackLoadingText}>{t("create.randomPickerLoading")}</Text>
+              </View>
+            ) : tipspackList.length === 0 ? (
+              <View style={styles.tipspackLoadingWrap}>
+                <Text style={styles.tipspackEmptyText}>{t("create.randomPickerEmpty")}</Text>
+              </View>
+            ) : (
+              <ScrollView style={styles.reusePickerList}>
+                {tipspackList.map((pack) => {
+                  const isFetching = tipspackFetching === pack.slug;
+                  const flag = flagForLanguage(pack.language);
+                  return (
+                    <TouchableOpacity
+                      key={pack.slug}
+                      style={styles.reusePickerItem}
+                      onPress={() => handleSelectFromLibrary(pack)}
+                      disabled={tipspackFetching !== null}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.reusePickerItemContent}>
+                        <Text style={styles.reusePickerItemTitle} numberOfLines={1}>
+                          {flag ? `${flag} ` : ""}{pack.name}
+                        </Text>
+                        <Text style={styles.reusePickerItemMeta} numberOfLines={2}>
+                          {t("create.randomPickerMeta", {
+                            count: pack.questionCount,
+                            author: pack.author,
+                          })}
+                        </Text>
+                      </View>
+                      {isFetching ? (
+                        <ActivityIndicator size="small" color="#2D7A3A" />
+                      ) : (
+                        <Text style={styles.reusePickerItemArrow}>›</Text>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
+            <TouchableOpacity
+              style={styles.reusePickerCancel}
+              onPress={() => setTipspackPickerVisible(false)}
+              disabled={tipspackFetching !== null}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.reusePickerCancelText}>{t("common.cancel")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Återanvänd-positioner-picker */}
       <Modal
         visible={reusePickerVisible}
@@ -1798,6 +1974,48 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: "#C49A2A",
     fontWeight: "300",
+  },
+  randomBatteryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8F0F7",
+    borderWidth: 1.5,
+    borderColor: "#3A7BB8",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    gap: 12,
+  },
+  randomBatteryTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1B4870",
+    marginBottom: 2,
+  },
+  randomBatterySubtitle: {
+    fontSize: 12,
+    color: "#2D5A88",
+  },
+  randomBatteryArrow: {
+    fontSize: 24,
+    color: "#3A7BB8",
+    fontWeight: "300",
+  },
+  tipspackLoadingWrap: {
+    paddingVertical: 32,
+    alignItems: "center",
+    gap: 12,
+  },
+  tipspackLoadingText: {
+    fontSize: 14,
+    color: "#5A6B5B",
+  },
+  tipspackEmptyText: {
+    fontSize: 14,
+    color: "#5A6B5B",
+    textAlign: "center",
+    lineHeight: 20,
   },
   reusePositionsButton: {
     flexDirection: "row",

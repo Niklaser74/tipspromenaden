@@ -181,6 +181,42 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-01a — Slumpa frågor från bibliotek
+
+Ny knapp **🎲 Slumpa frågor från bibliotek** i CreateWalkScreen (visas
+både på fräsch ny promenad och i `reusedBanner`-flödet). Hela idén är
+att kontrollerna är *platsen* och frågorna kan komma slumpvis från
+poolen — användaren slipper skriva både punkt och fråga.
+
+Tekniskt: ny modal listar `getLibraryTipspacks()` (curated + uploaded,
+moderation-filtrerade). Vid val körs `fetchTipspackContent()` +
+Fisher-Yates-shuffle och resultatet skickas in i samma `applyBattery`-
+helper som fil-import använder. Den fyller tomma positioner (från
+"Återanvänd positioner") i ordning och köar resten — så
+"droppa pins → slumpa frågor → klar" funkar i ett svep.
+
+Refaktor: `handleImportBattery` använder nu `applyBattery()`. Båda
+flödena (fil + bibliotek) går genom samma kod, alert-texten varierar
+mellan "importerat" och "slumpade". 12 nya i18n-nycklar (sv + en).
+
+Ingen native-dep, ingen datamodell-ändring, OTA-bart.
+
+**Release notes (sv):**
+🎲 Slumpa frågor från bibliotek: Ny knapp i Skapa-vyn — droppa pins
+på kartan och fyll dem automatiskt med slumpade frågor från ett
+publikt frågebatteri. Funkar även ovanpå Återanvänd positioner:
+kopiera koordinater från en tidigare promenad och låt biblioteket
+fylla i frågorna åt dig. Färdig promenad på under en minut.
+
+**Release notes (en):**
+🎲 Random questions from library: New button in Create — drop pins
+on the map and fill them automatically with random questions from a
+public question pack. Also works on top of Reuse positions: copy
+coordinates from an earlier walk and let the library fill in the
+questions for you. Complete walk in under a minute.
+
+---
+
 ### OTA 2026-05-31c — Surfplatte-landscape iter 2
 
 Nästa pass på landscape-finputs (från roadmap-punkten "Per-skärm
