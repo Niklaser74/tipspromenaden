@@ -193,6 +193,16 @@ service cloud.firestore {
                         || request.auth.uid == resource.data.userId);
     }
 
+    // -------------------- stats --------------------
+    // Manuellt uppdaterade nedladdningssiffror från Play Console + App
+    // Store Connect. Doc: stats/downloads. Endast admin får läsa/skriva
+    // (siffrorna är inte topphemliga men inte heller något vi vill exponera
+    // publikt — annars börjar folk jämföra "bara 47 installs lol").
+    match /stats/{docId} {
+      allow read: if isSignedIn() && isAdmin();
+      allow write: if isSignedIn() && isAdmin();
+    }
+
     // -------------------- events --------------------
     // Event-doc:er (branded customization för sponsor-event som Scania
     // Family Day). Public read så vem som helst med event-koden kan
