@@ -137,8 +137,13 @@ export function parseQRData(raw: string): QRData | null {
 
 /**
  * Tolkar en rå sträng och returnerar event-id om strängen är en
- * event-deep-link (`tipspromenaden://event/<id>`). Returnerar null
- * om strängen inte är en event-länk.
+ * event-deep-link. Två format stödjs sedan 2026-06-05:
+ *
+ *   1. Custom scheme: `tipspromenaden://event/<id>` — legacy QR-koder
+ *   2. Universal/App Link: `https://tipspromenaden.app/event/<id>` —
+ *      används från och med 2026-06-05. Smart-redirect-sidan på
+ *      `/event-redirect.astro` öppnar appen direkt om installerad
+ *      och routar till Play Store/App Store annars.
  *
  * ScanQRScreen kallar denna EFTER `parseQRData` fallit — så event-QR
  * och walk-QR kan separeras utan att bryta befintliga walk-QR-koder.
@@ -150,21 +155,38 @@ export function parseEventQR(raw: string): string | null {
   if (!trimmed) return null;
   const lower = trimmed.toLowerCase();
 
-  // Bara custom-scheme stöds — vi vill INTE intercepta
-  // https://tipspromenaden.app/event/<id> eftersom den URL:en är
-  // reserverad för framtida landningssida på webben.
-  const schemeLinkPrefix = `${APP_SCHEME}://${EVENT_PATH}/`;
-  if (lower.startsWith(schemeLinkPrefix)) {
+  // Hjälp-funktion: validera och returnera id om det matchar slug-formen.
+  const tryId = (encoded: string): string | null => {
     try {
-      const id = decodeURIComponent(
-        trimmed.slice(schemeLinkPrefix.length)
-      ).trim();
-      // Slug-form: bara safe URL-tecken (samma policy som isValidEventId).
+      const id = decodeURIComponent(encoded).trim();
       if (/^[a-zA-Z0-9_-]+$/.test(id) && id.length <= 100) return id;
     } catch {
       /* trasig URI */
     }
+    return null;
+  };
+
+  // 1. Custom-scheme (legacy QR-koder + interna deep links från redirect-sidan)
+  const schemeLinkPrefix = `${APP_SCHEME}://${EVENT_PATH}/`;
+  if (lower.startsWith(schemeLinkPrefix)) {
+    const id = tryId(trimmed.slice(schemeLinkPrefix.length).split(/[?#]/)[0]);
+    if (id) return id;
   }
+
+  // 2. Universal/App Link (https). Accepterar både tipspromenaden.app
+  //    och www.tipspromenaden.app.
+  const httpsPrefixes = [
+    `https://${WEB_HOST}/${EVENT_PATH}/`,
+    `https://www.${WEB_HOST}/${EVENT_PATH}/`,
+  ];
+  for (const prefix of httpsPrefixes) {
+    if (lower.startsWith(prefix)) {
+      const id = tryId(trimmed.slice(prefix.length).split(/[?#]/)[0]);
+      if (id) return id;
+      break;
+    }
+  }
+
   return null;
 }
 
