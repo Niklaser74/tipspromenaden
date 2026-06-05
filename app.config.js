@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "🎲 Slumpa frågor från bibliotek: Ny knapp i Skapa-vyn — droppa pins på kartan och fyll dem automatiskt med slumpade frågor från ett publikt frågebatteri. Funkar även ovanpå Återanvänd positioner: kopiera koordinater från en tidigare promenad och låt biblioteket fylla i frågorna åt dig. Färdig promenad på under en minut.",
-        en: "🎲 Random questions from library: New button in Create — drop pins on the map and fill them automatically with random questions from a public question pack. Also works on top of Reuse positions: copy coordinates from an earlier walk and let the library fill in the questions for you. Complete walk in under a minute.",
+        sv: "🎲 Slumpa frågor från bibliotek: Ny knapp i Skapa-vyn — droppa pins på kartan och fyll dem automatiskt med slumpade frågor från ett publikt frågebatteri. 🏁 Smartare event-QR: arrangörers QR-koder fungerar nu även om appen inte är installerad — du landar på en sida som föreslår nedladdning.",
+        en: "🎲 Random questions from library: New button in Create — drop pins on the map and fill them automatically with random questions from a public question pack. 🏁 Smarter event QR: organizer QR codes now work even without the app installed — you land on a page that prompts install.",
       },
     },
   },
