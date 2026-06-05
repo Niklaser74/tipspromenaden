@@ -1300,6 +1300,34 @@ export default function CreateWalkScreen() {
           </TouchableOpacity>
         )}
 
+        {/* Kompakta sekundär-actions för frågorna — slumpa eller importera
+            ett batteri även EFTER att man börjat skapa frågor manuellt.
+            Tidigare gömdes dessa CTA:er så fort questions.length > 0 →
+            man var tvungen att rensa allt för att kunna importera. Nu
+            alltid tillgängliga via dessa länkar. */}
+        {!isEditing && questions.length > 0 && (
+          <View style={styles.questionListActions}>
+            <TouchableOpacity
+              style={styles.questionListActionButton}
+              onPress={openTipspackPicker}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.questionListActionText}>
+                🎲 {t("create.randomBatteryTitle")}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.questionListActionButton}
+              onPress={handleImportBattery}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.questionListActionText}>
+                📋 {t("create.importBatteryTitle")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Kollapsbar frågelista (alltid synlig i splitvy).
             I splitvy får listan växa fritt så att den fyller panelen
             mellan ev. banner och save-knappen — istället för fixed 220 px. */}
@@ -2592,6 +2620,29 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 14,
     marginBottom: 12,
+  },
+  // Sekundär-actions för slumpa/importera frågebatteri som visas även
+  // efter att första frågan skapats. Tunnare än CTA-blocket på fräsch
+  // ny promenad — tanken är att synas utan att skrika.
+  questionListActions: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 12,
+  },
+  questionListActionButton: {
+    flex: 1,
+    backgroundColor: "#FFF8E7",
+    borderWidth: 1,
+    borderColor: "#E8B830",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    alignItems: "center",
+  },
+  questionListActionText: {
+    fontSize: 13,
+    color: "#7B5E10",
+    fontWeight: "600",
   },
   questionListToggleLeft: {
     flexDirection: "row",

@@ -181,6 +181,31 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-05b — Fix: Importera frågebatteri tillgängligt även med frågor
+
+`Slumpa frågor från bibliotek` och `Importera frågebatteri`-CTA:erna i
+CreateWalkScreen var gated bakom `questions.length === 0` — så fort
+användaren la till första frågan manuellt försvann båda knapparna och
+hen var tvungen att rensa allt för att importera.
+
+Fix: ny `questionListActions`-rad ovanför frågelistan som speglar båda
+actions i kompakt form. Visas när `questions.length > 0 && !isEditing`.
+CTA-blocket på fräsch ny promenad är oförändrat.
+
+**Release notes till användarna (sv):**
+📋 Importera frågebatteri även efter du börjat skapa: tidigare gömdes
+🎲 Slumpa och 📋 Importera så fort du lade till första frågan. Nu
+syns båda som diskreta knappar ovanför frågelistan så du kan importera
+när som helst utan att börja om.
+
+**Release notes (en):**
+📋 Import question pack even after you've started: previously, 🎲
+Random and 📋 Import disappeared as soon as you added the first
+question. Both now stay visible as compact buttons above the question
+list so you can import any time without starting over.
+
+---
+
 ### OTA 2026-06-05 — Fix: konfetti + feedback efter målgång
 
 ActiveWalkScreen har sedan länge skickat sluthelyckade walks till

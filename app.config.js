@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "🎉 Konfetti & feedback efter målgång: tidigare gömdes konfettin och tumme upp/ner-frågan på en skärm som flödet aldrig nådde. Nu visas båda på topplistan när du blir klar — konfetti om du fick ≥70% rätt, och en kort prompt där du kan tala om hur promenaden kändes.",
-        en: "🎉 Confetti & feedback after finishing: previously, confetti and the thumbs up/down prompt lived on a screen the flow never reached. Both now appear on the leaderboard when you finish — confetti if you scored ≥70%, and a short prompt to tell the creator how the walk felt.",
+        sv: "📋 Importera frågebatteri även efter du börjat skapa: tidigare gömdes 🎲 Slumpa och 📋 Importera så fort du lade till första frågan. Nu syns båda som diskreta knappar ovanför frågelistan så du kan importera när som helst utan att börja om.",
+        en: "📋 Import question pack even after you've started: previously, 🎲 Random and 📋 Import disappeared as soon as you added the first question. Both now stay visible as compact buttons above the question list so you can import any time without starting over.",
       },
     },
   },
