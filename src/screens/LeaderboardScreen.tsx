@@ -19,6 +19,8 @@ import { useTranslation } from "../i18n";
 import { ShareBadge } from "../components/ShareBadge";
 import { shareContent } from "../utils/shareContent";
 import ContentContainer from "../components/ContentContainer";
+import Confetti from "../components/Confetti";
+import WalkFeedbackPrompt from "../components/WalkFeedbackPrompt";
 
 export default function LeaderboardScreen() {
   const route = useRoute<any>();
@@ -46,6 +48,13 @@ export default function LeaderboardScreen() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sharing, setSharing] = useState(false);
   const badgeRef = useRef<View>(null);
+
+  // Konfetti vid min egen >=70% — fyrar EN gång när min completedAt först
+  // dyker upp i streamen, sen aldrig igen även om snapshot:en re-renderar.
+  // Tidigare bodde detta i ResultsScreen men den skärmen nås aldrig
+  // i praktiken eftersom flödet hoppar direkt till Leaderboard.
+  const [showConfetti, setShowConfetti] = useState(false);
+  const confettiFiredRef = useRef(false);
 
   useEffect(() => {
     if (isEvent && walkId) {
@@ -109,6 +118,20 @@ export default function LeaderboardScreen() {
   const me = myIndex >= 0 ? sortedParticipants[myIndex] : undefined;
   const myRank = myIndex + 1;
   const canShare = !!me && !!me.completedAt;
+
+  // Fyra konfetti när min completion blir synlig i streamen för första
+  // gången OCH jag fick >=70%. Använder ref så att senare snapshot-
+  // uppdateringar (t.ex. nya deltagare som ansluter) inte triggar igen.
+  useEffect(() => {
+    if (confettiFiredRef.current) return;
+    if (!me?.completedAt) return;
+    const myPercentage =
+      totalQuestions > 0 ? (me.score / totalQuestions) * 100 : 0;
+    if (myPercentage >= 70) {
+      confettiFiredRef.current = true;
+      setShowConfetti(true);
+    }
+  }, [me?.completedAt, me?.score, totalQuestions]);
 
   const handleShare = async () => {
     if (!me || sharing) return;
@@ -301,6 +324,15 @@ export default function LeaderboardScreen() {
             </View>
           ) : null
         }
+        ListFooterComponent={
+          // Feedback-prompt visas under topplistan när jag har slutfört
+          // och sessionId + walkId båda finns (walkId valfri i typ:en men
+          // alltid satt från ActiveWalkScreen). Komponenten gömmer sig
+          // själv om feedback redan skickats för denna session.
+          me?.completedAt && walkId ? (
+            <WalkFeedbackPrompt walkId={walkId} sessionId={sessionId} />
+          ) : null
+        }
       />
 
       {/* Bottom bar: dela-knapp (när jag har slutfört) + hem-knapp */}
@@ -361,6 +393,9 @@ export default function LeaderboardScreen() {
           />
         </View>
       )}
+      {/* Konfetti-overlay — absolut-positionerad så den ligger ovanpå hela
+          skärmen utan att förskjuta layouten. */}
+      {showConfetti && <Confetti active />}
     </View>
   );
 }

@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "🎲 Slumpa frågor från bibliotek: Ny knapp i Skapa-vyn — droppa pins på kartan och fyll dem automatiskt med slumpade frågor från ett publikt frågebatteri. 🏁 Smartare event-QR: arrangörers QR-koder fungerar nu även om appen inte är installerad — du landar på en sida som föreslår nedladdning.",
-        en: "🎲 Random questions from library: New button in Create — drop pins on the map and fill them automatically with random questions from a public question pack. 🏁 Smarter event QR: organizer QR codes now work even without the app installed — you land on a page that prompts install.",
+        sv: "🎉 Konfetti & feedback efter målgång: tidigare gömdes konfettin och tumme upp/ner-frågan på en skärm som flödet aldrig nådde. Nu visas båda på topplistan när du blir klar — konfetti om du fick ≥70% rätt, och en kort prompt där du kan tala om hur promenaden kändes.",
+        en: "🎉 Confetti & feedback after finishing: previously, confetti and the thumbs up/down prompt lived on a screen the flow never reached. Both now appear on the leaderboard when you finish — confetti if you scored ≥70%, and a short prompt to tell the creator how the walk felt.",
       },
     },
   },

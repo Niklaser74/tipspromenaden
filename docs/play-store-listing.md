@@ -181,6 +181,33 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-05 — Fix: konfetti + feedback efter målgång
+
+ActiveWalkScreen har sedan länge skickat sluthelyckade walks till
+Leaderboard istället för Results när sessionId finns (= alltid i
+praktiken). Konfetti-animation och WalkFeedbackPrompt bodde dock bara
+i Results-skärmen, så ingen användare har sett dem.
+
+Fix: flytta båda komponenterna till Leaderboard:
+- Konfetti fyrar en gång via confettiFiredRef när min completedAt
+  först dyker upp i streamen och min score / totalQuestions >= 0.7
+- WalkFeedbackPrompt mountas som ListFooterComponent på topplistans
+  FlatList, så den scrollar med och syns när jag har slutfört
+
+ResultsScreen är orörd — fortsatt fallback för flöden utan sessionId.
+
+**Release notes till användarna (sv):**
+🎉 Konfetti & feedback efter målgång: tidigare gömdes konfettin och
+tumme upp/ner-frågan på en skärm som flödet aldrig nådde. Nu visas
+båda på topplistan när du blir klar.
+
+**Release notes (en):**
+🎉 Confetti & feedback after finishing: previously, confetti and the
+thumbs up/down prompt lived on a screen the flow never reached. Both
+now appear on the leaderboard when you finish.
+
+---
+
 ### OTA 2026-06-01a — Slumpa frågor från bibliotek
 
 Ny knapp **🎲 Slumpa frågor från bibliotek** i CreateWalkScreen (visas
