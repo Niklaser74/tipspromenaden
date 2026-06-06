@@ -442,13 +442,20 @@ export default function CreateWalkScreen() {
   const [reuseCandidates, setReuseCandidates] = useState<SavedWalk[]>([]);
   const [reusedFromTitle, setReusedFromTitle] = useState<string | null>(null);
 
-  // "Slumpa från bibliotek": modal listar publika tipspacks; vid val hämtas
+  // "Välj från bibliotek": modal listar publika tipspacks; vid val hämtas
   // hela paketet, frågorna shufflas och appliceras via samma helper som
   // fil-importen. Loading-flag visas medan content fetchas.
   const [tipspackPickerVisible, setTipspackPickerVisible] = useState(false);
   const [tipspackList, setTipspackList] = useState<LibraryTipspack[]>([]);
   const [tipspackLoading, setTipspackLoading] = useState(false);
   const [tipspackFetching, setTipspackFetching] = useState<string | null>(null);
+
+  // "Slumpa N från hela biblioteket": modal med snabb-val (5/10/15/20/25)
+  // och custom-input. När användaren bekräftat hämtas ALLA publika pack:s
+  // innehåll parallellt, frågorna slås ihop, shufflas och topp-N tas.
+  const [randomCountPickerVisible, setRandomCountPickerVisible] = useState(false);
+  const [randomFetchingAll, setRandomFetchingAll] = useState(false);
+  const [randomCustomCount, setRandomCustomCount] = useState("");
 
   // Autospar (draft) — hydratedRef hindrar att första render fyr:ar en
   // save innan vi hunnit ladda ev. lagrad draft. Debounce-timer rensas
@@ -760,6 +767,89 @@ export default function CreateWalkScreen() {
       );
     } finally {
       setTipspackFetching(null);
+    }
+  };
+
+  /**
+   * Slumpa N frågor från HELA biblioteket. Hämtar alla publika tipspacks
+   * parallellt, samlar deras frågor i en pool, Fisher-Yates-shufflar och
+   * tar topp-N. Resultatet appliceras via samma helper som file-import.
+   * Spår också vilka pack som bidrog för "från X olika frågebatterier"-
+   * statistiken i alert:en. Vid nät-fel på enskilda pack: hoppas över tyst.
+   */
+  const handleRandomFromAllLibrary = async (count: number) => {
+    if (!Number.isFinite(count) || count < 1) return;
+    setRandomFetchingAll(true);
+    try {
+      const packs = await getLibraryTipspacks();
+      if (packs.length === 0) {
+        Alert.alert(
+          t("common.errorTitle"),
+          t("create.randomAllNoQuestions")
+        );
+        return;
+      }
+
+      // Hämta innehållet i alla pack parallellt. Fel på enskilda pack
+      // hoppas över så hela operationen inte fallerar pga ett trasigt pack.
+      const contents = await Promise.all(
+        packs.map((p) => fetchTipspackContent(p).catch(() => null))
+      );
+
+      type Pool = {
+        question: BatteryQuestion;
+        packLanguage?: string;
+      };
+      const pool: Pool[] = [];
+      const contributingPacks = new Set<string>();
+      contents.forEach((c, i) => {
+        if (!c) return;
+        for (const q of c.questions) {
+          pool.push({ question: q, packLanguage: c.language ?? packs[i].language });
+        }
+        if (c.questions.length > 0) contributingPacks.add(c.name);
+      });
+
+      if (pool.length === 0) {
+        Alert.alert(
+          t("common.errorTitle"),
+          t("create.randomAllNoQuestions")
+        );
+        return;
+      }
+
+      // Fisher-Yates på poolen, ta topp-N (capped till poolens storlek).
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      const picked = pool.slice(0, Math.min(count, pool.length));
+
+      // Stäng modal innan applyBattery så användaren ser kartan direkt
+      setRandomCountPickerVisible(false);
+      setRandomCustomCount("");
+
+      // Vi har ingen single "name" eftersom flera pack bidrog — bygg en
+      // sammansatt label. Om bara ett pack faktiskt bidrog: använd dess
+      // namn. Annars en generisk "från biblioteket"-label så success-
+      // alert:en känns meningsfull.
+      const compositeName =
+        contributingPacks.size === 1
+          ? Array.from(contributingPacks)[0]
+          : `${contributingPacks.size} ${t("create.randomFromAllTitle")}`;
+      applyBattery(
+        picked.map((p) => p.question),
+        compositeName,
+        picked[0]?.packLanguage,
+        true
+      );
+    } catch (e: any) {
+      Alert.alert(
+        t("common.errorTitle"),
+        t("create.randomFetchError", { message: e?.message || String(e) })
+      );
+    } finally {
+      setRandomFetchingAll(false);
     }
   };
 
@@ -1193,10 +1283,10 @@ export default function CreateWalkScreen() {
         nestedScrollEnabled
       >
 
-        {/* Två CTA på fräsch ny promenad (inga frågor, inte redigering):
-            Importera frågebatteri + Återanvänd positioner. Reuse-knappens
-            subtitle byter beskrivning beroende på om ett batteri redan
-            är köat — samma action, två kontexter, en knapp. */}
+        {/* Tre CTA på fräsch ny promenad: Välj från bibliotek (specifikt
+            pack), Slumpa N från hela biblioteket, Återanvänd positioner.
+            Den tidigare "📋 Importera frågebatteri"-knappen (filväljare)
+            är borttagen — webbgränssnittet hanterar tipspack-import bättre. */}
         {!isEditing && questions.length === 0 && (
           <>
             {batteryQueue.length === 0 && (
@@ -1206,7 +1296,7 @@ export default function CreateWalkScreen() {
                   onPress={openTipspackPicker}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.importBatteryIcon}>🎲</Text>
+                  <Text style={styles.importBatteryIcon}>📚</Text>
                   <View style={styles.importBatteryContent}>
                     <Text style={styles.randomBatteryTitle}>{t("create.randomBatteryTitle")}</Text>
                     <Text style={styles.randomBatterySubtitle}>{t("create.randomBatteryDesc")}</Text>
@@ -1215,13 +1305,13 @@ export default function CreateWalkScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.importBatteryButton}
-                  onPress={handleImportBattery}
+                  onPress={() => setRandomCountPickerVisible(true)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.importBatteryIcon}>📋</Text>
+                  <Text style={styles.importBatteryIcon}>🎲</Text>
                   <View style={styles.importBatteryContent}>
-                    <Text style={styles.importBatteryTitle}>{t("create.importBatteryTitle")}</Text>
-                    <Text style={styles.importBatterySubtitle}>{t("create.importBatteryDesc")}</Text>
+                    <Text style={styles.importBatteryTitle}>{t("create.randomFromAllTitle")}</Text>
+                    <Text style={styles.importBatterySubtitle}>{t("create.randomFromAllDesc")}</Text>
                   </View>
                   <Text style={styles.importBatteryArrow}>›</Text>
                 </TouchableOpacity>
@@ -1247,8 +1337,8 @@ export default function CreateWalkScreen() {
         )}
 
         {/* Banner när positioner är återanvända men inga frågor satta än.
-            Knappen bredvid gör det lätt att direkt importera ett tipspack
-            som fyller de tomma positionerna i ordning. */}
+            Två snabb-actions: välj från bibliotek eller slumpa från hela
+            biblioteket. Båda fyller de tomma positionerna i ordning. */}
         {reusedFromTitle && questions.some((q) => !q.text.trim()) && (
           <View style={styles.reusedBanner}>
             <Text style={styles.reusedBannerText}>
@@ -1259,7 +1349,7 @@ export default function CreateWalkScreen() {
               onPress={openTipspackPicker}
               activeOpacity={0.8}
             >
-              <Text style={styles.reusedBannerButtonIcon}>🎲</Text>
+              <Text style={styles.reusedBannerButtonIcon}>📚</Text>
               <Text style={styles.reusedBannerButtonText}>
                 {t("create.randomBatteryTitle")}
               </Text>
@@ -1267,12 +1357,12 @@ export default function CreateWalkScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.reusedBannerButton}
-              onPress={handleImportBattery}
+              onPress={() => setRandomCountPickerVisible(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.reusedBannerButtonIcon}>📋</Text>
+              <Text style={styles.reusedBannerButtonIcon}>🎲</Text>
               <Text style={styles.reusedBannerButtonText}>
-                {t("create.importBatteryTitle")}
+                {t("create.randomFromAllTitle")}
               </Text>
               <Text style={styles.reusedBannerButtonArrow}>›</Text>
             </TouchableOpacity>
@@ -1300,11 +1390,10 @@ export default function CreateWalkScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Kompakta sekundär-actions för frågorna — slumpa eller importera
-            ett batteri även EFTER att man börjat skapa frågor manuellt.
-            Tidigare gömdes dessa CTA:er så fort questions.length > 0 →
-            man var tvungen att rensa allt för att kunna importera. Nu
-            alltid tillgängliga via dessa länkar. */}
+        {/* Kompakta sekundär-actions ovanför frågelistan — välja från bibliotek
+            eller slumpa från hela biblioteket även EFTER att man börjat skapa
+            frågor manuellt. Tidigare gömdes huvud-CTA:erna så fort
+            questions.length > 0 → man var tvungen att rensa allt. */}
         {!isEditing && questions.length > 0 && (
           <View style={styles.questionListActions}>
             <TouchableOpacity
@@ -1313,16 +1402,16 @@ export default function CreateWalkScreen() {
               activeOpacity={0.7}
             >
               <Text style={styles.questionListActionText}>
-                🎲 {t("create.randomBatteryTitle")}
+                📚 {t("create.randomBatteryTitle")}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.questionListActionButton}
-              onPress={handleImportBattery}
+              onPress={() => setRandomCountPickerVisible(true)}
               activeOpacity={0.7}
             >
               <Text style={styles.questionListActionText}>
-                📋 {t("create.importBatteryTitle")}
+                🎲 {t("create.randomFromAllTitle")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1781,6 +1870,92 @@ export default function CreateWalkScreen() {
             onCancel={() => setModalVisible(false)}
             t={t}
           />
+        </View>
+      </Modal>
+
+      {/* Count-picker för "🎲 Slumpa N från hela biblioteket". Snabb-val
+          + custom input. Loading-spinner visas medan vi parallell-fetchar
+          alla pack:s content. */}
+      <Modal
+        visible={randomCountPickerVisible}
+        animationType="fade"
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => {
+          if (!randomFetchingAll) {
+            setRandomCountPickerVisible(false);
+            setRandomCustomCount("");
+          }
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.randomCountModal}>
+            <Text style={styles.randomCountTitle}>
+              {t("create.randomCountPickerTitle")}
+            </Text>
+            <Text style={styles.randomCountHint}>
+              {t("create.randomCountPickerHint")}
+            </Text>
+            <View style={styles.randomCountPresets}>
+              {[5, 10, 15, 20, 25].map((n) => (
+                <TouchableOpacity
+                  key={n}
+                  style={styles.randomCountPreset}
+                  onPress={() => handleRandomFromAllLibrary(n)}
+                  disabled={randomFetchingAll}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.randomCountPresetText}>{n}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.randomCountCustomRow}>
+              <TextInput
+                value={randomCustomCount}
+                onChangeText={(v) =>
+                  setRandomCustomCount(v.replace(/[^0-9]/g, "").slice(0, 3))
+                }
+                placeholder={t("create.randomCountCustom")}
+                placeholderTextColor="#8A9A8D"
+                keyboardType="number-pad"
+                style={styles.randomCountInput}
+                editable={!randomFetchingAll}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.randomCountApplyButton,
+                  (!randomCustomCount || randomFetchingAll) &&
+                    styles.randomCountApplyButtonDisabled,
+                ]}
+                onPress={() =>
+                  handleRandomFromAllLibrary(parseInt(randomCustomCount, 10))
+                }
+                disabled={!randomCustomCount || randomFetchingAll}
+                activeOpacity={0.8}
+              >
+                {randomFetchingAll ? (
+                  <ActivityIndicator size="small" color="#F5F0E8" />
+                ) : (
+                  <Text style={styles.randomCountApplyText}>
+                    {t("create.randomCountApply")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                setRandomCountPickerVisible(false);
+                setRandomCustomCount("");
+              }}
+              disabled={randomFetchingAll}
+              style={styles.randomCountCancelButton}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.randomCountCancelText}>
+                {t("common.cancel")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     </View>
@@ -2643,6 +2818,90 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#7B5E10",
     fontWeight: "600",
+  },
+  // Modal för "slumpa N från hela biblioteket"
+  randomCountModal: {
+    backgroundColor: "#FBF7F0",
+    borderRadius: 18,
+    padding: 22,
+    marginHorizontal: 24,
+    maxWidth: 360,
+    alignSelf: "center",
+  },
+  randomCountTitle: {
+    fontSize: 19,
+    fontWeight: "700",
+    color: "#1B3D2B",
+    marginBottom: 6,
+  },
+  randomCountHint: {
+    fontSize: 13,
+    color: "#4F5F50",
+    lineHeight: 18,
+    marginBottom: 18,
+  },
+  randomCountPresets: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 16,
+  },
+  randomCountPreset: {
+    flex: 1,
+    minWidth: 52,
+    aspectRatio: 1,
+    backgroundColor: "#FFF8E7",
+    borderWidth: 1.5,
+    borderColor: "#E8B830",
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  randomCountPresetText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#7B5E10",
+  },
+  randomCountCustomRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  randomCountInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#D9D2C2",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: "#2C3E2D",
+    backgroundColor: "#FFFFFF",
+  },
+  randomCountApplyButton: {
+    backgroundColor: "#1B6B35",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+    justifyContent: "center",
+    minWidth: 88,
+    alignItems: "center",
+  },
+  randomCountApplyButtonDisabled: {
+    backgroundColor: "#8A9A8D",
+  },
+  randomCountApplyText: {
+    color: "#F5F0E8",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  randomCountCancelButton: {
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  randomCountCancelText: {
+    color: "#8A9A8D",
+    fontSize: 14,
   },
   questionListToggleLeft: {
     flexDirection: "row",

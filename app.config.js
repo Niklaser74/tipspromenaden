@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "📋 Importera frågebatteri även efter du börjat skapa: tidigare gömdes 🎲 Slumpa och 📋 Importera så fort du lade till första frågan. Nu syns båda som diskreta knappar ovanför frågelistan så du kan importera när som helst utan att börja om.",
-        en: "📋 Import question pack even after you've started: previously, 🎲 Random and 📋 Import disappeared as soon as you added the first question. Both now stay visible as compact buttons above the question list so you can import any time without starting over.",
+        sv: "Skaparflödet bygger om: 📚 Välj från bibliotek (bläddra färdiga frågebatterier som förr) och 🎲 Slumpa N från hela biblioteket (välj antal — appen plockar slumpvis ur alla publika pack). Filimport av .tipspack är borta — den biten gör webbgränssnittet bättre.",
+        en: "Creator flow rebuilt: 📚 Pick from library (browse ready-made question packs as before) and 🎲 Random N from entire library (pick a count — the app draws across all public packs). File import of .tipspack is removed — the web interface handles that better.",
       },
     },
   },

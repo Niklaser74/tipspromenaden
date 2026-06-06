@@ -181,6 +181,49 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-05c — Bibliotek-flödet rebuilt + fil-import borttagen
+
+CreateWalkScreens CTA-block byttes ut från slumpning-per-pack +
+filimport till två tydligare alternativ:
+
+1. **📚 Välj från bibliotek** (samma picker som tidigare — visar alla
+   publika tipspacks, väljer ett specifikt) — bytt label från
+   "🎲 Slumpa frågor från bibliotek" eftersom labeln var vilseledande
+   (knappen lät slumpvis men öppnade i själva verket en picker).
+2. **🎲 Slumpa N frågor från hela biblioteket** (ny) — modal med
+   snabb-val (5/10/15/20/25) + custom input. Fetchar alla pack:s
+   content parallellt, slår ihop frågorna i en pool, Fisher-Yates-
+   shufflar och tar topp-N. Compose-name "N olika frågebatterier"
+   i success-alert. Fel på enskilda pack hoppas över tyst.
+
+**Borttaget:** `📋 Importera frågebatteri`-knappen (file picker via
+DocumentPicker) på fräsch ny promenad och i reusedBanner. Webbens
+`/skapa` hanterar tipspack-import bättre — och deep-link
+`tipspromenaden://tipspack/<slug>` funkar fortfarande för curated
++ uppladdade pack. `handleImportBattery`-funktionen kvar i koden
+för OpenTipspackScreen-flödet.
+
+Locale: nya nycklar `randomFromAll{Title,Desc}`,
+`randomCountPicker{Title,Hint,Custom,Apply}`,
+`randomAll{Imported,Matched,NoQuestions}Message`. Den befintliga
+`randomBattery{Title,Desc}` återanvänds men byter semantik till
+"Välj från bibliotek".
+
+**Release notes till användarna (sv):**
+Skaparflödet bygger om: 📚 Välj från bibliotek (bläddra färdiga
+frågebatterier som förr) och 🎲 Slumpa N från hela biblioteket
+(välj antal — appen plockar slumpvis ur alla publika pack).
+Filimport av .tipspack är borta — den biten gör webbgränssnittet
+bättre.
+
+**Release notes (en):**
+Creator flow rebuilt: 📚 Pick from library (browse ready-made
+question packs as before) and 🎲 Random N from entire library (pick
+a count — the app draws across all public packs). File import of
+.tipspack is removed — the web interface handles that better.
+
+---
+
 ### OTA 2026-06-05b — Fix: Importera frågebatteri tillgängligt även med frågor
 
 `Slumpa frågor från bibliotek` och `Importera frågebatteri`-CTA:erna i
