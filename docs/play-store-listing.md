@@ -181,6 +181,37 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-05d — Donate-knapp på Leaderboard
+
+Lägger en diskret "❤️ Stötta projektet"-knapp som ListFooterComponent
+under feedback-prompten på `LeaderboardScreen`. Visas BARA när jag har
+slutfört (`me?.completedAt`). Klick → `Linking.openURL` mot
+`/stod`-sidan med befintlig Swish + PayPal-CTA.
+
+Designval: subtil cream-på-mörkgrön-knapp (8% opacity-bg, 20% border)
+för att inte störa glädjen över att man nyss vunnit. Texten är "Tipspromenaden
+är gratis och kommer förbli det — bidra om du vill" så det är tydligt
+opt-in, inte tiggeri.
+
+Donate-länken finns redan i Settings ("Stötta projektet") men ligger
+för djupt för att hitta organiskt. Den nya placeringen efter walk-
+completion är hög-konverterande moment (folk är på gott humör).
+
+Locale: `leaderboard.donateCTA` + `leaderboard.donateHint` (sv+en).
+
+**Release notes till användarna (sv):**
+❤️ Diskret stötta-knapp under topplistan när du har slutfört — länkar
+till sidan med Swish och PayPal. Appen kommer alltid vara gratis; om
+du vill bidra till driften gör det driften enklare att fortsätta.
+
+**Release notes (en):**
+❤️ Discreet support button below the leaderboard once you've finished
+— links to a page with Swish and PayPal. The app will always be free;
+if you'd like to chip in toward running costs, it makes the work
+easier to continue.
+
+---
+
 ### OTA 2026-06-05c — Bibliotek-flödet rebuilt + fil-import borttagen
 
 CreateWalkScreens CTA-block byttes ut från slumpning-per-pack +

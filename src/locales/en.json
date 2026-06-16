@@ -416,6 +416,8 @@
     "correctCount": "{{score}}/{{total}} correct ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
     "emptyText": "No participants yet",
+    "donateCTA": "❤️ Support the project",
+    "donateHint": "Tipspromenaden is free and will stay free — chip in if you'd like",
     "backHome": "Back to start",
     "points": "pt",
     "share": "Share result",

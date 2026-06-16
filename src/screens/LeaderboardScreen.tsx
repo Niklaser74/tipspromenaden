@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Linking,
 } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import {
@@ -325,12 +326,28 @@ export default function LeaderboardScreen() {
           ) : null
         }
         ListFooterComponent={
-          // Feedback-prompt visas under topplistan när jag har slutfört
-          // och sessionId + walkId båda finns (walkId valfri i typ:en men
-          // alltid satt från ActiveWalkScreen). Komponenten gömmer sig
-          // själv om feedback redan skickats för denna session.
+          // Feedback-prompt + donate-knapp visas under topplistan när jag
+          // har slutfört. Bra moment för "stötta projektet"-prompt — folk
+          // är på gott humör direkt efter målgång. Klicket öppnar
+          // /stod-sidan i webbläsaren (Swish + PayPal).
           me?.completedAt && walkId ? (
-            <WalkFeedbackPrompt walkId={walkId} sessionId={sessionId} />
+            <View>
+              <WalkFeedbackPrompt walkId={walkId} sessionId={sessionId} />
+              <TouchableOpacity
+                style={styles.donateButton}
+                onPress={() =>
+                  Linking.openURL("https://tipspromenaden.app/stod")
+                }
+                activeOpacity={0.75}
+              >
+                <Text style={styles.donateButtonText}>
+                  {t("leaderboard.donateCTA")}
+                </Text>
+                <Text style={styles.donateButtonHint}>
+                  {t("leaderboard.donateHint")}
+                </Text>
+              </TouchableOpacity>
+            </View>
           ) : null
         }
       />
@@ -646,6 +663,31 @@ const styles = StyleSheet.create({
   emptyText: {
     color: "rgba(245,240,232,0.5)",
     fontSize: 16,
+  },
+
+  // Donate-knapp efter min completion — diskret cream-på-mörkgrön
+  // ovanför bottom-bar:n. Avsiktligt subtil så den inte stör glädjen
+  // över att man nyss vunnit/slutfört.
+  donateButton: {
+    backgroundColor: "rgba(245,240,232,0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(245,240,232,0.2)",
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    marginHorizontal: 16,
+    marginTop: 16,
+    alignItems: "center",
+  },
+  donateButtonText: {
+    color: "#F5F0E8",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  donateButtonHint: {
+    color: "rgba(245,240,232,0.65)",
+    fontSize: 12,
+    marginTop: 4,
   },
 
   // Bottom

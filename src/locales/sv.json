@@ -416,6 +416,8 @@
     "correctCount": "{{score}}/{{total}} rätt ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
     "emptyText": "Inga deltagare ännu",
+    "donateCTA": "❤️ Stötta projektet",
+    "donateHint": "Tipspromenaden är gratis och kommer förbli det — bidra om du vill",
     "backHome": "Tillbaka till start",
     "points": "p",
     "share": "Dela resultat",

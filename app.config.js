@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Skaparflödet bygger om: 📚 Välj från bibliotek (bläddra färdiga frågebatterier som förr) och 🎲 Slumpa N från hela biblioteket (välj antal — appen plockar slumpvis ur alla publika pack). Filimport av .tipspack är borta — den biten gör webbgränssnittet bättre.",
-        en: "Creator flow rebuilt: 📚 Pick from library (browse ready-made question packs as before) and 🎲 Random N from entire library (pick a count — the app draws across all public packs). File import of .tipspack is removed — the web interface handles that better.",
+        sv: "❤️ Diskret stötta-knapp under topplistan när du har slutfört — länkar till sidan med Swish och PayPal. Appen kommer alltid vara gratis; om du vill bidra till driften gör det driften enklare att fortsätta.",
+        en: "❤️ Discreet support button below the leaderboard once you've finished — links to a page with Swish and PayPal. The app will always be free; if you'd like to chip in toward running costs, it makes the work easier to continue.",
       },
     },
   },
