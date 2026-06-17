@@ -295,6 +295,7 @@
     "syncWalksResultAdded": "{{count}} walk(s) restored",
     "syncWalksError": "Sync failed, please try again",
     "about": "About",
+    "studioCredit": "A Nordic Sidequest product",
     "version": "Version {{version}}",
     "website": "Website",
     "howItWorks": "How it works",

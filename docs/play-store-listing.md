@@ -181,6 +181,31 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-06-05e — Studio-credit (Nordic Sidequest)
+
+Liten signatur längst ner i SettingsScreen + på alla sidor i webbens
+`Layout.astro`. Per NSQ Brand Guidelines §7 är detta en **studio-
+credit, inte produkt-brand** — Tipspromenaden behåller sin egen
+Friluft Folio-palett, vi adderar bara en credit-rad med NSQ-symbolen
+(currentColor → ärver sage/text-warm) och "En Nordic Sidequest-produkt".
+
+App: ny `studioCredit`-view efter About-kortet med inline react-native-
+svg-symbol + locale `settings.studioCredit`. Web: nytt `<footer>` i
+Layout.astro under `<slot />` så det syns på alla sidor (verifierat sv+en
+via preview-server).
+
+**Release notes till användarna (sv):**
+Liten studio-signatur längst ner i Inställningar: "En Nordic Sidequest-
+produkt" med vår logosymbol. Bara en credit-rad — appen behåller sin
+egen färgsättning och stil.
+
+**Release notes (en):**
+Small studio signature at the bottom of Settings: "A Nordic Sidequest
+product" with our logo symbol. Just a credit line — the app keeps its
+own colors and style.
+
+---
+
 ### OTA 2026-06-05d — Donate-knapp på Leaderboard
 
 Lägger en diskret "❤️ Stötta projektet"-knapp som ListFooterComponent

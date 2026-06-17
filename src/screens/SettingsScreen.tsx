@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
+import Svg, { Path as SvgPath, Circle as SvgCircle } from "react-native-svg";
 import {
   availableLanguages,
   setLanguage,
@@ -479,6 +480,39 @@ export default function SettingsScreen() {
           </View>
         </View>
       </View>
+
+      {/* Studio-credit längst ner i Settings — per NSQ Brand Guidelines
+          §7 är detta en studio-credit, INTE produkt-brand. Bara symbol +
+          en rad text, inga NSQ-färger eller -fonter. Symbol-SVG:n från
+          brand assets, redan currentColor så den ärver sage. */}
+      <View style={styles.studioCredit}>
+        <Svg
+          width={11}
+          height={13}
+          viewBox="0 0 170 200"
+          style={styles.studioCreditIcon}
+        >
+          <SvgPath
+            d="M40 200 L40 0"
+            stroke="#8A9A8D"
+            strokeWidth={14}
+            fill="none"
+            strokeLinecap="round"
+          />
+          <SvgPath
+            d="M40 100 L160 0 M138 0 L160 0 L160 22"
+            stroke="#8A9A8D"
+            strokeWidth={14}
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <SvgCircle cx={40} cy={100} r={14} fill="#8A9A8D" />
+        </Svg>
+        <Text style={styles.studioCreditText}>
+          {t("settings.studioCredit")}
+        </Text>
+      </View>
       </ContentContainer>
     </ScrollView>
 
@@ -557,6 +591,24 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     paddingBottom: 40,
+  },
+  // Studio-credit längst ner (NSQ Brand Guidelines §7: studio-credit,
+  // inte produkt-brand). Subtil, centrerad, sage-färg som ärvs av symbol.
+  studioCredit: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: 24,
+    marginBottom: 8,
+    opacity: 0.85,
+  },
+  studioCreditIcon: {
+    // SVG-mått sätts inline (width/height props)
+  },
+  studioCreditText: {
+    fontSize: 12,
+    color: "#8A9A8D",
   },
   sectionTitle: {
     fontSize: 13,

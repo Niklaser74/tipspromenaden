@@ -295,6 +295,7 @@
     "syncWalksResultAdded": "{{count}} promenad(er) återställda",
     "syncWalksError": "Kunde inte synka, försök igen",
     "about": "Om appen",
+    "studioCredit": "En Nordic Sidequest-produkt",
     "version": "Version {{version}}",
     "website": "Hemsida",
     "howItWorks": "Så funkar det",
