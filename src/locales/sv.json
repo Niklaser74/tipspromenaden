@@ -34,7 +34,8 @@
     "stats": "Statistik",
     "manageTags": "Hantera taggar",
     "walkInsights": "Promenad-statistik",
-    "library": "Bibliotek"
+    "library": "Bibliotek",
+    "supporters": "Tack"
   },
   "home": {
     "brandTagline": "Quiz & Äventyr",
@@ -304,6 +305,8 @@
     "createOnWebHint": "Bygg promenad i webbläsaren med tangentbord",
     "support": "Stötta projektet",
     "supportHint": "Bidra via Swish så driften kan fortsätta",
+    "supporters": "Tack till våra supportrar",
+    "supportersHint": "Se vilka som hjälper till att hålla appen igång",
     "replayOnboarding": "Visa intro igen",
     "replayOnboardingDoneTitle": "Klart",
     "replayOnboardingDoneMessage": "Intron visas nästa gång du startar appen.",
@@ -319,6 +322,15 @@
     "deleteTypeMismatch": "Texten matchar inte. Radering avbruten.",
     "terms": "Användarvillkor",
     "privacy": "Integritetspolicy"
+  },
+  "supporters": {
+    "title": "Tack! 🙏",
+    "intro": "Tipspromenaden är ett hobbyprojekt som hålls igång tack vare frivilliga bidrag. Ett stort och varmt tack till alla som stöttar!",
+    "empty": "Här kommer vi tacka alla som stöttar projektet. Vill du bli först på listan?",
+    "loadError": "Kunde inte hämta listan just nu. Kontrollera din anslutning och försök igen.",
+    "retry": "Försök igen",
+    "ctaHint": "Vill du också vara med och hålla appen igång?",
+    "ctaButton": "Stötta projektet"
   },
   "auth": {
     "welcome": "Välkommen",

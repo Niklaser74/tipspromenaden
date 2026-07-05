@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
+import { useNavigation } from "@react-navigation/native";
 import Svg, { Path as SvgPath, Circle as SvgCircle } from "react-native-svg";
 import {
   availableLanguages,
@@ -35,6 +36,7 @@ import ContentContainer from "../components/ContentContainer";
 export default function SettingsScreen() {
   const { t } = useTranslation();
   const choice = useLanguageChoice();
+  const navigation = useNavigation<any>();
   const { user } = useAuth();
   const [syncing, setSyncing] = useState(false);
   const [feedbackOn, setFeedbackOn] = useState(true);
@@ -452,6 +454,20 @@ export default function SettingsScreen() {
           <View style={styles.syncLabelWrap}>
             <Text style={styles.rowLabel}>{t("settings.support")}</Text>
             <Text style={styles.rowHint}>{t("settings.supportHint")}</Text>
+          </View>
+          <Text style={styles.rowChevron}>›</Text>
+        </TouchableOpacity>
+        {/* Tacksidan — listar supportrar från config/supporters i Firestore.
+            Ligger direkt under "Stötta projektet" så givandet och tacket
+            hänger ihop visuellt. */}
+        <TouchableOpacity
+          style={[styles.row, styles.rowBorder]}
+          onPress={() => navigation.navigate("Supporters")}
+          activeOpacity={0.6}
+        >
+          <View style={styles.syncLabelWrap}>
+            <Text style={styles.rowLabel}>{t("settings.supporters")}</Text>
+            <Text style={styles.rowHint}>{t("settings.supportersHint")}</Text>
           </View>
           <Text style={styles.rowChevron}>›</Text>
         </TouchableOpacity>

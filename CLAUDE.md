@@ -139,6 +139,10 @@ scripts/                        # Node/PS-helpers utanför app-bundlet
   publika och hemliga pack de laddat upp
   via webben och kan dela länk / växla synlighet / radera.
 - `stats.ts` — Lokal statistik (antal skapade promenader, m.m.)
+- `supporters.ts` — Läser `config/supporters`-doc:et (namnlista + valfri
+  intro sv/en) som driver tacksidan `SupportersScreen`. Skrivs av admin
+  via `scripts/set-supporters.mjs` (webb-formulär på /admin är spec:at i
+  `docs/web-admin-supporters.md`).
 
 ## Datamodell (Firestore)
 
@@ -380,6 +384,14 @@ AAB:n kan publiceras:
   transitive via SDK 55) håller wake-lock medan `ActiveWalkScreen` är
   mounted. Krävs eftersom Android Doze stoppar JS efter någon minut →
   GPS-bevakning skulle dö → vibrationen triggas inte.
+- **Tacksida för supportrar** — `SupportersScreen` (Inställningar →
+  "Tack till våra supportrar", direkt under "Stötta projektet") listar
+  namn från Firestore-doc:et `config/supporters`. Public read via
+  befintlig `config/{docId}`-regel → ingen rules-ändring. Admin fyller
+  i via `scripts/set-supporters.mjs` (eller framtida webb-/admin-
+  formulär, spec i `docs/web-admin-supporters.md`). Saknat/tomt doc →
+  vänligt tomt-läge, så sidan är säker att skeppa utan data. CTA-knapp
+  längst ner länkar till `tipspromenaden.app/stod`.
 - **Legal-länkar** — `SettingsScreen` har rader för Användarvillkor och
   Integritetspolicy som öppnar `tipspromenaden.app/villkor` resp.
   `/integritet` via `Linking.openURL`. Markdown-källan ligger i
