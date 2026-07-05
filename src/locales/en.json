@@ -34,7 +34,8 @@
     "stats": "Stats",
     "manageTags": "Manage tags",
     "walkInsights": "Walk insights",
-    "library": "Library"
+    "library": "Library",
+    "supporters": "Thanks"
   },
   "home": {
     "brandTagline": "Quiz & Adventure",
@@ -304,6 +305,8 @@
     "createOnWebHint": "Build a walk in the browser with a keyboard",
     "support": "Support the project",
     "supportHint": "Help cover hosting costs (Swish, Sweden only)",
+    "supporters": "Thanks to our supporters",
+    "supportersHint": "See who helps keep the app running",
     "replayOnboarding": "Show intro again",
     "replayOnboardingDoneTitle": "Done",
     "replayOnboardingDoneMessage": "The intro will show next time you start the app.",
@@ -319,6 +322,15 @@
     "deleteTypeMismatch": "Text does not match. Deletion cancelled.",
     "terms": "Terms of service",
     "privacy": "Privacy policy"
+  },
+  "supporters": {
+    "title": "Thank you! 🙏",
+    "intro": "Tipspromenaden is a hobby project kept alive by voluntary contributions. A big, warm thank you to everyone who supports it!",
+    "empty": "This is where we will thank everyone who supports the project. Want to be first on the list?",
+    "loadError": "Could not load the list right now. Check your connection and try again.",
+    "retry": "Try again",
+    "ctaHint": "Want to help keep the app running too?",
+    "ctaButton": "Support the project"
   },
   "auth": {
     "welcome": "Welcome",

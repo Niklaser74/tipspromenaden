@@ -80,6 +80,7 @@ import OpenTipspackScreen from "./src/screens/OpenTipspackScreen";
 import OpenEventScreen from "./src/screens/OpenEventScreen";
 import ManageTagsScreen from "./src/screens/ManageTagsScreen";
 import WalkInsightsScreen from "./src/screens/WalkInsightsScreen";
+import SupportersScreen from "./src/screens/SupportersScreen";
 import {
   APP_SCHEME,
   WALK_PATH,
@@ -286,6 +287,15 @@ function AppNavigator() {
           component={ManageTagsScreen}
           options={{
             title: t("nav.manageTags"),
+            headerStyle: { backgroundColor: "#F5F0E8" },
+            headerTintColor: "#2C3E2D",
+          }}
+        />
+        <Stack.Screen
+          name="Supporters"
+          component={SupportersScreen}
+          options={{
+            title: t("nav.supporters"),
             headerStyle: { backgroundColor: "#F5F0E8" },
             headerTintColor: "#2C3E2D",
           }}
