@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Liten studio-signatur längst ner i Inställningar: \"En Nordic Sidequest-produkt\" med vår logosymbol. Bara en credit-rad — appen behåller sin egen färgsättning och stil.",
-        en: "Small studio signature at the bottom of Settings: \"A Nordic Sidequest product\" with our logo symbol. Just a credit line — the app keeps its own colors and style.",
+        sv: "Ny tacksida i Inställningar — se vilka som stöttar projektet 💛 Du hittar den under \"Tack till våra supportrar\", direkt under Stötta projektet.",
+        en: "New thank-you page in Settings — see who supports the project 💛 You'll find it under \"Thanks to our supporters\", right below Support the project.",
       },
     },
   },
