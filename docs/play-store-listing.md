@@ -181,6 +181,28 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-07-06 — Tacksida för supportrar
+
+Ny `SupportersScreen` (Inställningar → Om appen → "Tack till våra
+supportrar", direkt under "Stötta projektet"). Listar namn från
+Firestore-doc:et `config/supporters` som admin fyller i via webbens
+/admin-formulär (eller `scripts/set-supporters.mjs`). Valfri egen
+intro-text (sv/en) i doc:et ersätter default-intron. Tomt/saknat doc →
+vänligt tomt-läge. CTA-knapp längst ner → `/stod`. Ingen rules-ändring
+(befintlig `config/{docId}`-regel). JS-only → OTA.
+
+**Release notes till användarna (sv):**
+Ny tacksida i Inställningar — se vilka som stöttar projektet 💛 Du
+hittar den under "Tack till våra supportrar", direkt under Stötta
+projektet.
+
+**Release notes (en):**
+New thank-you page in Settings — see who supports the project 💛
+You'll find it under "Thanks to our supporters", right below Support
+the project.
+
+---
+
 ### OTA 2026-06-05e — Studio-credit (Nordic Sidequest)
 
 Liten signatur längst ner i SettingsScreen + på alla sidor i webbens
