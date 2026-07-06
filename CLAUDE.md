@@ -687,12 +687,13 @@ plocka det som passar när tillfälle ges.
   "Monitoring" i konsolen, vänta tills all legitim trafik syns som *verified*,
   slå sedan på Enforce. (Web App i konsolen finns men appen har ingen publik
   web-deployment — reCAPTCHA-provider är inte relevant just nu.)
-- `assetlinks.json` på `tipspromenaden.app` (domänen är reggad hos Cloudflare
-  Registrar 2026-04). Verifierar Android App Links och stänger ner
-  intent-hijacking. Kräver: SHA256 från upload-keystore + `intentFilters`
-  i `app.config.js` för `https://tipspromenaden.app/walk/*` + bumpa
-  `version` (native-ändring → ny AAB) + uppdatera `parseQRData()` och
-  `buildWalkLink()` att använda `https://`-formatet.
+- **Android App Links är KLART** (sedan v1.3.0) — `assetlinks.json` är
+  publicerad på `tipspromenaden.app`, `intentFilters` med `autoVerify: true`
+  för `https://tipspromenaden.app/walk/*` ligger i `app.config.js`, och
+  `buildWalkLink()` genererar https-formatet. Kvar: motsvarande setup för
+  **iOS universal links** (`associatedDomains` i `app.config.js` +
+  `apple-app-site-association` på webben) — ännu inte gjort, iOS öppnar
+  länken via webben/App Store som fallback.
 - Exportera resultat som CSV/PDF efter avslutad session.
 - Per-skärm landscape-finputs (Active/Results/Leaderboard) — orientation är
   redan unlock:ad, layouterna är funktionellt OK i landscape men inte tunade.
@@ -728,10 +729,13 @@ plocka det som passar när tillfälle ges.
 (Punkterna nedan är *accepterade* svagheter just nu — fixar finns på
 roadmappen ovan, men ingen blockerar v1.)
 
-- Deep-link-prefix `tipspromenaden://` är custom-scheme — auto-länkas inte
-  i Messenger/SMS. `assetlinks.json` + `https://tipspromenaden.app` löser
-  detta när domänen finns. Workaround idag: "Klistra in länk"-knappen i
-  ScanQRScreen + bart walkId i delningsmeddelandet.
+- Delningslänkar är https-App-Links sedan v1.3.0 (`buildWalkLink()` →
+  `https://tipspromenaden.app/walk/<id>`, `autoVerify`-intent-filter +
+  publicerad `assetlinks.json`) och auto-öppnar appen på Android. Custom-
+  scheme `tipspromenaden://walk/<id>` bevaras bara som bakåtkompat i
+  `parseQRData()`. "Klistra in länk"-knappen i ScanQRScreen är kvar som
+  hängslen-och-livrem, inte för att länkarna är trasiga. Kvarstår: iOS
+  universal links (se roadmap) — där öppnas länken via webben som fallback.
 - Score-fusk: klient räknar poäng (se säkerhetsmodellen).
 
 ## Filer att läsa först för ny kontext
