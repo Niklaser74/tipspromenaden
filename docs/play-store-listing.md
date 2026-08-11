@@ -181,6 +181,35 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-08-11 — Dolda resultat tills arrangören redovisar
+
+Ny skapar-opt-in `Walk.hideResultsUntilReveal` (CreateWalk →
+Inställningar → "Dolda resultat tills du redovisar", 🎭). Under
+promenaden får deltagarna ingen rätt/fel-feedback (neutral "Svar
+registrerat!"-banner, neutral haptik, ingen poäng-pill — progress
+visas istället). Efter målgång: vänte-vy på topplistan tills
+arrangören (walk-ägaren) trycker "Redovisa resultat" — då flippar
+alla deltagares skärmar till full topplista + konfetti i realtid
+(onSnapshot på walk-doc:ets nya `resultsRevealedAt`). "Dölj
+resultaten igen"-ångra finns. Redigering av walken nollställer
+reveal (nytt event = nytt lås). Webb-editorn har samma toggle.
+Rules: `hasValidWalkShape` validerar de två nya fälten (deployade).
+JS-only → OTA (dubbel-publish runtime 1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Nytt för event: dolda resultat! 🎭 Slå på "Dolda resultat tills du
+redovisar" när du skapar promenaden — deltagarna ser varken rätt/fel
+eller poäng förrän du trycker Redovisa resultat på topplistan.
+Perfekt för gemensam prisutdelning.
+
+**Release notes (en):**
+New for events: hidden results! 🎭 Enable "Hidden results until you
+reveal" when creating a walk — participants see neither right/wrong
+nor scores until you tap Reveal results on the leaderboard. Perfect
+for a shared award ceremony.
+
+---
+
 ### OTA 2026-07-06 — Tacksida för supportrar
 
 Ny `SupportersScreen` (Inställningar → Om appen → "Tack till våra

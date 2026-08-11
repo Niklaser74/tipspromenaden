@@ -123,6 +123,23 @@ export interface Walk {
    * Skaparen opt-in:ar via toggle i CreateWalk.
    */
   enforceSequentialOrder?: boolean;
+  /**
+   * Dolda resultat-läge (event) — om `true` visas ingen rätt/fel-feedback,
+   * ingen löpande poäng och ingen topplista för deltagarna förrän
+   * arrangören redovisar via `resultsRevealedAt`. Deltagaren ser bara
+   * "svar registrerat". Default (saknad/false) = bakåtkompatibel direkt-
+   * feedback. OBS: UX-gate, inte säkerhet — walk-doc:et är publikt läsbart
+   * och innehåller facit (se säkerhetsmodellen i CLAUDE.md).
+   */
+  hideResultsUntilReveal?: boolean;
+  /**
+   * Tidsstämpel (unix-ms) när arrangören tryckte "Redovisa resultat".
+   * Satt = topplista + resultat synliga för deltagarna. Tas bort via
+   * deleteField() ("Dölj resultaten igen") och nollställs implicit när
+   * walken redigeras i CreateWalk (handleSave bygger objektet från
+   * scratch utan detta fält).
+   */
+  resultsRevealedAt?: number;
 }
 
 /**

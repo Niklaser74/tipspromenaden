@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Ny tacksida i Inställningar — se vilka som stöttar projektet 💛 Du hittar den under \"Tack till våra supportrar\", direkt under Stötta projektet.",
-        en: "New thank-you page in Settings — see who supports the project 💛 You'll find it under \"Thanks to our supporters\", right below Support the project.",
+        sv: "Nytt för event: dolda resultat! 🎭 Slå på \"Dolda resultat tills du redovisar\" när du skapar promenaden — deltagarna ser varken rätt/fel eller poäng förrän du trycker Redovisa resultat på topplistan. Perfekt för gemensam prisutdelning.",
+        en: "New for events: hidden results! 🎭 Enable \"Hidden results until you reveal\" when creating a walk — participants see neither right/wrong nor scores until you tap Reveal results on the leaderboard. Perfect for a shared award ceremony.",
       },
     },
   },

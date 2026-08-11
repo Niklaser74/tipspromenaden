@@ -366,6 +366,12 @@ export default function CreateWalkScreen() {
   const [enforceSequentialOrder, setEnforceSequentialOrder] = useState(
     !!existingWalk?.enforceSequentialOrder
   );
+  // Dolda resultat: ingen rätt/fel-feedback, poäng eller topplista för
+  // deltagarna förrän arrangören trycker "Redovisa resultat" på topplistan.
+  // Opt-in per walk — tänkt för event med gemensam prisutdelning.
+  const [hideResultsUntilReveal, setHideResultsUntilReveal] = useState(
+    !!existingWalk?.hideResultsUntilReveal
+  );
   const [eventStartDate, setEventStartDate] = useState(existingWalk?.event?.startDate ?? "");
   const [eventEndDate, setEventEndDate] = useState(existingWalk?.event?.endDate ?? "");
   // Sammanslaget "Inställningar"-block för att inte ta upp kartytan i
@@ -377,7 +383,8 @@ export default function CreateWalkScreen() {
     !!existingWalk?.event ||
       !!existingWalk?.public ||
       existingWalk?.activityType === "bike" ||
-      !!existingWalk?.enforceSequentialOrder
+      !!existingWalk?.enforceSequentialOrder ||
+      !!existingWalk?.hideResultsUntilReveal
   );
 
   // Språk — ny promenad defaultar till "sv" (eller batteriets språk om
@@ -490,6 +497,7 @@ export default function CreateWalkScreen() {
         setIsEvent(d.isEvent);
         setEventStartDate(d.eventStartDate);
         setEventEndDate(d.eventEndDate);
+        setHideResultsUntilReveal(!!d.hideResultsUntilReveal);
       };
       if (!cancelled && draft && !draftStaleVsCloud) {
         Alert.alert(
@@ -545,6 +553,7 @@ export default function CreateWalkScreen() {
         isEvent,
         eventStartDate,
         eventEndDate,
+        ...(hideResultsUntilReveal ? { hideResultsUntilReveal: true } : {}),
         savedAt: Date.now(),
       });
     }, 1000);
@@ -554,7 +563,15 @@ export default function CreateWalkScreen() {
         draftSaveTimer.current = null;
       }
     };
-  }, [title, questions, language, isEvent, eventStartDate, eventEndDate]);
+  }, [
+    title,
+    questions,
+    language,
+    isEvent,
+    eventStartDate,
+    eventEndDate,
+    hideResultsUntilReveal,
+  ]);
 
   useEffect(() => {
     (async () => {
@@ -1124,6 +1141,10 @@ export default function CreateWalkScreen() {
         // Strict-order: bara persistera om aktivt, så äldre walks
         // (utan fältet) fortsätter behandlas som fri-läge.
         ...(enforceSequentialOrder ? { enforceSequentialOrder: true } : {}),
+        // Dolda resultat: samma utelämna-vid-default-mönster. OBS:
+        // resultsRevealedAt bärs MEDVETET inte med — att redigera walken
+        // nollställer en tidigare redovisning (nytt event = nytt lås).
+        ...(hideResultsUntilReveal ? { hideResultsUntilReveal: true } : {}),
       };
 
       // Spara till Firebase (setDoc upserts automatiskt)
@@ -1644,6 +1665,30 @@ export default function CreateWalkScreen() {
         {enforceSequentialOrder && (
           <Text style={styles.publishWarning}>
             {t("create.strictOrderHint")}
+          </Text>
+        )}
+
+        {/* Dolda resultat tills arrangören redovisar */}
+        <TouchableOpacity
+          style={styles.eventToggle}
+          onPress={() => setHideResultsUntilReveal(!hideResultsUntilReveal)}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[
+              styles.checkbox,
+              hideResultsUntilReveal && styles.checkboxChecked,
+            ]}
+          >
+            {hideResultsUntilReveal && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={styles.eventToggleText}>
+            🎭 {t("create.hiddenResultsLabel")}
+          </Text>
+        </TouchableOpacity>
+        {hideResultsUntilReveal && (
+          <Text style={styles.publishWarning}>
+            {t("create.hiddenResultsHint")}
           </Text>
         )}
 

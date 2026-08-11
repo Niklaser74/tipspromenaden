@@ -48,6 +48,12 @@ export default function ResultsScreen() {
 
   const percentage = Math.round((score / total) * 100);
 
+  // Dolda resultat-läget (event): den här skärmen nås bara offline/utan
+  // session, och en offline-deltagare kan inte observera arrangörens
+  // reveal — så här visas alltid den neutrala kvittensen, aldrig poäng
+  // eller facit. Resultatet finns på topplistan när arrangören redovisat.
+  const hiddenMode = !!walk.hideResultsUntilReveal;
+
   // --- Animerad reveal-sekvens (OTA-bart, bygger på RN:s Animated) ---
   // Spelas upp en gång när skärmen mountas. Score räknas upp från 0,
   // procent-baren fylls, emoji skalar in och resten av kortet fadar in.
@@ -105,7 +111,7 @@ export default function ResultsScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      if (percentage >= 70) setShowConfetti(true);
+      if (percentage >= 70 && !hiddenMode) setShowConfetti(true);
     });
     return () => scoreAnim.removeListener(id);
     // Kör endast en gång på mount
@@ -156,6 +162,51 @@ export default function ResultsScreen() {
       title: t("results.shareTitle"),
     });
   };
+
+  // Dolda resultat: neutral kvittens utan poäng, procent eller facit.
+  // Feedback-prompt + hem-knapp behålls — de avslöjar inget.
+  if (hiddenMode) {
+    return (
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <ContentContainer style={styles.contentInner}>
+          <View style={styles.header}>
+            <Animated.Text
+              style={[styles.emoji, { transform: [{ scale: emojiScale }] }]}
+            >
+              🎭
+            </Animated.Text>
+            <Animated.View
+              style={{ opacity: cardOpacity, alignItems: "center" }}
+            >
+              <Text style={styles.title}>{t("results.done")}</Text>
+              <Text style={styles.name}>{participantName}</Text>
+              <Text style={styles.message}>{t("results.hiddenMessage")}</Text>
+            </Animated.View>
+          </View>
+
+          {sessionId && (
+            <Animated.View style={{ opacity: cardOpacity }}>
+              <WalkFeedbackPrompt walkId={walk.id} sessionId={sessionId} />
+            </Animated.View>
+          )}
+
+          <Animated.View style={{ opacity: cardOpacity }}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={() => navigation.navigate("Home")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.homeButtonText}>{t("results.backHome")}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ContentContainer>
+      </ScrollView>
+    );
+  }
 
   return (
     <>

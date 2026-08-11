@@ -143,6 +143,7 @@
     "stepsLine": "👣 Du gikk {{count}} skritt",
     "yourAnswers": "Dine svar",
     "correctAnswer": "Riktig svar: {{answer}}",
+    "hiddenMessage": "Svarene dine er registrert. Arrangøren offentliggjør resultatene senere.",
     "backHome": "Tilbake til start",
     "share": "Del resultatet",
     "shareText": "Jeg fikk {{score}}/{{total}} ({{percentage}}%) på tipsturen \"{{title}}\"! {{emoji}} Kan du slå meg?",
@@ -345,6 +346,13 @@
     "liveRealtime": "Sanntid · {{count}} deltakere",
     "waiting": "{{done}} ferdig, {{active}} pågår...",
     "allDone": "Alle er ferdig! Sluttresultat:",
+    "allDoneOrganizer": "Alle ser ut til å være ferdige — på tide å offentliggjøre?",
+    "hiddenWaitingTitle": "Bra jobbet! Svarene dine er registrert",
+    "hiddenWaitingMessage": "Arrangøren offentliggjør resultatene senere — kom tilbake hit! Skjermen oppdateres automatisk.",
+    "revealButton": "Offentliggjør resultater",
+    "revealConfirmTitle": "Offentliggjøre resultatene?",
+    "revealConfirmMessage": "Alle deltakere ser umiddelbart resultatlisten og resultatene sine. Du kan skjule dem igjen hvis du ombestemmer deg.",
+    "unrevealButton": "Skjul resultatene igjen",
     "you": "(du)",
     "correctCount": "{{score}}/{{total}} riktig ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Velg dato",
     "saveChanges": "Lagre endringer",
     "saveAndCreateQR": "Lagre og lag QR",
-    "markerEditHint": "Trykk for å redigere"
+    "markerEditHint": "Trykk for å redigere",
+    "hiddenResultsLabel": "Skjulte resultater til du offentliggjør",
+    "hiddenResultsHint": "Passer for arrangementer: deltakerne ser verken rett/galt, poeng eller resultatliste før du trykker \"Offentliggjør resultater\" på resultatlisten."
   },
   "stats": {
     "title": "Statistikken din",
@@ -473,6 +483,7 @@
     "speakOption": "Alternativ {{index}}: {{option}}",
     "correctAnswerSimple": "Riktig svar!",
     "correctAnswerWith": "Riktig svar: {{answer}}",
+    "answerRegistered": "Svar registrert!",
     "gpsError": "GPS-feil"
   },
   "share": {

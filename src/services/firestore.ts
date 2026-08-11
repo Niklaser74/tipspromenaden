@@ -22,6 +22,7 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
+  deleteField,
   query,
   where,
   limit,
@@ -82,6 +83,42 @@ export async function saveWalk(walk: Walk): Promise<void> {
 export async function getWalk(walkId: string): Promise<Walk | null> {
   const snap = await getDoc(doc(db, WALKS_COLLECTION, walkId));
   return snap.exists() ? (snap.data() as Walk) : null;
+}
+
+/**
+ * Realtidsprenumeration på ett enskilt walk-dokument. Används av
+ * LeaderboardScreen i dolda resultat-läget så deltagare ser arrangörens
+ * "Redovisa resultat" (resultsRevealedAt) i realtid utan att lämna skärmen.
+ * `null` i callbacken om dokumentet saknas/raderats.
+ */
+export function subscribeToWalk(
+  walkId: string,
+  callback: (walk: Walk | null) => void
+): Unsubscribe {
+  return onSnapshot(doc(db, WALKS_COLLECTION, walkId), (snap) => {
+    callback(snap.exists() ? (snap.data() as Walk) : null);
+  });
+}
+
+/**
+ * Arrangören redovisar resultaten för en walk i dolda resultat-läget.
+ * Firestore-reglerna kräver att skribenten är walk-ägaren (update-regeln
+ * på walks), så bara arrangören kan flippa fältet.
+ */
+export async function revealWalkResults(walkId: string): Promise<void> {
+  await updateDoc(doc(db, WALKS_COLLECTION, walkId), {
+    resultsRevealedAt: Date.now(),
+  });
+}
+
+/**
+ * Döljer resultaten igen (ångra-knapp för arrangören). Tar bort fältet
+ * helt istället för att sätta null — läsare kollar `!!resultsRevealedAt`.
+ */
+export async function unrevealWalkResults(walkId: string): Promise<void> {
+  await updateDoc(doc(db, WALKS_COLLECTION, walkId), {
+    resultsRevealedAt: deleteField(),
+  });
 }
 
 /**

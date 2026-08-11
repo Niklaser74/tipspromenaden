@@ -143,6 +143,7 @@
     "stepsLine": "👣 Vous avez fait {{count}} pas",
     "yourAnswers": "Vos réponses",
     "correctAnswer": "Bonne réponse : {{answer}}",
+    "hiddenMessage": "Vos réponses sont enregistrées. L'organisateur révélera les résultats plus tard.",
     "backHome": "Retour à l'accueil",
     "share": "Partager le résultat",
     "shareText": "J'ai obtenu {{score}}/{{total}} ({{percentage}}%) sur la balade \"{{title}}\" ! {{emoji}} Tu peux faire mieux ?",
@@ -345,6 +346,13 @@
     "liveRealtime": "Temps réel · {{count}} participants",
     "waiting": "{{done}} terminés, {{active}} en cours...",
     "allDone": "Tout le monde a terminé ! Résultat final :",
+    "allDoneOrganizer": "Tout le monde semble avoir terminé — l'heure de révéler ?",
+    "hiddenWaitingTitle": "Bien joué ! Vos réponses sont enregistrées",
+    "hiddenWaitingMessage": "L'organisateur révélera les résultats plus tard — revenez ici ! L'écran se met à jour automatiquement.",
+    "revealButton": "Révéler les résultats",
+    "revealConfirmTitle": "Révéler les résultats ?",
+    "revealConfirmMessage": "Tous les participants verront immédiatement le classement et leurs résultats. Vous pourrez les masquer à nouveau si vous changez d'avis.",
+    "unrevealButton": "Masquer les résultats",
     "you": "(vous)",
     "correctCount": "{{score}}/{{total}} correctes ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Choisir une date",
     "saveChanges": "Enregistrer les modifications",
     "saveAndCreateQR": "Enregistrer et créer le QR",
-    "markerEditHint": "Touchez pour modifier"
+    "markerEditHint": "Touchez pour modifier",
+    "hiddenResultsLabel": "Résultats cachés jusqu'à la révélation",
+    "hiddenResultsHint": "Idéal pour les événements : les participants ne voient ni vrai/faux, ni score, ni classement avant que vous n'appuyiez sur « Révéler les résultats » dans le classement."
   },
   "stats": {
     "title": "Vos statistiques",
@@ -473,6 +483,7 @@
     "speakOption": "Option {{index}} : {{option}}",
     "correctAnswerSimple": "Bonne réponse !",
     "correctAnswerWith": "Bonne réponse : {{answer}}",
+    "answerRegistered": "Réponse enregistrée !",
     "gpsError": "Erreur GPS"
   },
   "share": {

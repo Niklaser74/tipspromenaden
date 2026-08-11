@@ -14,8 +14,12 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import {
   subscribeToSession,
   subscribeToWalkSessions,
+  subscribeToWalk,
+  revealWalkResults,
+  unrevealWalkResults,
 } from "../services/firestore";
-import { Session, Participant } from "../types";
+import { Session, Participant, Walk } from "../types";
+import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "../i18n";
 import { ShareBadge } from "../components/ShareBadge";
 import { shareContent } from "../utils/shareContent";
@@ -43,9 +47,17 @@ export default function LeaderboardScreen() {
     isEvent?: boolean;
   };
 
+  const { user } = useAuth();
   const [session, setSession] = useState<Session | null>(null);
   const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
   const [loading, setLoading] = useState(true);
+  // Walk-doc:et i realtid — bär hideResultsUntilReveal + resultsRevealedAt
+  // så deltagare som väntar ser arrangörens "Redovisa" i samma sekund.
+  // walkLoading skiljer "inte laddat än" från "laddat, inget dolt läge"
+  // så vi aldrig hinner visa poäng en frame innan gaten slår till.
+  const [walkDoc, setWalkDoc] = useState<Walk | null>(null);
+  const [walkLoading, setWalkLoading] = useState(!!walkId);
+  const [revealing, setRevealing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sharing, setSharing] = useState(false);
   const badgeRef = useRef<View>(null);
@@ -88,6 +100,23 @@ export default function LeaderboardScreen() {
     }
   }, [sessionId, walkId, isEvent]);
 
+  useEffect(() => {
+    if (!walkId) return;
+    const unsub = subscribeToWalk(walkId, (w) => {
+      setWalkDoc(w);
+      setWalkLoading(false);
+    });
+    return unsub;
+  }, [walkId]);
+
+  // Dolda resultat-gate: hidden = skaparen valde läget, revealed =
+  // arrangören har tryckt "Redovisa resultat". Arrangören ser alltid
+  // full topplista (hen behöver den för att avgöra när det är dags).
+  const hidden = !!walkDoc?.hideResultsUntilReveal;
+  const revealed = !!walkDoc?.resultsRevealedAt;
+  const isOrganizer = !!user && !!walkDoc && user.uid === walkDoc.createdBy;
+  const gateActive = hidden && !revealed && !isOrganizer;
+
   // Filtrera bort "spök"-deltagare: någon som skapat participant-dokumentet
   // (joinat + angett namn) men aldrig svarat på en fråga och heller inte
   // slutfört. I event-läge ackumuleras dessa över alla sessioner för
@@ -118,7 +147,7 @@ export default function LeaderboardScreen() {
   const myIndex = sortedParticipants.findIndex((p) => p.id === participantId);
   const me = myIndex >= 0 ? sortedParticipants[myIndex] : undefined;
   const myRank = myIndex + 1;
-  const canShare = !!me && !!me.completedAt;
+  const canShare = !!me && !!me.completedAt && !gateActive;
 
   // Fyra konfetti när min completion blir synlig i streamen för första
   // gången OCH jag fick >=70%. Använder ref så att senare snapshot-
@@ -126,13 +155,16 @@ export default function LeaderboardScreen() {
   useEffect(() => {
     if (confettiFiredRef.current) return;
     if (!me?.completedAt) return;
+    // Dolda resultat: håll inne konfettin tills arrangören redovisat —
+    // när reveal-snapshoten landar re-körs effekten och den fyras då.
+    if (gateActive) return;
     const myPercentage =
       totalQuestions > 0 ? (me.score / totalQuestions) * 100 : 0;
     if (myPercentage >= 70) {
       confettiFiredRef.current = true;
       setShowConfetti(true);
     }
-  }, [me?.completedAt, me?.score, totalQuestions]);
+  }, [me?.completedAt, me?.score, totalQuestions, gateActive]);
 
   const handleShare = async () => {
     if (!me || sharing) return;
@@ -153,11 +185,95 @@ export default function LeaderboardScreen() {
     }
   };
 
-  if (loading) {
+  // Arrangörens reveal/unreveal. Bekräftelse-dialog före reveal —
+  // det syns omedelbart på alla deltagares skärmar.
+  const handleReveal = () => {
+    if (!walkId || revealing) return;
+    Alert.alert(
+      t("leaderboard.revealConfirmTitle"),
+      t("leaderboard.revealConfirmMessage"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("leaderboard.revealButton"),
+          onPress: async () => {
+            setRevealing(true);
+            try {
+              await revealWalkResults(walkId);
+            } catch (e: any) {
+              Alert.alert(t("common.errorTitle"), e?.message || "");
+            } finally {
+              setRevealing(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleUnreveal = async () => {
+    if (!walkId || revealing) return;
+    setRevealing(true);
+    try {
+      await unrevealWalkResults(walkId);
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || "");
+    } finally {
+      setRevealing(false);
+    }
+  };
+
+  // Vänta även in walk-doc:et när ett walkId finns — annars kan en dold
+  // topplista blinka fram poäng innan gaten hunnit avgöras.
+  if (loading || walkLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#2D7A3A" />
         <Text style={styles.loadingText}>{t("leaderboard.loading")}</Text>
+      </View>
+    );
+  }
+
+  // Deltagare i dolda resultat-läget före redovisning: neutral vänte-vy
+  // utan poäng, placeringar eller delning. Realtidsprenumerationen på
+  // walk-doc:et flippar automatiskt till full topplista vid reveal.
+  if (gateActive) {
+    return (
+      <View style={styles.container}>
+        <ContentContainer wide style={styles.contentInner}>
+          <View style={styles.header}>
+            <Text style={styles.title}>{t("leaderboard.title")}</Text>
+            <Text style={styles.walkTitle}>{walkTitle}</Text>
+          </View>
+          <View style={styles.hiddenWaitingContainer}>
+            <Text style={styles.hiddenWaitingIcon}>🎭</Text>
+            <Text style={styles.hiddenWaitingTitle}>
+              {t("leaderboard.hiddenWaitingTitle")}
+            </Text>
+            <Text style={styles.hiddenWaitingMessage}>
+              {t("leaderboard.hiddenWaitingMessage")}
+            </Text>
+            <View style={styles.hiddenWaitingCountRow}>
+              <ActivityIndicator size="small" color="#F0C040" />
+              <Text style={styles.hiddenWaitingCount}>
+                {t("leaderboard.liveRealtime", {
+                  count: allParticipants.length,
+                })}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.bottomBar}>
+            <TouchableOpacity
+              style={styles.homeButton}
+              onPress={() => navigation.navigate("Home")}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.homeButtonText}>
+                {t("leaderboard.backHome")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ContentContainer>
       </View>
     );
   }
@@ -250,7 +366,11 @@ export default function LeaderboardScreen() {
       {allDone && (
         <View style={styles.completeBanner}>
           <Text style={styles.completeEmoji}>🎉</Text>
-          <Text style={styles.completeText}>{t("leaderboard.allDone")}</Text>
+          <Text style={styles.completeText}>
+            {hidden && !revealed && isOrganizer
+              ? t("leaderboard.allDoneOrganizer")
+              : t("leaderboard.allDone")}
+          </Text>
         </View>
       )}
 
@@ -354,6 +474,37 @@ export default function LeaderboardScreen() {
 
       {/* Bottom bar: dela-knapp (när jag har slutfört) + hem-knapp */}
       <View style={styles.bottomBar}>
+        {/* Arrangörskontroller i dolda resultat-läget: primär "Redovisa"
+            före reveal, diskret "Dölj igen" efter (ångra-möjlighet om
+            knappen trycktes för tidigt). */}
+        {hidden && isOrganizer && !revealed && (
+          <TouchableOpacity
+            style={[styles.revealButton, revealing && styles.shareButtonBusy]}
+            onPress={handleReveal}
+            disabled={revealing}
+            activeOpacity={0.85}
+          >
+            {revealing ? (
+              <ActivityIndicator size="small" color="#1B3D2B" />
+            ) : (
+              <Text style={styles.revealButtonText}>
+                🎭 {t("leaderboard.revealButton")}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
+        {hidden && isOrganizer && revealed && (
+          <TouchableOpacity
+            style={styles.unrevealButton}
+            onPress={handleUnreveal}
+            disabled={revealing}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.unrevealButtonText}>
+              {t("leaderboard.unrevealButton")}
+            </Text>
+          </TouchableOpacity>
+        )}
         {canShare && (
           <TouchableOpacity
             style={[styles.shareButton, sharing && styles.shareButtonBusy]}
@@ -688,6 +839,67 @@ const styles = StyleSheet.create({
     color: "rgba(245,240,232,0.65)",
     fontSize: 12,
     marginTop: 4,
+  },
+
+  // Dolda resultat: deltagarens vänte-vy före arrangörens redovisning.
+  hiddenWaitingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  hiddenWaitingIcon: {
+    fontSize: 48,
+  },
+  hiddenWaitingTitle: {
+    color: "#F5F0E8",
+    fontSize: 22,
+    fontWeight: "800",
+    textAlign: "center",
+  },
+  hiddenWaitingMessage: {
+    color: "rgba(245,240,232,0.65)",
+    fontSize: 15,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  hiddenWaitingCountRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
+  hiddenWaitingCount: {
+    color: "rgba(245,240,232,0.5)",
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  revealButton: {
+    backgroundColor: "#F0C040",
+    paddingVertical: 16,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 54,
+  },
+  revealButtonText: {
+    color: "#1B3D2B",
+    fontSize: 17,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+  unrevealButton: {
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(245,240,232,0.2)",
+  },
+  unrevealButtonText: {
+    color: "rgba(245,240,232,0.7)",
+    fontSize: 14,
+    fontWeight: "600",
   },
 
   // Bottom

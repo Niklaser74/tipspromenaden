@@ -143,6 +143,7 @@
     "stepsLine": "👣 Diste {{count}} pasos",
     "yourAnswers": "Tus respuestas",
     "correctAnswer": "Respuesta correcta: {{answer}}",
+    "hiddenMessage": "Tus respuestas están registradas. El organizador revelará los resultados más tarde.",
     "backHome": "Volver al inicio",
     "share": "Compartir resultado",
     "shareText": "¡Saqué {{score}}/{{total}} ({{percentage}}%) en el paseo \"{{title}}\"! {{emoji}} ¿Puedes superarme?",
@@ -345,6 +346,13 @@
     "liveRealtime": "En vivo · {{count}} participantes",
     "waiting": "{{done}} terminados, {{active}} en curso...",
     "allDone": "¡Todos han terminado! Resultado final:",
+    "allDoneOrganizer": "Parece que todos han terminado — ¿hora de revelar?",
+    "hiddenWaitingTitle": "¡Bien hecho! Tus respuestas están registradas",
+    "hiddenWaitingMessage": "El organizador revelará los resultados más tarde — ¡vuelve aquí! La pantalla se actualiza automáticamente.",
+    "revealButton": "Revelar resultados",
+    "revealConfirmTitle": "¿Revelar los resultados?",
+    "revealConfirmMessage": "Todos los participantes verán inmediatamente la clasificación y sus resultados. Puedes ocultarlos de nuevo si cambias de opinión.",
+    "unrevealButton": "Ocultar resultados de nuevo",
     "you": "(tú)",
     "correctCount": "{{score}}/{{total}} correctas ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Elegir fecha",
     "saveChanges": "Guardar cambios",
     "saveAndCreateQR": "Guardar y crear QR",
-    "markerEditHint": "Toca para editar"
+    "markerEditHint": "Toca para editar",
+    "hiddenResultsLabel": "Resultados ocultos hasta que los reveles",
+    "hiddenResultsHint": "Ideal para eventos: los participantes no ven ni acierto/error, ni puntos, ni clasificación hasta que pulses \"Revelar resultados\" en la clasificación."
   },
   "stats": {
     "title": "Tus estadísticas",
@@ -473,6 +483,7 @@
     "speakOption": "Opción {{index}}: {{option}}",
     "correctAnswerSimple": "¡Respuesta correcta!",
     "correctAnswerWith": "Respuesta correcta: {{answer}}",
+    "answerRegistered": "¡Respuesta registrada!",
     "gpsError": "Error de GPS"
   },
   "share": {

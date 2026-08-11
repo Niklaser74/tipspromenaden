@@ -143,6 +143,7 @@
     "stepsLine": "👣 Du bist {{count}} Schritte gegangen",
     "yourAnswers": "Deine Antworten",
     "correctAnswer": "Richtige Antwort: {{answer}}",
+    "hiddenMessage": "Deine Antworten sind registriert. Der Veranstalter gibt die Ergebnisse später bekannt.",
     "backHome": "Zurück zum Start",
     "share": "Ergebnis teilen",
     "shareText": "Ich habe {{score}}/{{total}} ({{percentage}}%) bei der Quiz-Wanderung \"{{title}}\" geschafft! {{emoji}} Schaffst du mehr?",
@@ -345,6 +346,13 @@
     "liveRealtime": "Live · {{count}} Teilnehmer",
     "waiting": "{{done}} fertig, {{active}} aktiv...",
     "allDone": "Alle fertig! Endergebnis:",
+    "allDoneOrganizer": "Alle scheinen fertig — Zeit für die Bekanntgabe?",
+    "hiddenWaitingTitle": "Gut gemacht! Deine Antworten sind registriert",
+    "hiddenWaitingMessage": "Der Veranstalter gibt die Ergebnisse später bekannt — schau hier wieder vorbei! Der Bildschirm aktualisiert sich automatisch.",
+    "revealButton": "Ergebnisse bekanntgeben",
+    "revealConfirmTitle": "Ergebnisse bekanntgeben?",
+    "revealConfirmMessage": "Alle Teilnehmenden sehen sofort die Rangliste und ihre Ergebnisse. Du kannst sie wieder verbergen, falls du es dir anders überlegst.",
+    "unrevealButton": "Ergebnisse wieder verbergen",
     "you": "(du)",
     "correctCount": "{{score}}/{{total}} richtig ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Datum wählen",
     "saveChanges": "Änderungen speichern",
     "saveAndCreateQR": "Speichern und QR erstellen",
-    "markerEditHint": "Zum Bearbeiten tippen"
+    "markerEditHint": "Zum Bearbeiten tippen",
+    "hiddenResultsLabel": "Ergebnisse verbergen, bis du sie bekanntgibst",
+    "hiddenResultsHint": "Ideal für Events: Teilnehmende sehen weder richtig/falsch, Punkte noch Rangliste, bis du auf der Rangliste auf \"Ergebnisse bekanntgeben\" tippst."
   },
   "stats": {
     "title": "Deine Statistik",
@@ -473,6 +483,7 @@
     "speakOption": "Option {{index}}: {{option}}",
     "correctAnswerSimple": "Richtige Antwort!",
     "correctAnswerWith": "Richtige Antwort: {{answer}}",
+    "answerRegistered": "Antwort registriert!",
     "gpsError": "GPS-Fehler"
   },
   "share": {

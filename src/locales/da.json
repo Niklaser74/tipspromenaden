@@ -143,6 +143,7 @@
     "stepsLine": "👣 Du gik {{count}} skridt",
     "yourAnswers": "Dine svar",
     "correctAnswer": "Rigtigt svar: {{answer}}",
+    "hiddenMessage": "Dine svar er registreret. Arrangøren offentliggør resultaterne senere.",
     "backHome": "Tilbage til start",
     "share": "Del resultatet",
     "shareText": "Jeg fik {{score}}/{{total}} ({{percentage}}%) på quizgåturen \"{{title}}\"! {{emoji}} Kan du slå mig?",
@@ -345,6 +346,13 @@
     "liveRealtime": "Live · {{count}} deltagere",
     "waiting": "{{done}} færdig, {{active}} i gang...",
     "allDone": "Alle er færdige! Slutresultat:",
+    "allDoneOrganizer": "Alle ser ud til at være færdige — tid til at offentliggøre?",
+    "hiddenWaitingTitle": "Godt gået! Dine svar er registreret",
+    "hiddenWaitingMessage": "Arrangøren offentliggør resultaterne senere — kig tilbage her! Skærmen opdateres automatisk.",
+    "revealButton": "Offentliggør resultater",
+    "revealConfirmTitle": "Offentliggør resultaterne?",
+    "revealConfirmMessage": "Alle deltagere ser straks ranglisten og deres resultater. Du kan skjule dem igen, hvis du fortryder.",
+    "unrevealButton": "Skjul resultaterne igen",
     "you": "(dig)",
     "correctCount": "{{score}}/{{total}} rigtige ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Vælg dato",
     "saveChanges": "Gem ændringer",
     "saveAndCreateQR": "Gem og lav QR",
-    "markerEditHint": "Tryk for at redigere"
+    "markerEditHint": "Tryk for at redigere",
+    "hiddenResultsLabel": "Skjulte resultater indtil du offentliggør",
+    "hiddenResultsHint": "Perfekt til events: deltagerne ser hverken rigtigt/forkert, point eller rangliste, før du trykker på \"Offentliggør resultater\" på ranglisten."
   },
   "stats": {
     "title": "Din statistik",
@@ -473,6 +483,7 @@
     "speakOption": "Mulighed {{index}}: {{option}}",
     "correctAnswerSimple": "Rigtigt svar!",
     "correctAnswerWith": "Rigtigt svar: {{answer}}",
+    "answerRegistered": "Svar registreret!",
     "gpsError": "GPS-fejl"
   },
   "share": {

@@ -111,6 +111,8 @@ export default function ActiveWalkScreen() {
   const [answerFeedback, setAnswerFeedback] = useState<{
     correct: boolean;
     correctAnswer: string;
+    /** Dolda resultat-läget: visa bara "svar registrerat", ingen rätt/fel. */
+    neutral?: boolean;
   } | null>(null);
 
   // GPS noggrannhetsnivå styrs av kartans zoomnivå:
@@ -448,6 +450,12 @@ export default function ActiveWalkScreen() {
     };
   }, [modalVisible, activeQuestion?.id, autoSpeak, speakQuestion]);
 
+  // Dolda resultat-läget: rätt/fel visas aldrig under promenaden — även
+  // efter arrangörens reveal förblir per-fråga-feedbacken neutral, så
+  // upplevelsen är identisk oavsett när deltagaren går. Facit kommer på
+  // topplistan när arrangören redovisar.
+  const hiddenMode = !!walk.hideResultsUntilReveal;
+
   const handleAnswer = useCallback(
     async (selectedIndex: number) => {
       if (!activeQuestion) return;
@@ -462,15 +470,21 @@ export default function ActiveWalkScreen() {
       setAnswerFeedback({
         correct,
         correctAnswer: activeQuestion.options[activeQuestion.correctOptionIndex],
+        ...(hiddenMode ? { neutral: true } : {}),
       });
       // Ljud + haptik direkt på valet (innan 3,5 s-feedback-pausen).
-      if (correct) feedbackCorrect();
+      // Dolda resultat: neutral bekräftelse-haptik istället för
+      // rätt/fel-ljud som skulle avslöja svaret för alla i närheten.
+      if (hiddenMode) feedbackArrival();
+      else if (correct) feedbackCorrect();
       else feedbackWrong();
 
       // Tid som rätt-svar-bannern visas innan modalen stängs.
       // Tidigare 1500 ms — testarna tyckte det gick för fort, särskilt
       // när rätt svar är en längre fras man ska hinna läsa. 3500 ms ger
       // tid för 2 grundliga genomläsningar utan att kännas långrandigt.
+      // Dolda resultat: 1200 ms räcker — det finns inget facit att läsa,
+      // bara "svar registrerat"-kvittensen.
       setTimeout(async () => {
         const answer: Answer = {
           questionId: activeQuestion.id,
@@ -575,7 +589,7 @@ export default function ActiveWalkScreen() {
             }
           }, 500);
         }
-      }, 3500);
+      }, hiddenMode ? 1200 : 3500);
     },
     [
       activeQuestion,
@@ -586,6 +600,7 @@ export default function ActiveWalkScreen() {
       participantName,
       walk,
       navigation,
+      hiddenMode,
     ]
   );
 
@@ -756,8 +771,14 @@ export default function ActiveWalkScreen() {
               </View>
             )}
           </View>
+          {/* Dolda resultat: poängen skulle läcka rätt/fel fråga för fråga
+              — visa progress istället. */}
           <View style={styles.scorePill}>
-            <Text style={styles.scoreText}>{score} {t("active.points")}</Text>
+            <Text style={styles.scoreText}>
+              {hiddenMode
+                ? `${progress}/${total}`
+                : `${score} ${t("active.points")}`}
+            </Text>
           </View>
         </View>
       </View>
@@ -1016,11 +1037,16 @@ export default function ActiveWalkScreen() {
 
             {activeQuestion?.options.map((option, idx) => {
               const isSelected = selectedAnswer === idx;
+              // Dolda resultat: ingen grön/röd — bara neutral markering av
+              // valt alternativ så användaren ser vad som registrerades.
+              const showNeutral = answerFeedback?.neutral && isSelected;
               const showCorrect =
                 answerFeedback &&
+                !answerFeedback.neutral &&
                 idx === activeQuestion.correctOptionIndex;
               const showWrong =
                 answerFeedback &&
+                !answerFeedback.neutral &&
                 isSelected &&
                 !answerFeedback.correct;
 
@@ -1031,6 +1057,7 @@ export default function ActiveWalkScreen() {
                     styles.optionButton,
                     showCorrect && styles.optionCorrect,
                     showWrong && styles.optionWrong,
+                    showNeutral && styles.optionNeutral,
                   ]}
                   onPress={() => handleAnswer(idx)}
                   disabled={selectedAnswer !== null}
@@ -1042,6 +1069,7 @@ export default function ActiveWalkScreen() {
                         styles.optionDot,
                         showCorrect && styles.optionDotCorrect,
                         showWrong && styles.optionDotWrong,
+                        showNeutral && styles.optionDotNeutral,
                       ]}
                     >
                       {showCorrect && (
@@ -1050,11 +1078,14 @@ export default function ActiveWalkScreen() {
                       {showWrong && (
                         <Text style={styles.optionDotIcon}>✗</Text>
                       )}
+                      {showNeutral && (
+                        <Text style={styles.optionDotIcon}>•</Text>
+                      )}
                     </View>
                     <Text
                       style={[
                         styles.optionText,
-                        (showCorrect || showWrong) &&
+                        (showCorrect || showWrong || showNeutral) &&
                           styles.optionTextHighlight,
                       ]}
                     >
@@ -1069,25 +1100,35 @@ export default function ActiveWalkScreen() {
               <View
                 style={[
                   styles.feedbackBanner,
-                  answerFeedback.correct
-                    ? styles.feedbackCorrect
-                    : styles.feedbackWrong,
+                  answerFeedback.neutral
+                    ? styles.feedbackNeutral
+                    : answerFeedback.correct
+                      ? styles.feedbackCorrect
+                      : styles.feedbackWrong,
                 ]}
               >
                 <Text style={styles.feedbackEmoji}>
-                  {answerFeedback.correct ? "🎉" : "😔"}
+                  {answerFeedback.neutral
+                    ? "✅"
+                    : answerFeedback.correct
+                      ? "🎉"
+                      : "😔"}
                 </Text>
                 <Text
                   style={[
                     styles.feedbackText,
-                    answerFeedback.correct
-                      ? styles.feedbackTextCorrect
-                      : styles.feedbackTextWrong,
+                    answerFeedback.neutral
+                      ? styles.feedbackTextNeutral
+                      : answerFeedback.correct
+                        ? styles.feedbackTextCorrect
+                        : styles.feedbackTextWrong,
                   ]}
                 >
-                  {answerFeedback.correct
-                    ? t("active.correctAnswerSimple")
-                    : t("active.correctAnswerWith", { answer: answerFeedback.correctAnswer })}
+                  {answerFeedback.neutral
+                    ? t("active.answerRegistered")
+                    : answerFeedback.correct
+                      ? t("active.correctAnswerSimple")
+                      : t("active.correctAnswerWith", { answer: answerFeedback.correctAnswer })}
                 </Text>
               </View>
             )}
@@ -1581,6 +1622,11 @@ const styles = StyleSheet.create({
     borderColor: "#D32F2F",
     borderWidth: 2,
   },
+  optionNeutral: {
+    backgroundColor: "#E3EAF2",
+    borderColor: "#3A6EA5",
+    borderWidth: 2,
+  },
   optionInner: {
     flexDirection: "row",
     alignItems: "center",
@@ -1600,6 +1646,9 @@ const styles = StyleSheet.create({
   },
   optionDotWrong: {
     backgroundColor: "#D32F2F",
+  },
+  optionDotNeutral: {
+    backgroundColor: "#3A6EA5",
   },
   optionDotIcon: {
     color: "#FFFFFF",
@@ -1628,6 +1677,9 @@ const styles = StyleSheet.create({
   feedbackWrong: {
     backgroundColor: "#FBE9E7",
   },
+  feedbackNeutral: {
+    backgroundColor: "#E3EAF2",
+  },
   feedbackEmoji: {
     fontSize: 24,
   },
@@ -1641,5 +1693,8 @@ const styles = StyleSheet.create({
   },
   feedbackTextWrong: {
     color: "#D32F2F",
+  },
+  feedbackTextNeutral: {
+    color: "#3A6EA5",
   },
 });

@@ -29,6 +29,9 @@ export interface WalkDraft {
   isEvent: boolean;
   eventStartDate: string;
   eventEndDate: string;
+  /** Dolda resultat-läget (se Walk.hideResultsUntilReveal). Optional för
+   * bakåtkompat med drafter sparade före funktionen. */
+  hideResultsUntilReveal?: boolean;
   /** ms-timestamp för när drafted senast sparades lokalt. */
   savedAt: number;
 }

@@ -143,6 +143,7 @@
     "stepsLine": "👣 Kävelit {{count}} askelta",
     "yourAnswers": "Vastauksesi",
     "correctAnswer": "Oikea vastaus: {{answer}}",
+    "hiddenMessage": "Vastauksesi on tallennettu. Järjestäjä julkistaa tulokset myöhemmin.",
     "backHome": "Takaisin alkuun",
     "share": "Jaa tulos",
     "shareText": "Sain {{score}}/{{total}} ({{percentage}}%) tietokävelyssä \"{{title}}\"! {{emoji}} Pystytkö parempaan?",
@@ -345,6 +346,13 @@
     "liveRealtime": "Reaaliaikainen · {{count}} osallistujaa",
     "waiting": "{{done}} valmis, {{active}} käynnissä...",
     "allDone": "Kaikki valmiina! Loppu­tulos:",
+    "allDoneOrganizer": "Kaikki näyttävät olevan valmiita — aika julkistaa?",
+    "hiddenWaitingTitle": "Hyvin tehty! Vastauksesi on tallennettu",
+    "hiddenWaitingMessage": "Järjestäjä julkistaa tulokset myöhemmin — palaa tänne! Näyttö päivittyy automaattisesti.",
+    "revealButton": "Julkista tulokset",
+    "revealConfirmTitle": "Julkistetaanko tulokset?",
+    "revealConfirmMessage": "Kaikki osallistujat näkevät heti tulostaulukon ja omat tuloksensa. Voit piilottaa ne uudelleen, jos muutat mielesi.",
+    "unrevealButton": "Piilota tulokset uudelleen",
     "you": "(sinä)",
     "correctCount": "{{score}}/{{total}} oikein ({{percentage}}%)",
     "stepsSuffix": "👣 {{count}}",
@@ -441,7 +449,9 @@
     "pickDate": "Valitse päivämäärä",
     "saveChanges": "Tallenna muutokset",
     "saveAndCreateQR": "Tallenna ja luo QR",
-    "markerEditHint": "Napauta muokataksesi"
+    "markerEditHint": "Napauta muokataksesi",
+    "hiddenResultsLabel": "Piilotetut tulokset julkistukseen asti",
+    "hiddenResultsHint": "Sopii tapahtumiin: osallistujat eivät näe oikein/väärin-palautetta, pisteitä tai tulostaulukkoa ennen kuin painat \"Julkista tulokset\" tulostaulukossa."
   },
   "stats": {
     "title": "Tilastosi",
@@ -473,6 +483,7 @@
     "speakOption": "Vaihtoehto {{index}}: {{option}}",
     "correctAnswerSimple": "Oikea vastaus!",
     "correctAnswerWith": "Oikea vastaus: {{answer}}",
+    "answerRegistered": "Vastaus tallennettu!",
     "gpsError": "GPS-virhe"
   },
   "share": {

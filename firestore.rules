@@ -352,7 +352,11 @@ function hasValidWalkShape(data) {
          && (!('centroid' in data)
              || (data.centroid is map
                  && data.centroid.latitude is number
-                 && data.centroid.longitude is number));
+                 && data.centroid.longitude is number))
+         && (!('hideResultsUntilReveal' in data)
+             || data.hideResultsUntilReveal is bool)
+         && (!('resultsRevealedAt' in data)
+             || data.resultsRevealedAt is number);
 }
 
 // Validerar deltagardokument. Namn-regex blockerar HTML/script-tecken så att
