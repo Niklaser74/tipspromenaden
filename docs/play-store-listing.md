@@ -15,6 +15,10 @@ engelska som "English (United States)").
 - **Kontakt-e-post:** support@tipspromenaden.app
 - **Webbplats:** https://tipspromenaden.app
 - **Integritetspolicy-URL:** https://tipspromenaden.app/integritet
+- **Webbadress för att radera konto** (Appinnehåll → Datasäkerhet):
+  https://tipspromenaden.app/radera-konto (bytt 2026-09-11 från
+  `niklaser74.github.io/tipspromenaden/account-deletion`, eftersom
+  GitHub Pages-docs-sajten stängs av; källa `docs/account-deletion.md`)
 - **Användarvillkor-URL:** https://tipspromenaden.app/villkor (klistra in i Play Console-fältet "Terms of Service")
 
 ---

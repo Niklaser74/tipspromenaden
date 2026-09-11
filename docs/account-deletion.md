@@ -2,6 +2,11 @@
 title: Radera konto och data – Tipspromenaden
 ---
 
+> **Publicerad version:** https://tipspromenaden.app/radera-konto
+> (`tipspromenaden-web/src/pages/radera-konto.md`). Det är den adressen Play
+> Console pekar på under Datasäkerhet → Webbadress för att radera konto.
+> Ändra här först, spegla sedan till webben, som för integritetspolicyn.
+
 # Radera konto och data i Tipspromenaden
 
 Den här sidan beskriver hur du som användare av **Tipspromenaden**
@@ -12,10 +17,11 @@ radering av ditt konto och all data som tillhör det.
 
 1. Öppna **Tipspromenaden**-appen på din telefon
 2. Tryck på **kugghjulet** (inställningar) i övre högra hörnet av startsidan
-3. Tryck på **"Radera konto och data"**
-4. Bekräfta två gånger
+3. Rulla ned till avsnittet **Farozon** och tryck på **"Radera konto och data"**
+4. Tryck **Fortsätt** i varningen, skriv **RADERA** i rutan och bekräfta
 
-Efter bekräftelse raderas allt omedelbart.
+Efter bekräftelse raderas allt omedelbart. Gäller både Google-/Apple-
+inloggade och anonyma användare.
 
 ## Vilka data raderas
 
