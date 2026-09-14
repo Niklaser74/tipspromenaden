@@ -58,6 +58,18 @@
     "menuLeaderboard": "Topplista",
     "menuTags": "Administrer tagger",
     "menuRename": "Døp om",
+    "menuCloseRound": "Avslutt runden",
+    "closeRoundTitle": "Avslutte runden?",
+    "closeRoundMessage": "Resultatlisten låses, og neste person som starter turen begynner en helt ny runde. Dette kan ikke angres.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} person er midt i runden nå og kan ikke lagre flere svar etterpå. Resultatlisten låses, og neste start begynner en ny runde. Dette kan ikke angres.",
+      "other": "{{count}} personer er midt i runden nå og kan ikke lagre flere svar etterpå. Resultatlisten låses, og neste start begynner en ny runde. Dette kan ikke angres."
+    },
+    "closeRoundConfirm": "Avslutt",
+    "closeRoundDoneTitle": "Runden er avsluttet",
+    "closeRoundDoneMessage": "Resultatlisten er låst. Neste gang noen starter turen begynner en ny runde med tom resultatliste.",
+    "closeRoundNoneTitle": "Ingen runde pågår",
+    "closeRoundNoneMessage": "Det finnes ingen åpen runde å avslutte. Neste person som starter turen begynner allerede en ny.",
     "menuDelete": "Fjern",
     "emptyTitle": "Ingen tipsturer ennå",
     "emptyDesc": "Lag din egen eller skann en QR-kode for å komme i gang",

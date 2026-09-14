@@ -185,6 +185,43 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-14 — Arrangören kan avsluta rundan
+
+En "runda" är ett `sessions`-dokument, och det stängdes tidigare bara
+automatiskt när **alla** deltagare hade `completedAt`. En enda testare
+som avbröt höll rundan öppen för alltid: `findActiveSession` återanvänder
+den senaste öppna sessionen, så nästa tillfälle ärvde förra rundans
+topplista i stället för att börja om. Eventpromenader hoppar dessutom
+över auto-completion helt och stängdes aldrig. Rapporterat av en
+förening som kör samma promenad löpande.
+
+Nytt: `closeOpenRounds(walkId)` stänger **alla** öppna sessioner för
+promenaden. Nås från Bibliotek → Mina promenader → ⋯ → "Avsluta rundan"
+(bara för skaparen) och från en knapp i topplistans bottom bar när man
+är arrangör och något står öppet. `getOpenRoundSummary` räknar först hur
+många som är mitt i rundan (minst ett svar, ingen `completedAt`) så
+bekräftelsedialogen kan säga exakt vad som går förlorat — stängningen
+är irreversibel och reglerna blockerar deltagarskrivningar mot
+completed-sessioner.
+
+Samtidigt: `handleShowLeaderboard` gick via `findActiveSession` och
+svarade "ingen topplista än" så fort rundan var stängd. Bytt mot nya
+`findLatestSession` som tar senaste sessionen oavsett status — annars
+hade avsluta-knappen gömt undan topplistan man just avslutat.
+
+Inga regeländringar behövdes: `allow update` på sessions släpper redan
+igenom `status: completed` från walk-ägaren. i18n för alla 8 språk,
+plural-form på varningstexten. JS-only → OTA (dubbel-publish runtime
+1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Nu kan du avsluta en runda 🏁 Öppna promenaden i Biblioteket → ⋯ → Avsluta rundan, eller tryck på knappen längst ner på topplistan. Rundan låses och nästa person som startar börjar med tom topplista — perfekt för föreningar som kör samma promenad vecka efter vecka. Topplistan går nu också att öppna för rundor som redan är avslutade.
+
+**Release notes (en):**
+You can now end a round 🏁 Open the walk in the Library → ⋯ → End round, or tap the button at the bottom of the leaderboard. The round locks and the next person to start begins with an empty leaderboard — ideal for clubs running the same walk week after week. Leaderboards for rounds that have already ended are now reachable too.
+
+---
+
 ### OTA 2026-08-11 — Dolda resultat tills arrangören redovisar
 
 Ny skapar-opt-in `Walk.hideResultsUntilReveal` (CreateWalk →

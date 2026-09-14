@@ -58,6 +58,18 @@
     "menuLeaderboard": "Tulostaulu",
     "menuTags": "Hallitse tunnisteita",
     "menuRename": "Nimeä uudelleen",
+    "menuCloseRound": "Päätä kierros",
+    "closeRoundTitle": "Päätetäänkö kierros?",
+    "closeRoundMessage": "Tulostaulukko lukitaan, ja seuraava kävelyn aloittaja aloittaa kokonaan uuden kierroksen. Tätä ei voi perua.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} osallistuja on parhaillaan kesken kierroksen eikä voi enää tallentaa vastauksia. Tulostaulukko lukitaan, ja seuraava aloitus aloittaa uuden kierroksen. Tätä ei voi perua.",
+      "other": "{{count}} osallistujaa on parhaillaan kesken kierroksen eivätkä voi enää tallentaa vastauksia. Tulostaulukko lukitaan, ja seuraava aloitus aloittaa uuden kierroksen. Tätä ei voi perua."
+    },
+    "closeRoundConfirm": "Päätä",
+    "closeRoundDoneTitle": "Kierros päättyi",
+    "closeRoundDoneMessage": "Tulostaulukko on lukittu. Kun joku seuraavan kerran aloittaa kävelyn, alkaa uusi kierros tyhjällä tulostaulukolla.",
+    "closeRoundNoneTitle": "Ei käynnissä olevaa kierrosta",
+    "closeRoundNoneMessage": "Päätettävää avointa kierrosta ei ole. Seuraava kävelyn aloittaja aloittaa jo uuden.",
     "menuDelete": "Poista",
     "emptyTitle": "Ei vielä tietokävelyitä",
     "emptyDesc": "Luo oma tai skannaa QR-koodi päästäksesi alkuun",

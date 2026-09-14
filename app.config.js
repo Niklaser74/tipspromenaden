@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Nytt för event: dolda resultat! 🎭 Slå på \"Dolda resultat tills du redovisar\" när du skapar promenaden — deltagarna ser varken rätt/fel eller poäng förrän du trycker Redovisa resultat på topplistan. Perfekt för gemensam prisutdelning.",
-        en: "New for events: hidden results! 🎭 Enable \"Hidden results until you reveal\" when creating a walk — participants see neither right/wrong nor scores until you tap Reveal results on the leaderboard. Perfect for a shared award ceremony.",
+        sv: "Nu kan du avsluta en runda 🏁 Öppna promenaden i Biblioteket → ⋯ → Avsluta rundan, eller tryck på knappen längst ner på topplistan. Rundan låses och nästa person som startar börjar med tom topplista — perfekt för föreningar som kör samma promenad vecka efter vecka. Topplistan går nu också att öppna för rundor som redan är avslutade.",
+        en: "You can now end a round 🏁 Open the walk in the Library → ⋯ → End round, or tap the button at the bottom of the leaderboard. The round locks and the next person to start begins with an empty leaderboard — ideal for clubs running the same walk week after week. Leaderboards for rounds that have already ended are now reachable too.",
       },
     },
   },

@@ -67,6 +67,18 @@
     "menuLeaderboard": "Topplista",
     "menuTags": "Hantera taggar",
     "menuRename": "Döp om",
+    "menuCloseRound": "Avsluta rundan",
+    "closeRoundTitle": "Avsluta rundan?",
+    "closeRoundMessage": "Topplistan låses och nästa person som startar promenaden börjar en helt ny runda. Det går inte att ångra.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} person är mitt i rundan just nu och kan inte spara fler svar efteråt. Topplistan låses och nästa start börjar en ny runda. Det går inte att ångra.",
+      "other": "{{count}} personer är mitt i rundan just nu och kan inte spara fler svar efteråt. Topplistan låses och nästa start börjar en ny runda. Det går inte att ångra."
+    },
+    "closeRoundConfirm": "Avsluta",
+    "closeRoundDoneTitle": "Rundan avslutad",
+    "closeRoundDoneMessage": "Topplistan är låst. Nästa gång någon startar promenaden börjar en ny runda med tom topplista.",
+    "closeRoundNoneTitle": "Ingen runda pågår",
+    "closeRoundNoneMessage": "Det finns ingen öppen runda att avsluta. Nästa person som startar promenaden börjar redan en ny.",
     "menuDelete": "Ta bort",
     "emptyTitle": "Inga promenader ännu",
     "emptyDesc": "Skapa din egen eller scanna en QR-kod för att komma igång",

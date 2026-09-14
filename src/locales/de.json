@@ -58,6 +58,18 @@
     "menuLeaderboard": "Rangliste",
     "menuTags": "Tags verwalten",
     "menuRename": "Umbenennen",
+    "menuCloseRound": "Runde beenden",
+    "closeRoundTitle": "Runde beenden?",
+    "closeRoundMessage": "Die Bestenliste wird gesperrt und die nächste Person, die den Rundgang startet, beginnt eine ganz neue Runde. Das lässt sich nicht rückgängig machen.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} Person ist gerade mitten in der Runde und kann danach keine Antworten mehr speichern. Die Bestenliste wird gesperrt und der nächste Start beginnt eine neue Runde. Das lässt sich nicht rückgängig machen.",
+      "other": "{{count}} Personen sind gerade mitten in der Runde und können danach keine Antworten mehr speichern. Die Bestenliste wird gesperrt und der nächste Start beginnt eine neue Runde. Das lässt sich nicht rückgängig machen."
+    },
+    "closeRoundConfirm": "Beenden",
+    "closeRoundDoneTitle": "Runde beendet",
+    "closeRoundDoneMessage": "Die Bestenliste ist gesperrt. Beim nächsten Start beginnt eine neue Runde mit leerer Bestenliste.",
+    "closeRoundNoneTitle": "Keine Runde aktiv",
+    "closeRoundNoneMessage": "Es gibt keine offene Runde zum Beenden. Die nächste Person, die startet, beginnt bereits eine neue.",
     "menuDelete": "Entfernen",
     "emptyTitle": "Noch keine Wanderungen",
     "emptyDesc": "Erstelle deine eigene oder scanne einen QR-Code, um loszulegen",

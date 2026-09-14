@@ -17,6 +17,8 @@ import {
   subscribeToWalk,
   revealWalkResults,
   unrevealWalkResults,
+  getOpenRoundSummary,
+  closeOpenRounds,
 } from "../services/firestore";
 import { Session, Participant, Walk } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -58,6 +60,13 @@ export default function LeaderboardScreen() {
   const [walkDoc, setWalkDoc] = useState<Walk | null>(null);
   const [walkLoading, setWalkLoading] = useState(!!walkId);
   const [revealing, setRevealing] = useState(false);
+  const [closingRound, setClosingRound] = useState(false);
+  // Finns det något öppet att avsluta? Egen state i stället för att läsa
+  // `session.status`: i eventläget pekar `session` på EN av flera
+  // sessioner och kan råka vara en redan avslutad, medan andra står
+  // öppna. Uppdateras av samma prenumeration som topplistan, så knappen
+  // försvinner av sig själv när sista deltagaren går i mål.
+  const [roundOpen, setRoundOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sharing, setSharing] = useState(false);
   const badgeRef = useRef<View>(null);
@@ -84,6 +93,7 @@ export default function LeaderboardScreen() {
         const mainSession = sessions.find((s) => s.id === sessionId);
         if (mainSession) setSession(mainSession);
         else if (sessions.length > 0) setSession(sessions[0]);
+        setRoundOpen(sessions.some((s) => s.status !== "completed"));
 
         setLoading(false);
         setLastUpdated(new Date());
@@ -92,6 +102,7 @@ export default function LeaderboardScreen() {
     } else {
       const unsub = subscribeToSession(sessionId, (s) => {
         setSession(s);
+        setRoundOpen(s.status !== "completed");
         setAllParticipants(s.participants);
         setLoading(false);
         setLastUpdated(new Date());
@@ -209,6 +220,53 @@ export default function LeaderboardScreen() {
         },
       ]
     );
+  };
+
+  // "Avsluta rundan" härifrån: arrangören ser topplistan, konstaterar
+  // att de gråa raderna aldrig kommer gå i mål, och stänger. Samma
+  // funktion som i Bibliotekets ⋯-meny — här bara närmare beslutet.
+  const handleCloseRound = async () => {
+    if (!walkId || closingRound) return;
+    setClosingRound(true);
+    try {
+      const summary = await getOpenRoundSummary(walkId);
+      if (!summary) {
+        Alert.alert(
+          t("home.closeRoundNoneTitle"),
+          t("home.closeRoundNoneMessage")
+        );
+        return;
+      }
+      const message =
+        summary.unfinished > 0
+          ? t("home.closeRoundWarnMessage", { count: summary.unfinished })
+          : t("home.closeRoundMessage");
+      Alert.alert(t("home.closeRoundTitle"), message, [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("home.closeRoundConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            setClosingRound(true);
+            try {
+              await closeOpenRounds(walkId);
+              Alert.alert(
+                t("home.closeRoundDoneTitle"),
+                t("home.closeRoundDoneMessage")
+              );
+            } catch (e: any) {
+              Alert.alert(t("common.errorTitle"), e?.message || "");
+            } finally {
+              setClosingRound(false);
+            }
+          },
+        },
+      ]);
+    } catch (e: any) {
+      Alert.alert(t("common.errorTitle"), e?.message || "");
+    } finally {
+      setClosingRound(false);
+    }
   };
 
   const handleUnreveal = async () => {
@@ -503,6 +561,22 @@ export default function LeaderboardScreen() {
             <Text style={styles.unrevealButtonText}>
               {t("leaderboard.unrevealButton")}
             </Text>
+          </TouchableOpacity>
+        )}
+        {isOrganizer && roundOpen && (
+          <TouchableOpacity
+            style={styles.closeRoundButton}
+            onPress={handleCloseRound}
+            disabled={closingRound}
+            activeOpacity={0.8}
+          >
+            {closingRound ? (
+              <ActivityIndicator size="small" color="#6B7568" />
+            ) : (
+              <Text style={styles.closeRoundButtonText}>
+                🏁 {t("home.menuCloseRound")}
+              </Text>
+            )}
           </TouchableOpacity>
         )}
         {canShare && (
@@ -888,6 +962,20 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "800",
     letterSpacing: -0.2,
+  },
+  closeRoundButton: {
+    borderWidth: 1,
+    borderColor: "#D4D4D0",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  closeRoundButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#6B7568",
   },
   unrevealButton: {
     paddingVertical: 12,

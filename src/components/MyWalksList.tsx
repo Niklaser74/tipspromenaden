@@ -34,7 +34,13 @@ import {
   displayWalkTitle,
 } from "../services/storage";
 import { flagForLanguage } from "../constants/languages";
-import { findActiveSession, deleteWalkCompletely } from "../services/firestore";
+import {
+  findActiveSession,
+  findLatestSession,
+  getOpenRoundSummary,
+  closeOpenRounds,
+  deleteWalkCompletely,
+} from "../services/firestore";
 import { useAuth } from "../context/AuthContext";
 import { SavedWalk, Walk } from "../types";
 import WalkActionsMenu from "./WalkActionsMenu";
@@ -84,6 +90,9 @@ export default function MyWalksList() {
 
   const [editTagsFor, setEditTagsFor] = useState<SavedWalk | null>(null);
   const [actionsMenuFor, setActionsMenuFor] = useState<SavedWalk | null>(null);
+  // Spärr mot dubbeltryck medan sammanfattningen hämtas / stängningen
+  // skrivs — båda är nätverksanrop och menyn hinner tryckas två gånger.
+  const [closingRound, setClosingRound] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -220,7 +229,7 @@ export default function MyWalksList() {
         });
         return;
       }
-      const session = await findActiveSession(walk.id);
+      const session = await findLatestSession(walk.id);
       if (!session) {
         Alert.alert(
           t("home.leaderboardEmptyTitle"),
@@ -237,6 +246,58 @@ export default function MyWalksList() {
       });
     } catch (e: any) {
       Alert.alert(t("common.error"), e?.message || "");
+    }
+  };
+
+  // "Avsluta rundan" — stänger alla öppna sessioner för promenaden så
+  // att nästa deltagare startar en ny, ren runda. Utan den ärver varje
+  // nytt tillfälle den förra rundans topplista så fort någon avbrutit
+  // utan att gå i mål (sessionen stängs annars bara när ALLA är klara).
+  //
+  // Irreversibelt, och den som är mitt i rundan blir utelåst av
+  // Firestore-reglerna — därför en bekräftelse som säger exakt hur många
+  // det gäller.
+  const handleCloseRound = async (walk: Walk) => {
+    if (closingRound) return;
+    setClosingRound(true);
+    try {
+      const summary = await getOpenRoundSummary(walk.id);
+      if (!summary) {
+        Alert.alert(
+          t("home.closeRoundNoneTitle"),
+          t("home.closeRoundNoneMessage")
+        );
+        return;
+      }
+      const message =
+        summary.unfinished > 0
+          ? t("home.closeRoundWarnMessage", { count: summary.unfinished })
+          : t("home.closeRoundMessage");
+      Alert.alert(t("home.closeRoundTitle"), message, [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("home.closeRoundConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            setClosingRound(true);
+            try {
+              await closeOpenRounds(walk.id);
+              Alert.alert(
+                t("home.closeRoundDoneTitle"),
+                t("home.closeRoundDoneMessage")
+              );
+            } catch (e: any) {
+              Alert.alert(t("common.error"), e?.message || "");
+            } finally {
+              setClosingRound(false);
+            }
+          },
+        },
+      ]);
+    } catch (e: any) {
+      Alert.alert(t("common.error"), e?.message || "");
+    } finally {
+      setClosingRound(false);
     }
   };
 
@@ -710,6 +771,9 @@ export default function MyWalksList() {
           navigation.navigate("WalkInsights" as never, {
             walkId: actionsMenuFor.walk.id,
           } as never)
+        }
+        onCloseRound={() =>
+          actionsMenuFor && handleCloseRound(actionsMenuFor.walk)
         }
         onDelete={() =>
           actionsMenuFor &&

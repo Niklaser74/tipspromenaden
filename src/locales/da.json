@@ -58,6 +58,18 @@
     "menuLeaderboard": "Topliste",
     "menuTags": "Administrer tags",
     "menuRename": "Omdøb",
+    "menuCloseRound": "Afslut runden",
+    "closeRoundTitle": "Afslut runden?",
+    "closeRoundMessage": "Resultatlisten låses, og den næste person, der starter turen, begynder en helt ny runde. Det kan ikke fortrydes.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} person er midt i runden lige nu og kan ikke gemme flere svar bagefter. Resultatlisten låses, og næste start begynder en ny runde. Det kan ikke fortrydes.",
+      "other": "{{count}} personer er midt i runden lige nu og kan ikke gemme flere svar bagefter. Resultatlisten låses, og næste start begynder en ny runde. Det kan ikke fortrydes."
+    },
+    "closeRoundConfirm": "Afslut",
+    "closeRoundDoneTitle": "Runden er afsluttet",
+    "closeRoundDoneMessage": "Resultatlisten er låst. Næste gang nogen starter turen, begynder en ny runde med tom resultatliste.",
+    "closeRoundNoneTitle": "Ingen runde i gang",
+    "closeRoundNoneMessage": "Der er ingen åben runde at afslutte. Den næste person, der starter turen, begynder allerede en ny.",
     "menuDelete": "Fjern",
     "emptyTitle": "Ingen quizgåture endnu",
     "emptyDesc": "Lav din egen eller scan en QR-kode for at komme i gang",

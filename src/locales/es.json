@@ -58,6 +58,18 @@
     "menuLeaderboard": "Clasificación",
     "menuTags": "Gestionar etiquetas",
     "menuRename": "Renombrar",
+    "menuCloseRound": "Finalizar la ronda",
+    "closeRoundTitle": "¿Finalizar la ronda?",
+    "closeRoundMessage": "La clasificación se bloqueará y la próxima persona que inicie el paseo empezará una ronda completamente nueva. No se puede deshacer.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} participante está a mitad de la ronda ahora mismo y no podrá guardar más respuestas. La clasificación se bloqueará y el próximo inicio empezará una ronda nueva. No se puede deshacer.",
+      "other": "{{count}} participantes están a mitad de la ronda ahora mismo y no podrán guardar más respuestas. La clasificación se bloqueará y el próximo inicio empezará una ronda nueva. No se puede deshacer."
+    },
+    "closeRoundConfirm": "Finalizar",
+    "closeRoundDoneTitle": "Ronda finalizada",
+    "closeRoundDoneMessage": "La clasificación está bloqueada. La próxima vez que alguien inicie el paseo, empezará una ronda nueva con la clasificación vacía.",
+    "closeRoundNoneTitle": "No hay ninguna ronda en curso",
+    "closeRoundNoneMessage": "No hay ninguna ronda abierta que finalizar. La próxima persona que inicie el paseo ya empieza una nueva.",
     "menuDelete": "Eliminar",
     "emptyTitle": "Aún no hay paseos",
     "emptyDesc": "Crea el tuyo o escanea un código QR para empezar",

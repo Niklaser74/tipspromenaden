@@ -579,6 +579,119 @@ export function subscribeToSession(
 }
 
 /**
+ * Sammanfattning av vad som står öppet för en promenad. Används av
+ * "Avsluta rundan" så arrangören varnas med riktiga siffror innan hen
+ * stänger — "2 personer är mitt i rundan" väger tyngre än en generisk
+ * varningstext.
+ */
+export interface OpenRoundSummary {
+  /** Antal öppna sessioner (waiting/active) för promenaden. */
+  sessionCount: number;
+  /** Starttid för den äldsta öppna sessionen. */
+  oldestCreatedAt: number;
+  /** Deltagare i de öppna rundorna som svarat men inte gått i mål. */
+  unfinished: number;
+}
+
+/**
+ * Hämtar alla öppna (waiting/active) sessioner för en promenad.
+ * Normalt finns högst en, men eventpromenader hoppar över auto-
+ * completion helt och en promenad som körts löpande kan ha samlat på
+ * sig flera — "Avsluta rundan" ska städa bort allihop, inte bara den
+ * senaste.
+ */
+async function findOpenSessions(walkId: string): Promise<Session[]> {
+  const snap = await getDocs(
+    query(
+      collection(db, SESSIONS_COLLECTION),
+      where("walkId", "==", walkId),
+      where("status", "in", ["waiting", "active"])
+    )
+  );
+  return snap.docs.map((d) => ({ ...(d.data() as Session), participants: [] }));
+}
+
+/**
+ * Räknar ihop vad som faktiskt står öppet. Returnerar `null` när
+ * ingenting är öppet.
+ *
+ * "Mitt i rundan" = har minst ett svar men saknar `completedAt`. Den som
+ * bara joinat och angett namn räknas inte — annars ser varje avbruten
+ * testanslutning ut som en pågående deltagare och varningen blir brus.
+ */
+export async function getOpenRoundSummary(
+  walkId: string
+): Promise<OpenRoundSummary | null> {
+  const sessions = await findOpenSessions(walkId);
+  if (sessions.length === 0) return null;
+
+  const participantsBySession = await Promise.all(
+    sessions.map((s) => getParticipants(s.id))
+  );
+  const unfinished = participantsBySession
+    .flat()
+    .filter((p) => !p.completedAt && p.answers && p.answers.length > 0).length;
+
+  return {
+    sessionCount: sessions.length,
+    oldestCreatedAt: Math.min(...sessions.map((s) => s.createdAt)),
+    unfinished,
+  };
+}
+
+/**
+ * Stänger alla öppna rundor för en promenad — arrangörens "Avsluta
+ * rundan". Därefter skapar nästa deltagare som startar en **ny**
+ * session, så topplistan börjar om på noll i stället för att fortsätta
+ * ackumulera i en runda som aldrig blev klar.
+ *
+ * Obs: irreversibelt. Reglerna tillåter bara framåtriktade status-
+ * övergångar och blockerar deltagarskrivningar mot completed-sessioner,
+ * så den som är mitt i rundan kan inte spara fler svar. Anroparen måste
+ * bekräfta med användaren först.
+ *
+ * Returnerar antalet stängda rundor.
+ */
+export async function closeOpenRounds(walkId: string): Promise<number> {
+  const sessions = await findOpenSessions(walkId);
+  await Promise.all(sessions.map((s) => completeSession(s.id)));
+  return sessions.length;
+}
+
+/**
+ * Senaste sessionen för en promenad oavsett status — inklusive redan
+ * avslutade. Behövs för att arrangören ska komma åt topplistan efter att
+ * rundan stängts; `findActiveSession` ser bara öppna rundor och skulle
+ * svara "ingen topplista än" för en promenad som just avslutats.
+ */
+export async function findLatestSession(
+  walkId: string
+): Promise<Session | null> {
+  try {
+    const snap = await getDocs(
+      query(collection(db, SESSIONS_COLLECTION), where("walkId", "==", walkId))
+    );
+    if (snap.empty) return null;
+    const sessions = snap.docs.map((d) => ({
+      ...(d.data() as Session),
+      participants: [],
+    }));
+    sessions.sort((a, b) => b.createdAt - a.createdAt);
+    return sessions[0];
+  } catch (e: any) {
+    // Samma offline-tolerans som findActiveSession.
+    if (
+      e?.code === "unavailable" ||
+      e?.code === "deadline-exceeded" ||
+      e?.message?.includes("network")
+    ) {
+      return null;
+    }
+    throw e;
+  }
+}
+
+/**
  * Söker efter en aktiv eller väntande session för en given promenad.
  */
 export async function findActiveSession(

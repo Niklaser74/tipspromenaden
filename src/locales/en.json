@@ -67,6 +67,18 @@
     "menuLeaderboard": "Leaderboard",
     "menuTags": "Manage tags",
     "menuRename": "Rename",
+    "menuCloseRound": "End round",
+    "closeRoundTitle": "End this round?",
+    "closeRoundMessage": "The leaderboard is locked and the next person to start the walk begins a brand new round. This cannot be undone.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} participant is mid-round right now and will not be able to save any more answers. The leaderboard is locked and the next start begins a new round. This cannot be undone.",
+      "other": "{{count}} participants are mid-round right now and will not be able to save any more answers. The leaderboard is locked and the next start begins a new round. This cannot be undone."
+    },
+    "closeRoundConfirm": "End round",
+    "closeRoundDoneTitle": "Round ended",
+    "closeRoundDoneMessage": "The leaderboard is locked. The next time someone starts the walk, a new round begins with an empty leaderboard.",
+    "closeRoundNoneTitle": "No round in progress",
+    "closeRoundNoneMessage": "There is no open round to end. The next person to start the walk already begins a new one.",
     "menuDelete": "Remove",
     "emptyTitle": "No walks yet",
     "emptyDesc": "Create your own or scan a QR code to get started",

@@ -58,6 +58,18 @@
     "menuLeaderboard": "Classement",
     "menuTags": "Gérer les tags",
     "menuRename": "Renommer",
+    "menuCloseRound": "Terminer la manche",
+    "closeRoundTitle": "Terminer la manche ?",
+    "closeRoundMessage": "Le classement sera verrouillé et la prochaine personne qui lance la balade commencera une toute nouvelle manche. Action irréversible.",
+    "closeRoundWarnMessage": {
+      "one": "{{count}} participant est en pleine manche en ce moment et ne pourra plus enregistrer de réponses. Le classement sera verrouillé et le prochain départ commencera une nouvelle manche. Action irréversible.",
+      "other": "{{count}} participants sont en pleine manche en ce moment et ne pourront plus enregistrer de réponses. Le classement sera verrouillé et le prochain départ commencera une nouvelle manche. Action irréversible."
+    },
+    "closeRoundConfirm": "Terminer",
+    "closeRoundDoneTitle": "Manche terminée",
+    "closeRoundDoneMessage": "Le classement est verrouillé. Au prochain départ, une nouvelle manche commencera avec un classement vide.",
+    "closeRoundNoneTitle": "Aucune manche en cours",
+    "closeRoundNoneMessage": "Aucune manche ouverte à terminer. La prochaine personne qui lance la balade en commence déjà une nouvelle.",
     "menuDelete": "Supprimer",
     "emptyTitle": "Aucune balade pour l'instant",
     "emptyDesc": "Créez la vôtre ou scannez un code QR pour commencer",

@@ -33,6 +33,8 @@ export interface WalkActionsMenuProps {
   onTags: () => void;
   onRename: () => void;
   onInsights: () => void;
+  /** Arrangörens "Avsluta rundan" — stänger öppna sessioner. */
+  onCloseRound: () => void;
   onDelete: () => void;
   t: (key: string, opts?: any) => string;
 }
@@ -45,6 +47,7 @@ export default function WalkActionsMenu({
   onTags,
   onRename,
   onInsights,
+  onCloseRound,
   onDelete,
   t,
 }: WalkActionsMenuProps) {
@@ -89,6 +92,16 @@ export default function WalkActionsMenu({
                 onLeaderboard();
               }}
             />
+            {isCreator && (
+              <Row
+                icon="flag-checkered"
+                label={t("home.menuCloseRound")}
+                onPress={() => {
+                  onClose();
+                  onCloseRound();
+                }}
+              />
+            )}
             <Row
               icon="tag-outline"
               label={t("home.menuTags")}
