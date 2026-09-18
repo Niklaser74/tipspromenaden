@@ -415,6 +415,18 @@
     "importError": "Error de importación",
     "importGenericError": "No se pudo importar: {{message}}",
     "batteryImportedTitle": "Paquete de preguntas importado",
+    "batteryOptionsShuffled": "Las opciones de respuesta se han mezclado para que la respuesta correcta no esté en el mismo lugar durante todo el paseo.",
+    "shuffleOptionsButton": "Mezclar opciones",
+    "shuffleOptionsDoneTitle": "Opciones mezcladas",
+    "shuffleOptionsDoneMessage": "Las respuestas correctas están ahora en nuevas posiciones. Guarda el paseo para que el cambio se aplique.",
+    "shuffleOptionsRoundOpenTitle": "Hay una ronda en curso",
+    "shuffleOptionsRoundOpenMessage": "Este paseo tiene una ronda abierta. Si mezclas y guardas ahora, las respuestas anteriores no cuadrarán en las estadísticas. ¿Finalizar la ronda primero?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} participante está a mitad de la ronda. Su puntuación será correcta, pero respondió según las posiciones antiguas y las estadísticas se mezclarán. ¿Finalizar la ronda primero?",
+      "other": "{{count}} participantes están a mitad de la ronda. Sus puntuaciones serán correctas, pero respondieron según las posiciones antiguas y las estadísticas se mezclarán. ¿Finalizar la ronda primero?"
+    },
+    "shuffleOptionsAnyway": "Mezclar de todos modos",
+    "shuffleOptionsCloseAndShuffle": "Finalizar la ronda y mezclar",
     "batteryImportedMessage": "Cargadas {{count}} preguntas de \"{{name}}\".\n\nToca el mapa donde quieras colocar cada pregunta, una por una.",
     "batteryLanguageSet": "Idioma establecido en {{flag}} ({{code}}) — cámbialo en el selector si es necesario.",
     "batteryLanguageUnknown": "No se especifica idioma en el archivo — elige en el selector de abajo.",

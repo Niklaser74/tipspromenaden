@@ -415,6 +415,18 @@
     "importError": "Erreur d'import",
     "importGenericError": "Impossible d'importer : {{message}}",
     "batteryImportedTitle": "Paquet de questions importé",
+    "batteryOptionsShuffled": "Les réponses ont été mélangées pour que la bonne réponse ne soit pas au même endroit pendant toute la balade.",
+    "shuffleOptionsButton": "Mélanger les réponses",
+    "shuffleOptionsDoneTitle": "Réponses mélangées",
+    "shuffleOptionsDoneMessage": "Les bonnes réponses sont maintenant à de nouvelles places. Enregistrez la balade pour appliquer le changement.",
+    "shuffleOptionsRoundOpenTitle": "Une manche est en cours",
+    "shuffleOptionsRoundOpenMessage": "Cette balade a une manche ouverte. Si vous mélangez et enregistrez maintenant, les réponses précédentes ne correspondront plus dans les statistiques. Terminer la manche d'abord ?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} participant est en pleine manche. Son score restera juste, mais ses réponses portent sur les anciennes places et les statistiques seront mélangées. Terminer la manche d'abord ?",
+      "other": "{{count}} participants sont en pleine manche. Leurs scores resteront justes, mais leurs réponses portent sur les anciennes places et les statistiques seront mélangées. Terminer la manche d'abord ?"
+    },
+    "shuffleOptionsAnyway": "Mélanger quand même",
+    "shuffleOptionsCloseAndShuffle": "Terminer la manche et mélanger",
     "batteryImportedMessage": "{{count}} questions de \"{{name}}\" chargées.\n\nTouchez la carte à l'endroit où placer chaque question, l'une après l'autre.",
     "batteryLanguageSet": "Langue définie sur {{flag}} ({{code}}) — modifiez-la dans le sélecteur si nécessaire.",
     "batteryLanguageUnknown": "Aucune langue spécifiée dans le fichier — choisissez dans le sélecteur ci-dessous.",

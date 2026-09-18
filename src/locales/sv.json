@@ -497,6 +497,18 @@
     "importError": "Importfel",
     "importGenericError": "Kunde inte importera: {{message}}",
     "batteryImportedTitle": "Frågebatteri importerat",
+    "batteryOptionsShuffled": "Svarsalternativen har blandats så att rätt svar inte ligger på samma plats hela promenaden.",
+    "shuffleOptionsButton": "Blanda svarsalternativ",
+    "shuffleOptionsDoneTitle": "Svarsalternativen blandade",
+    "shuffleOptionsDoneMessage": "Rätt svar ligger nu på nya platser. Spara promenaden för att ändringen ska gälla.",
+    "shuffleOptionsRoundOpenTitle": "En runda pågår",
+    "shuffleOptionsRoundOpenMessage": "Promenaden har en öppen runda. Blandar du nu och sparar hamnar tidigare svar i otakt i statistiken. Vill du avsluta rundan först?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} person är mitt i rundan. Poängen blir rätt, men svaren gäller de gamla platserna och statistiken blandas ihop. Vill du avsluta rundan först?",
+      "other": "{{count}} personer är mitt i rundan. Poängen blir rätt, men svaren gäller de gamla platserna och statistiken blandas ihop. Vill du avsluta rundan först?"
+    },
+    "shuffleOptionsAnyway": "Blanda ändå",
+    "shuffleOptionsCloseAndShuffle": "Avsluta rundan och blanda",
     "batteryImportedMessage": "{{count}} frågor från \"{{name}}\" laddade.\n\nTryck på kartan där du vill placera varje fråga, en efter en.",
     "batteryLanguageSet": "Språk satt till {{flag}} ({{code}}) — ändra i språkväljaren vid behov.",
     "batteryLanguageUnknown": "Inget språk angavs i filen — välj i språkväljaren nedan.",

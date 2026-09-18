@@ -415,6 +415,18 @@
     "importError": "Importfehler",
     "importGenericError": "Import fehlgeschlagen: {{message}}",
     "batteryImportedTitle": "Fragenpaket importiert",
+    "batteryOptionsShuffled": "Die Antwortmöglichkeiten wurden gemischt, damit die richtige Antwort nicht auf der ganzen Runde an derselben Stelle steht.",
+    "shuffleOptionsButton": "Antworten mischen",
+    "shuffleOptionsDoneTitle": "Antworten gemischt",
+    "shuffleOptionsDoneMessage": "Die richtigen Antworten stehen jetzt an neuen Stellen. Speichere den Rundgang, damit die Änderung gilt.",
+    "shuffleOptionsRoundOpenTitle": "Eine Runde läuft",
+    "shuffleOptionsRoundOpenMessage": "Dieser Rundgang hat eine offene Runde. Wenn du jetzt mischst und speicherst, passen frühere Antworten in der Statistik nicht mehr. Runde zuerst beenden?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} Person ist mitten in der Runde. Die Punkte stimmen, aber die Antworten beziehen sich auf die alten Stellen und die Statistik wird vermischt. Runde zuerst beenden?",
+      "other": "{{count}} Personen sind mitten in der Runde. Die Punkte stimmen, aber die Antworten beziehen sich auf die alten Stellen und die Statistik wird vermischt. Runde zuerst beenden?"
+    },
+    "shuffleOptionsAnyway": "Trotzdem mischen",
+    "shuffleOptionsCloseAndShuffle": "Runde beenden und mischen",
     "batteryImportedMessage": "{{count}} Fragen aus \"{{name}}\" geladen.\n\nTippe auf die Karte, wo du jede Frage platzieren möchtest, eine nach der anderen.",
     "batteryLanguageSet": "Sprache auf {{flag}} ({{code}}) gesetzt — bei Bedarf in der Sprachauswahl ändern.",
     "batteryLanguageUnknown": "Keine Sprache in der Datei angegeben — unten in der Sprachauswahl wählen.",

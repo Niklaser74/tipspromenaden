@@ -415,6 +415,18 @@
     "importError": "Importfeil",
     "importGenericError": "Kunne ikke importere: {{message}}",
     "batteryImportedTitle": "Spørsmålsbatteri importert",
+    "batteryOptionsShuffled": "Svaralternativene er stokket slik at riktig svar ikke står på samme plass gjennom hele turen.",
+    "shuffleOptionsButton": "Stokk svaralternativer",
+    "shuffleOptionsDoneTitle": "Svaralternativene er stokket",
+    "shuffleOptionsDoneMessage": "Riktige svar står nå på nye plasser. Lagre turen for at endringen skal gjelde.",
+    "shuffleOptionsRoundOpenTitle": "En runde pågår",
+    "shuffleOptionsRoundOpenMessage": "Turen har en åpen runde. Stokker du nå og lagrer, kommer tidligere svar i utakt i statistikken. Vil du avslutte runden først?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} person er midt i runden. Poengene blir riktige, men svarene gjelder de gamle plassene og statistikken blandes. Vil du avslutte runden først?",
+      "other": "{{count}} personer er midt i runden. Poengene blir riktige, men svarene gjelder de gamle plassene og statistikken blandes. Vil du avslutte runden først?"
+    },
+    "shuffleOptionsAnyway": "Stokk likevel",
+    "shuffleOptionsCloseAndShuffle": "Avslutt runden og stokk",
     "batteryImportedMessage": "{{count}} spørsmål fra \"{{name}}\" lastet.\n\nTrykk på kartet der du vil plassere hvert spørsmål, ett etter ett.",
     "batteryLanguageSet": "Språk satt til {{flag}} ({{code}}) — endre i språkvelgeren ved behov.",
     "batteryLanguageUnknown": "Ingen språk angitt i filen — velg i språkvelgeren nedenfor.",

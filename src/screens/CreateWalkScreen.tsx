@@ -37,7 +37,12 @@ import { getCurrentLocation } from "../utils/location";
 import { walkCentroid } from "../utils/walkGeo";
 import { generateId, createQRData } from "../utils/qr";
 import { WALK_CATEGORIES, type WalkCategory } from "../constants/categories";
-import { saveWalk } from "../services/firestore";
+import {
+  saveWalk,
+  getOpenRoundSummary,
+  closeOpenRounds,
+} from "../services/firestore";
+import { shuffleQuestionOptions } from "../utils/shuffleOptions";
 import { saveWalkLocally, getSavedWalks, displayWalkTitle } from "../services/storage";
 import type { SavedWalk } from "../types";
 import { recordWalkCreation } from "../services/stats";
@@ -437,10 +442,12 @@ export default function CreateWalkScreen() {
   const pendingBatteryLanguage: string | undefined =
     route.params?.pendingBatteryLanguage;
 
-  const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>(
-    pendingBattery ?? []
+  const [batteryQueue, setBatteryQueue] = useState<BatteryQuestion[]>(() =>
+    pendingBattery ? shuffleQuestionOptions(pendingBattery) : []
   );
   const [batteryName, setBatteryName] = useState<string>(pendingBatteryName ?? "");
+  // Spärr medan "Blanda svarsalternativ" kollar om en runda står öppen.
+  const [shufflingOptions, setShufflingOptions] = useState(false);
 
   // Återanvänd positioner från en tidigare promenad: picker-modal + källa.
   // När `reusedFromTitle` är satt har vi laddat in tomma kontroller på en
@@ -645,11 +652,14 @@ export default function CreateWalkScreen() {
    * alert-strängarna så att användaren vet att frågorna är slumpvalda.
    */
   const applyBattery = (
-    batteryQuestions: BatteryQuestion[],
+    rawBatteryQuestions: BatteryQuestion[],
     batteryDisplayName: string,
     batteryLanguage: string | undefined,
     randomized: boolean
   ) => {
+    // Tipspack skrivs ofta med rätt svar först. Blanda alltid vid import,
+    // så att ingen behöver komma ihåg det.
+    const batteryQuestions = shuffleQuestionOptions(rawBatteryQuestions);
     setBatteryName(batteryDisplayName);
 
     const emptyIndices: number[] = [];
@@ -716,7 +726,80 @@ export default function CreateWalkScreen() {
     const title_ = randomized
       ? t("create.randomImportedTitle")
       : t("create.batteryImportedTitle");
-    Alert.alert(title_, baseMessage + languageNote);
+    Alert.alert(
+      title_,
+      baseMessage + "\n\n" + t("create.batteryOptionsShuffled") + languageNote
+    );
+  };
+
+  /**
+   * "Blanda svarsalternativ" — ny placering av rätt svar på frågor som
+   * redan finns, t.ex. när samma promenad ska gås igen. Bara ifyllda
+   * frågor blandas; tomma kontroller påverkar annars fördelningen.
+   *
+   * Ändringen gäller först när promenaden sparas. Står en runda öppen
+   * varnar vi: deltagare mitt i rundan har svarat mot de gamla platserna,
+   * och fördelningen i Statistik räknas per alternativ-index. Poängen
+   * blir rätt ändå — `correct` sparas i varje svar.
+   */
+  const applyShuffle = () => {
+    const filledIdx = questions
+      .map((q, i) => (q.text.trim() ? i : -1))
+      .filter((i) => i >= 0);
+    const shuffled = shuffleQuestionOptions(filledIdx.map((i) => questions[i]));
+    const next = [...questions];
+    filledIdx.forEach((qi, k) => {
+      next[qi] = shuffled[k];
+    });
+    setQuestions(next);
+    Alert.alert(
+      t("create.shuffleOptionsDoneTitle"),
+      t("create.shuffleOptionsDoneMessage")
+    );
+  };
+
+  const handleShuffleOptions = async () => {
+    if (shufflingOptions) return;
+    if (!isEditing || !existingWalk) {
+      applyShuffle();
+      return;
+    }
+    setShufflingOptions(true);
+    let summary = null;
+    try {
+      summary = await getOpenRoundSummary(existingWalk.id);
+    } catch {
+      // Offline eller läsfel: blanda ändå. Varningen är en service, inte
+      // ett krav — och ingenting ändras förrän promenaden sparas.
+    } finally {
+      setShufflingOptions(false);
+    }
+    if (!summary) {
+      applyShuffle();
+      return;
+    }
+    Alert.alert(
+      t("create.shuffleOptionsRoundOpenTitle"),
+      summary.unfinished > 0
+        ? t("create.shuffleOptionsRoundOpenWarn", { count: summary.unfinished })
+        : t("create.shuffleOptionsRoundOpenMessage"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("create.shuffleOptionsAnyway"), onPress: applyShuffle },
+        {
+          text: t("create.shuffleOptionsCloseAndShuffle"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await closeOpenRounds(existingWalk.id);
+              applyShuffle();
+            } catch (e: any) {
+              Alert.alert(t("common.errorTitle"), e?.message || "");
+            }
+          },
+        },
+      ]
+    );
   };
 
   /**
@@ -1433,6 +1516,21 @@ export default function CreateWalkScreen() {
             >
               <Text style={styles.questionListActionText}>
                 🎲 {t("create.randomFromAllTitle")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {questions.filter((q) => q.text.trim()).length >= 2 && (
+          <View style={styles.questionListActions}>
+            <TouchableOpacity
+              style={styles.questionListActionButton}
+              onPress={handleShuffleOptions}
+              disabled={shufflingOptions}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.questionListActionText}>
+                🔀 {t("create.shuffleOptionsButton")}
               </Text>
             </TouchableOpacity>
           </View>

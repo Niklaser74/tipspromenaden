@@ -512,6 +512,15 @@ AAB:n kan publiceras:
   Topplistan når avslutade rundor via `findLatestSession` (senaste
   sessionen oavsett status); `findActiveSession` hade svarat "ingen
   topplista än" så fort rundan stängts.
+- **Blandade svarsalternativ (OTA 2026-09-18)** — `utils/shuffleOptions.ts`
+  `shuffleQuestionOptions(questions)`. **Byte-för-byte identisk** med
+  `tipspromenaden-web/src/lib/shuffleOptions.ts` — ändra båda. Jämn
+  fördelning av rätt svar (platser cyklas per antal alternativ och blandas),
+  talfrågor sorteras stigande. Anropas i `applyBattery` (alla importvägar)
+  och vid init av `batteryQueue` (deep link), samt från knappen "🔀 Blanda
+  svarsalternativ" i CreateWalk som varnar via `getOpenRoundSummary` om en
+  runda är öppen. Samma ordning för alla deltagare — blanda INTE per
+  deltagare, då blir WalkInsights `optionCounts` (per index) fel.
 - **Resume in-progress walk (OTA 2026-05-20)** — om current uid
   redan är deltagare i en sessions med `answers.length > 0` och utan
   `completedAt` så detekterar `JoinWalkScreen` det via ny

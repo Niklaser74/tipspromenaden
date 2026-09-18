@@ -185,6 +185,38 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-18 — Svarsalternativen blandas
+
+Frågornas ordning slumpades redan vid tipspack-import, men alternativen
+följde med som de stod i filen. Sex av femton kurerade pack hade rätt svar
+på plats 1 på varje fråga (81 av 180 totalt), vilket en deltagare märker
+efter tre kontroller.
+
+Ny `utils/shuffleOptions.ts` (byte-för-byte identisk med webbens
+`src/lib/shuffleOptions.ts`): jämn fördelning i stället för ren slump —
+platserna delas ut A, B, C, … inom varje grupp med samma antal alternativ
+och blandas sedan. Frågor där alla alternativ är tal sorteras stigande.
+Samma ordning för alla deltagare (sparas i walken), annars blir facit
+ojämförbart och WalkInsights fördelning per index meningslös.
+
+Tre ingångar: (1) `applyBattery` blandar hela batteriet vid fil-,
+biblioteks- och slumpa-från-alla-import; deep link-batteriet blandas vid
+init av `batteryQueue`. (2) Knapp "🔀 Blanda svarsalternativ" ovanför
+frågelistan när minst två frågor har text. Vid redigering kollas
+`getOpenRoundSummary`; står en runda öppen: Avbryt / Blanda ändå / Avsluta
+rundan och blanda. Poängen påverkas inte (`correct` sparas i varje svar),
+bara statistiken. (3) Kurerade pack omblandade på webben.
+
+JS-only → OTA (dubbel-publish runtime 1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Rätt svar hamnar inte längre alltid först 🔀 När du hämtar frågor från ett tipspack blandas svarsalternativen automatiskt. Vill du gå samma promenad igen trycker du på Blanda svarsalternativ i redigeringen, så får rätt svar nya platser. Svar som är årtal eller tal sorteras i stället i stigande ordning.
+
+**Release notes (en):**
+The correct answer is no longer always first 🔀 When you take questions from a question pack the answer options are shuffled automatically. Running the same walk again? Tap Shuffle answer options while editing and the correct answers move to new places. Answers that are years or numbers are sorted in ascending order instead.
+
+---
+
 ### OTA 2026-09-14 (II) — Rundor auto-stängs när de legat stilla
 
 Uppföljning på avsluta-knappen: den kräver att arrangören kommer ihåg att

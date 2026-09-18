@@ -415,6 +415,18 @@
     "importError": "Importfejl",
     "importGenericError": "Kunne ikke importere: {{message}}",
     "batteryImportedTitle": "Spørgsmålspakke importeret",
+    "batteryOptionsShuffled": "Svarmulighederne er blandet, så det rigtige svar ikke står samme sted på hele turen.",
+    "shuffleOptionsButton": "Bland svarmuligheder",
+    "shuffleOptionsDoneTitle": "Svarmulighederne er blandet",
+    "shuffleOptionsDoneMessage": "De rigtige svar står nu nye steder. Gem turen, for at ændringen træder i kraft.",
+    "shuffleOptionsRoundOpenTitle": "En runde er i gang",
+    "shuffleOptionsRoundOpenMessage": "Turen har en åben runde. Blander du nu og gemmer, passer tidligere svar ikke længere i statistikken. Vil du afslutte runden først?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} person er midt i runden. Pointene bliver rigtige, men svarene gælder de gamle placeringer, og statistikken blandes. Vil du afslutte runden først?",
+      "other": "{{count}} personer er midt i runden. Pointene bliver rigtige, men svarene gælder de gamle placeringer, og statistikken blandes. Vil du afslutte runden først?"
+    },
+    "shuffleOptionsAnyway": "Bland alligevel",
+    "shuffleOptionsCloseAndShuffle": "Afslut runden og bland",
     "batteryImportedMessage": "{{count}} spørgsmål fra \"{{name}}\" indlæst.\n\nTryk på kortet hvor du vil placere hvert spørgsmål, ét efter ét.",
     "batteryLanguageSet": "Sprog sat til {{flag}} ({{code}}) — ændr i sprogvælgeren ved behov.",
     "batteryLanguageUnknown": "Intet sprog angivet i filen — vælg i sprogvælgeren nedenfor.",

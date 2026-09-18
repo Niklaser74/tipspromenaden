@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Rundor städar nu efter sig 🧹 Har ingen rört en runda på åtta timmar räknas den som avslutad, och nästa person som startar promenaden börjar automatiskt en ny med tom topplista. Perfekt för er som kör samma promenad vecka efter vecka. Du som själv står halvfärdig får förstås fortsätta där du slutade, hur lång pausen än blev.",
-        en: "Rounds now clean up after themselves 🧹 If nobody has touched a round for eight hours it counts as finished, and the next person to start the walk automatically begins a new one with an empty leaderboard. Ideal if you run the same walk week after week. If you're mid-walk yourself you can still pick up where you left off, however long the break.",
+        sv: "Rätt svar hamnar inte längre alltid först 🔀 När du hämtar frågor från ett tipspack blandas svarsalternativen automatiskt. Vill du gå samma promenad igen trycker du på Blanda svarsalternativ i redigeringen, så får rätt svar nya platser. Svar som är årtal eller tal sorteras i stället i stigande ordning.",
+        en: "The correct answer is no longer always first 🔀 When you take questions from a question pack the answer options are shuffled automatically. Running the same walk again? Tap Shuffle answer options while editing and the correct answers move to new places. Answers that are years or numbers are sorted in ascending order instead.",
       },
     },
   },

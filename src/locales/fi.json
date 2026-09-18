@@ -415,6 +415,18 @@
     "importError": "Tuontivirhe",
     "importGenericError": "Tuonti epäonnistui: {{message}}",
     "batteryImportedTitle": "Kysymyspaketti tuotu",
+    "batteryOptionsShuffled": "Vastausvaihtoehdot on sekoitettu, jotta oikea vastaus ei ole samassa kohdassa koko kävelyn ajan.",
+    "shuffleOptionsButton": "Sekoita vastausvaihtoehdot",
+    "shuffleOptionsDoneTitle": "Vastausvaihtoehdot sekoitettu",
+    "shuffleOptionsDoneMessage": "Oikeat vastaukset ovat nyt uusissa kohdissa. Tallenna kävely, jotta muutos tulee voimaan.",
+    "shuffleOptionsRoundOpenTitle": "Kierros on käynnissä",
+    "shuffleOptionsRoundOpenMessage": "Kävelyllä on avoin kierros. Jos sekoitat ja tallennat nyt, aiemmat vastaukset eivät enää täsmää tilastoissa. Päätetäänkö kierros ensin?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} osallistuja on kesken kierroksen. Pisteet ovat oikein, mutta vastaukset koskevat vanhoja kohtia ja tilastot sekoittuvat. Päätetäänkö kierros ensin?",
+      "other": "{{count}} osallistujaa on kesken kierroksen. Pisteet ovat oikein, mutta vastaukset koskevat vanhoja kohtia ja tilastot sekoittuvat. Päätetäänkö kierros ensin?"
+    },
+    "shuffleOptionsAnyway": "Sekoita silti",
+    "shuffleOptionsCloseAndShuffle": "Päätä kierros ja sekoita",
     "batteryImportedMessage": "{{count}} kysymystä paketista \"{{name}}\" ladattu.\n\nNapauta karttaa siihen, mihin haluat sijoittaa kunkin kysymyksen, yksi kerrallaan.",
     "batteryLanguageSet": "Kieli asetettu: {{flag}} ({{code}}) — vaihda kielenvalitsimesta tarvittaessa.",
     "batteryLanguageUnknown": "Kieltä ei ole määritelty tiedostossa — valitse alla olevasta kielenvalitsimesta.",

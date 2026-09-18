@@ -497,6 +497,18 @@
     "importError": "Import error",
     "importGenericError": "Couldn't import: {{message}}",
     "batteryImportedTitle": "Question pack imported",
+    "batteryOptionsShuffled": "The answer options have been shuffled so the correct answer isn't in the same place throughout the walk.",
+    "shuffleOptionsButton": "Shuffle answer options",
+    "shuffleOptionsDoneTitle": "Answer options shuffled",
+    "shuffleOptionsDoneMessage": "The correct answers are now in new places. Save the walk for the change to take effect.",
+    "shuffleOptionsRoundOpenTitle": "A round is in progress",
+    "shuffleOptionsRoundOpenMessage": "This walk has an open round. If you shuffle and save now, earlier answers will be out of step in the insights. End the round first?",
+    "shuffleOptionsRoundOpenWarn": {
+      "one": "{{count}} participant is mid-round. Their score will be correct, but they answered against the old positions and the insights will be mixed up. End the round first?",
+      "other": "{{count}} participants are mid-round. Their scores will be correct, but they answered against the old positions and the insights will be mixed up. End the round first?"
+    },
+    "shuffleOptionsAnyway": "Shuffle anyway",
+    "shuffleOptionsCloseAndShuffle": "End round and shuffle",
     "batteryImportedMessage": "{{count}} questions from \"{{name}}\" loaded.\n\nTap the map where you want to place each question, one by one.",
     "batteryLanguageSet": "Language set to {{flag}} ({{code}}) — change it in the language picker if needed.",
     "batteryLanguageUnknown": "No language was specified in the file — choose one in the language picker below.",
