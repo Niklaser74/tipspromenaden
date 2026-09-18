@@ -159,7 +159,7 @@ sessions/{sessionId}                      # Publik läsning, signed-in kan creat
   id, walkId, status ∈ {waiting, active, completed}, createdAt
 
 sessions/{sessionId}/participants/{uid}   # Doc-id MÅSTE == auth.uid
-  id, name, score, answers[], completedAt?, steps?
+  id, name, score, answers[], completedAt?, steps?, lastActivityAt?
 
 users/{uid}/meta/walkTags                 # Privat, endast ägaren
   catalog: Tag[], byWalk: Record<walkId, tagId[]>, updatedAt
@@ -485,6 +485,33 @@ AAB:n kan publiceras:
   → ny capability behöver toggla i Apple Developer Portal +
   rensa cachad provisioning profile i Expo Dashboard innan ny
   build. Se docs/ios-setup.md §6b.
+- **Rundor: stängning och auto-stängning (OTA 2026-09-14)** — en runda
+  är ett `sessions`-dok och flippade tidigare till `completed` bara när
+  ALLA deltagare hade `completedAt`. En avbruten testare höll den öppen
+  för alltid, och `findActiveSession` återanvänder nyaste öppna → nästa
+  tillfälle ärvde förra rundans topplista. Två lager fixar det:
+  (1) **Manuellt:** `closeOpenRounds(walkId)` stänger alla öppna
+  sessioner. Nås från Bibliotek → ⋯ → "Avsluta rundan" (bara skaparen)
+  och från knapp i topplistans bottom bar. `getOpenRoundSummary` räknar
+  först hur många som är mitt i rundan så bekräftelsen kan säga vad som
+  går förlorat. Irreversibelt — reglerna tillåter bara framåtriktade
+  statusövergångar.
+  (2) **Automatiskt:** `Participant.lastActivityAt` stämplas vid
+  anslutning och vid varje svar (åker med i skrivningen som ändå sker,
+  ingen extra rundtur, ingen regeländring — `hasValidParticipantShape`
+  validerar innehåll, inte fältuppsättning). `findActiveSession(walkId,
+  walk)` returnerar `null` när inget rört sig på `STALE_ROUND_MS` (8 h)
+  → nästa start får en ny runda. Mäts mot aktivitet, inte `createdAt`,
+  så en lång cykelrunda kapas inte. **Pågående event undantas helt**
+  (fönstret styr). **Den som själv står halvfärdig i en övergiven runda
+  får den tillbaka** så resume överlever en lång paus — bara nya
+  deltagare får ny runda. Stängningen av det överhoppade dokumentet är
+  best-effort och tyst: en ny deltagare varken äger walken eller finns i
+  sessionen, så reglerna nekar oftast. Ofarligt — dokumentet återanvänds
+  ändå inte, och "Avsluta rundan" städar det.
+  Topplistan når avslutade rundor via `findLatestSession` (senaste
+  sessionen oavsett status); `findActiveSession` hade svarat "ingen
+  topplista än" så fort rundan stängts.
 - **Resume in-progress walk (OTA 2026-05-20)** — om current uid
   redan är deltagare i en sessions med `answers.length > 0` och utan
   `completedAt` så detekterar `JoinWalkScreen` det via ny

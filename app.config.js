@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Nu kan du avsluta en runda 🏁 Öppna promenaden i Biblioteket → ⋯ → Avsluta rundan, eller tryck på knappen längst ner på topplistan. Rundan låses och nästa person som startar börjar med tom topplista — perfekt för föreningar som kör samma promenad vecka efter vecka. Topplistan går nu också att öppna för rundor som redan är avslutade.",
-        en: "You can now end a round 🏁 Open the walk in the Library → ⋯ → End round, or tap the button at the bottom of the leaderboard. The round locks and the next person to start begins with an empty leaderboard — ideal for clubs running the same walk week after week. Leaderboards for rounds that have already ended are now reachable too.",
+        sv: "Rundor städar nu efter sig 🧹 Har ingen rört en runda på åtta timmar räknas den som avslutad, och nästa person som startar promenaden börjar automatiskt en ny med tom topplista. Perfekt för er som kör samma promenad vecka efter vecka. Du som själv står halvfärdig får förstås fortsätta där du slutade, hur lång pausen än blev.",
+        en: "Rounds now clean up after themselves 🧹 If nobody has touched a round for eight hours it counts as finished, and the next person to start the walk automatically begins a new one with an empty leaderboard. Ideal if you run the same walk week after week. If you're mid-walk yourself you can still pick up where you left off, however long the break.",
       },
     },
   },

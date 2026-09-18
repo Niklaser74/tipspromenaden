@@ -185,6 +185,45 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-14 (II) — Rundor auto-stängs när de legat stilla
+
+Uppföljning på avsluta-knappen: den kräver att arrangören kommer ihåg att
+trycka, och en glömd runda ger samma problem igen. Nu stängs övergivna
+rundor av sig själva.
+
+Signalen saknades i datamodellen, så `Participant.lastActivityAt` är ny —
+stämplas vid anslutning och vid varje svar. Den åker med i den skrivning
+som ändå sker (ingen extra rundtur) och krävde ingen regeländring:
+`hasValidParticipantShape` validerar innehåll, inte fältuppsättning, precis
+som för `steps`.
+
+`findActiveSession(walkId, walk)` returnerar nu `null` när inget rört sig i
+rundan på `STALE_ROUND_MS` (8 h) → anroparen skapar en ny runda i stället
+för att ärva den gamlas topplista. Tröskeln mäts mot faktisk aktivitet, inte
+mot `createdAt`, så en lång cykelrunda inte kapas mitt i.
+
+Två undantag som gör det säkert:
+- **Pågående event rörs aldrig** — datumfönstret styr, och en natt mellan
+  två eventdagar är helt normal.
+- **Den som själv står halvfärdig i den övergivna rundan får den tillbaka**,
+  så "Fortsätt promenaden" överlever en lång paus. Bara nya deltagare får
+  en ny runda. Ingen förlorar alltså sina svar.
+
+Stängningen av det överhoppade sessionsdokumentet är best-effort och tyst:
+en ny deltagare varken äger walken eller finns i sessionen, så reglerna
+nekar oftast. Det är ofarligt — dokumentet återanvänds ändå inte, och
+"Avsluta rundan" städar bort det när ägaren är i appen.
+
+JS-only → OTA (dubbel-publish runtime 1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Rundor städar nu efter sig 🧹 Har ingen rört en runda på åtta timmar räknas den som avslutad, och nästa person som startar promenaden börjar automatiskt en ny med tom topplista. Perfekt för er som kör samma promenad vecka efter vecka. Du som själv står halvfärdig får förstås fortsätta där du slutade, hur lång pausen än blev.
+
+**Release notes (en):**
+Rounds now clean up after themselves 🧹 If nobody has touched a round for eight hours it counts as finished, and the next person to start the walk automatically begins a new one with an empty leaderboard. Ideal if you run the same walk week after week. If you're mid-walk yourself you can still pick up where you left off, however long the break.
+
+---
+
 ### OTA 2026-09-14 — Arrangören kan avsluta rundan
 
 En "runda" är ett `sessions`-dokument, och det stängdes tidigare bara

@@ -35,7 +35,6 @@ import {
 } from "../services/storage";
 import { flagForLanguage } from "../constants/languages";
 import {
-  findActiveSession,
   findLatestSession,
   getOpenRoundSummary,
   closeOpenRounds,

@@ -186,6 +186,17 @@ export interface Participant {
   answers: Answer[];
   /** Unix-tidsstämpel (millisekunder) för när deltagaren avslutade promenaden. Saknas om inte klar. */
   completedAt?: number;
+  /**
+   * Unix-tidsstämpel (millisekunder) för deltagarens senaste skrivning —
+   * sätts vid anslutning och vid varje besvarad fråga. Används för att
+   * avgöra om en runda är övergiven: en öppen session där ingen deltagare
+   * rört sig på `STALE_ROUND_MS` återanvänds inte, utan nästa start får
+   * en ny runda.
+   *
+   * Saknas på deltagare skrivna av klienter äldre än 1.9.2 — då faller
+   * bedömningen tillbaka på sessionens `createdAt`.
+   */
+  lastActivityAt?: number;
   /** Deltagarens poäng (antal korrekta svar). */
   score: number;
   /**

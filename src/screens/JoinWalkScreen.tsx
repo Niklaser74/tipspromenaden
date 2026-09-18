@@ -74,7 +74,7 @@ export default function JoinWalkScreen() {
     let cancelled = false;
     (async () => {
       try {
-        const session = await findActiveSession(walk.id);
+        const session = await findActiveSession(walk.id, walk);
         if (cancelled || !session) return;
         setExistingSessionId(session.id);
 

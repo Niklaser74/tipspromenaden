@@ -29,7 +29,7 @@ import {
   onSnapshot,
   Unsubscribe,
 } from "firebase/firestore";
-import { db } from "../config/firebase";
+import { db, auth } from "../config/firebase";
 import { Walk, Session, Participant, WalkFeedback } from "../types";
 
 const WALKS_COLLECTION = "walks";
@@ -409,7 +409,7 @@ export async function addParticipant(
   );
   const existing = await getDoc(ref);
   if (existing.exists()) return;
-  await setDoc(ref, participant);
+  await setDoc(ref, stripUndefined({ ...participant, lastActivityAt: Date.now() }));
 }
 
 /**
@@ -446,7 +446,10 @@ export async function updateParticipant(
       PARTICIPANTS_SUBCOLLECTION,
       participant.id
     ),
-    stripUndefined(participant)
+    // lastActivityAt åker med i den skrivning som ändå sker — ingen extra
+    // rundtur. Det är signalen `lastActivityOf` läser för att avgöra om en
+    // öppen runda är övergiven.
+    stripUndefined({ ...participant, lastActivityAt: Date.now() })
   );
 
   if (participant.completedAt && !isEvent) {
@@ -692,10 +695,72 @@ export async function findLatestSession(
 }
 
 /**
+ * Hur länge en öppen runda får ligga helt stilla innan den räknas som
+ * övergiven. En tipspromenad tar sällan mer än ett par timmar; åtta
+ * timmar utan att en enda deltagare besvarat en enda fråga betyder att
+ * ingen går kvar. Tröskeln mäts mot faktisk aktivitet, inte mot när
+ * rundan startade, så en lång cykelrunda kapas inte mitt i.
+ */
+export const STALE_ROUND_MS = 8 * 60 * 60 * 1000;
+
+/**
+ * Senaste livstecknet i en runda: nyaste `lastActivityAt` bland
+ * deltagarna, annars `completedAt`, annars när sessionen skapades.
+ * Fallback-kedjan finns för deltagare skrivna av klienter äldre än
+ * 1.9.2, som inte har `lastActivityAt`.
+ */
+function lastActivityOf(session: Session, participants: Participant[]): number {
+  let latest = session.createdAt;
+  for (const p of participants) {
+    const t = p.lastActivityAt ?? p.completedAt ?? 0;
+    if (t > latest) latest = t;
+  }
+  return latest;
+}
+
+/**
+ * Är promenaden ett event som pågår just nu? Pågående event får aldrig
+ * auto-stängas: deltagare ansluter under hela datumfönstret och en lucka
+ * på en natt mellan två dagar är helt normal.
+ */
+function isEventWindowOpen(walk: Walk | undefined): boolean {
+  if (!walk?.event) return false;
+  const today = new Date().toISOString().split("T")[0];
+  return today >= walk.event.startDate && today <= walk.event.endDate;
+}
+
+/**
+ * Stänger en övergiven runda. Best-effort och medvetet tyst: reglerna
+ * släpper bara igenom stängningen från walk-ägaren eller någon som redan
+ * är deltagare i sessionen, och den vanligaste anroparen är en ny
+ * deltagare som är ingetdera. Misslyckas den ligger sessionsdokumentet
+ * kvar som `active` — ofarligt, eftersom `findActiveSession` ändå inte
+ * återanvänder det, och arrangörens "Avsluta rundan" städar bort det.
+ */
+async function closeStaleRound(sessionId: string): Promise<void> {
+  try {
+    await completeSession(sessionId);
+  } catch {
+    // Saknad behörighet är det förväntade utfallet — inte ett fel.
+  }
+}
+
+/**
  * Söker efter en aktiv eller väntande session för en given promenad.
+ *
+ * Skicka med `walk` för att aktivera auto-stängning: har ingen rört sig i
+ * rundan på `STALE_ROUND_MS` returneras `null`, så anroparen startar en ny
+ * runda i stället för att ärva den gamlas topplista. Utan `walk` behålls
+ * det gamla beteendet — vilken öppen session som helst duger.
+ *
+ * Undantag: är det DU själv som ligger halvfärdig i den övergivna rundan
+ * får du den tillbaka ändå, så att "Fortsätt promenaden" fungerar även
+ * efter en lång paus. Du låses alltså aldrig ute från dina egna svar —
+ * det är bara nästa nya deltagare som får en ny runda.
  */
 export async function findActiveSession(
-  walkId: string
+  walkId: string,
+  walk?: Walk
 ): Promise<Session | null> {
   try {
     const q = query(
@@ -710,7 +775,26 @@ export async function findActiveSession(
       return { ...data, participants: [] };
     });
     sessions.sort((a, b) => b.createdAt - a.createdAt);
-    return sessions[0];
+    const newest = sessions[0];
+
+    // Pågående event: fönstret styr, inte aktiviteten.
+    if (!walk || isEventWindowOpen(walk)) return newest;
+
+    const participants = await getParticipants(newest.id);
+    if (Date.now() - lastActivityOf(newest, participants) < STALE_ROUND_MS) {
+      return newest;
+    }
+
+    // Övergiven — men inte för den som själv står halvfärdig i den.
+    // Den får fortsätta där hen slutade i stället för att tappa sina svar,
+    // och rundan lämnas öppen så länge.
+    const uid = auth.currentUser?.uid;
+    const mine = uid ? participants.find((p) => p.id === uid) : undefined;
+    if (mine && !mine.completedAt && mine.answers.length > 0) return newest;
+
+    // Städa bort den om vi får, och låt anroparen börja om.
+    void closeStaleRound(newest.id);
+    return null;
   } catch (e: any) {
     // Offline → returnera null så anroparen kan starta en lokal session.
     // Firestore kastar "unavailable" eller "deadline-exceeded" vid offline.
