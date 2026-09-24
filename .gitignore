@@ -60,3 +60,6 @@ firebase-admin-key.json
 
 # App Store Connect API-nyckel (iOS submit) — får ALDRIG committas
 asc-api-key.p8
+
+# Firebase-emulatorernas loggar
+*-debug.log
