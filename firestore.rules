@@ -35,6 +35,21 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == uid;
     }
 
+    // -------------------- billing --------------------
+    // AI-krediter och huvudbok. Ägaren får läsa sitt saldo och sina
+    // rader; ALLA skrivningar sker via Cloud Functions (Admin SDK, som
+    // går förbi reglerna). En klient som fick skriva här kunde ge sig
+    // själv obegränsat med krediter.
+    match /billing/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+
+      match /ledger/{entryId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        allow write: if false;
+      }
+    }
+
     // Hämtar walks/{walkId} och kontrollerar att inloggad user är ägare.
     // Måste deklareras inuti service-scopet eftersom den använder $(database).
     function isWalkOwner(walkId) {

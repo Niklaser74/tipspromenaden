@@ -1,0 +1,4 @@
+node_modules/
+lib/
+# Kopieras från app-repots src/ av scripts/sync-shared.mjs vid varje build.
+src/shared/

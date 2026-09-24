@@ -561,6 +561,43 @@ AAB:n kan publiceras:
   Filtreras mot sök/kategori/språk via filteredWalks; walks utan
   centroid hoppas över tyst.
 
+## Cloud Functions + AI-frågor (betaltjänst, backend 2026-09)
+
+Projektets första serverkod ligger i `functions/`: ett eget npm-paket,
+Node 22, 2nd gen, region `europe-north1`. Det deploy:as separat, varken
+av `eas build` eller av `eas update`:
+
+```
+npx firebase deploy --only functions --project tipspromenaden-491207
+```
+
+- **`generateQuestions`** (callable) genererar ett tipspack med Claude
+  (`claude-opus-5-5`, effort `medium`) mot krediter.
+  - Kreditposten reserveras i en transaktion innan anropet och
+    återbetalas vid fel.
+  - `requestId` gör anropet idempotent.
+  - Tre lägen: `topic`, `text` och `place`. `place` gör webbsökning i
+    två steg.
+- **`createCheckoutSession`** (callable) och **`stripeWebhook`** (HTTP)
+  hanterar kreditköp via Stripe Checkout. Webhooken är idempotent per
+  Checkout Session.
+- **Krediter:** `billing/{uid}` plus `ledger/`.
+  - Klienten får läsa men aldrig skriva (`firestore.rules`). Allt skrivs
+    via Admin SDK.
+  - Lägg ALDRIG till en klientskrivregel där.
+- **Validatorn:** `functions/scripts/sync-shared.mjs` kopierar
+  `src/services/tipspackValidator.ts` in i `functions/src/shared/`
+  (gitignorerad) vid varje build. Det gör den till en tredje,
+  automatiskt synkad kopia.
+- **Appens tsconfig** exkluderar `functions/`, och Metro rör den aldrig.
+  Inga funktionsberoenden hamnar i app-bundeln.
+- **Secrets:** `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY` och
+  `STRIPE_WEBHOOK_SECRET` ligger i Secret Manager, aldrig i repot.
+- **Setup, klientkontrakt och felkoder:** se `docs/ai-questions-backend.md`.
+- **Test:**
+  - `cd functions && npm test` kör enhetstesterna.
+  - `npm run test:emulator` kör kreditlogiken mot Firestore-emulatorn.
+
 ## Byggflöde
 
 ### Firestore-regler — separat deploy (HÅRT KRAV vid varje ändring)

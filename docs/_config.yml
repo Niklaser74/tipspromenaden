@@ -5,3 +5,4 @@ theme: jekyll-theme-cayman
 # Intern dokumentation som inte ska publiceras offentligt
 exclude:
   - play-store-listing.md
+  - ai-questions-backend.md
