@@ -118,13 +118,18 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
    - Aktivera kort och Swish (Settings → Payment methods).
    - Skapa två priser i SEK: 10 krediter (t.ex. 49 kr) och 30 krediter (t.ex. 119 kr). Notera deras `price_…`-id:n.
    - Lägg in nyckeln: `npx firebase functions:secrets:set STRIPE_SECRET_KEY`.
-   - Om Stripe Tax är aktiverat: sätt parametern `STRIPE_AUTOMATIC_TAX=true`.
+   - Moms, välj ett av två sätt:
+     - **Stripe Tax** (räknar rätt moms även för kunder i andra EU-länder, kostar en avgift per transaktion): aktivera Stripe Tax och sätt `STRIPE_AUTOMATIC_TAX=true`.
+     - **Fast momssats**: skapa en Tax Rate i Dashboard (Product catalog → Tax rates), t.ex. "Moms 25 %", *inclusive*, land SE. Sätt `STRIPE_TAX_RATE_ID=txr_…`.
+     - Utan någon av dem får kvitton och fakturor ingen momsrad. Det är bara rätt om du inte är momsregistrerad.
+   - Priserna ska vara inklusive moms (`tax_behavior: inclusive`), eftersom konsumentpriser i Sverige anges med moms.
    - Kvitton: Settings → **Customer emails** → slå på *Successful payments*. Kvittofakturan (PDF med moms) skapas av Checkout och mejlas automatiskt.
    - Lägg in företagsnamn, adress och momsregistreringsnummer under Settings → **Business details** och **Invoices** — de trycks på kvittot.
 4. **Första deploy** frågar efter parametrarna och sparar dem i `functions/.env.tipspromenaden-491207`:
    - `STRIPE_PRICE_PACK_10`
    - `STRIPE_PRICE_PACK_30`
    - `STRIPE_AUTOMATIC_TAX`
+   - `STRIPE_TAX_RATE_ID` (tom om Stripe Tax används)
    - `WEB_BASE_URL`
 5. **Webhook:** Stripe Dashboard → Developers → Webhooks.
    - Lägg till endpoint `https://europe-north1-tipspromenaden-491207.cloudfunctions.net/stripeWebhook`.

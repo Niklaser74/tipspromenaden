@@ -159,7 +159,12 @@ export async function grantPurchasedCredits(
   uid: string,
   checkoutSessionId: string,
   credits: number,
-  details: { packId: string; amountTotal: number | null; currency: string | null }
+  details: {
+    packId: string;
+    amountTotal: number | null;
+    currency: string | null;
+    invoiceId?: string | null;
+  }
 ): Promise<boolean> {
   return getFirestore().runTransaction(async (tx: Transaction) => {
     const ref = ledgerRef(uid, checkoutSessionId);

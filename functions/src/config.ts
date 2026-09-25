@@ -32,6 +32,12 @@ export const STRIPE_PRICE_PACK_30 = defineString("STRIPE_PRICE_PACK_30");
 export const STRIPE_AUTOMATIC_TAX = defineString("STRIPE_AUTOMATIC_TAX", {
   default: "false",
 });
+/**
+ * Fast momssats (`txr_…`) när Stripe Tax inte används, t.ex. "Moms 25 %,
+ * inkluderad". Tom = ingen moms på raderna. Ignoreras när
+ * STRIPE_AUTOMATIC_TAX=true.
+ */
+export const STRIPE_TAX_RATE_ID = defineString("STRIPE_TAX_RATE_ID", { default: "" });
 /** Bas-URL för retur från Checkout. */
 export const WEB_BASE_URL = defineString("WEB_BASE_URL", {
   default: "https://tipspromenaden.app",
