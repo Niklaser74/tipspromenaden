@@ -9,7 +9,18 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 import { RATE_LIMIT_MAX } from "./config";
-import { consumeCredits, grantPurchasedCredits, refundCredits, reserveCredits, reverseRefundedCredits } from "./credits";
+import {
+  closeInvoice,
+  consumeCredits,
+  countOpenInvoices,
+  findIssuedInvoice,
+  grantInvoicedCredits,
+  grantPurchasedCredits,
+  recordIssuedInvoice,
+  refundCredits,
+  reserveCredits,
+  reverseRefundedCredits,
+} from "./credits";
 import type { GenerationResult } from "./prompt";
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, "FIRESTORE_EMULATOR_HOST måste vara satt");
@@ -104,4 +115,52 @@ test("återbetalning drar krediter proportionellt, idempotent och aldrig under n
   assert.equal(row.creditsReversed, 10);
   assert.equal(row.removedTotal, 6);
   assert.equal(row.uncollected, 4);
+});
+
+test("faktura: krediter först vid betalning, idempotent, öppna räknas", async () => {
+  const uid = "school";
+  const issued = {
+    requestId: "inv_req_1",
+    packId: "pack100",
+    credits: 100,
+    amountDue: 39900,
+    currency: "sek",
+    number: "TP-0001",
+    hostedInvoiceUrl: null,
+  };
+  assert.equal(await recordIssuedInvoice(uid, "in_1", issued), true);
+  assert.equal(await recordIssuedInvoice(uid, "in_1", issued), false);
+  assert.equal(await findIssuedInvoice(uid, "inv_req_1"), "in_1");
+  assert.equal(await findIssuedInvoice(uid, "inv_req_x"), null);
+  await recordIssuedInvoice(uid, "in_2", { ...issued, requestId: "inv_req_2" });
+  assert.equal(await countOpenInvoices(uid), 2);
+  assert.equal(await credits(uid), 0);
+
+  const paid = { packId: "pack100", amountPaid: 39900, currency: "sek" };
+  assert.equal(await grantInvoicedCredits(uid, "in_1", 100, paid), true);
+  assert.equal(await grantInvoicedCredits(uid, "in_1", 100, paid), false);
+  assert.equal(await credits(uid), 100);
+  assert.equal(await countOpenInvoices(uid), 1);
+
+  // Makulerad faktura slutar räknas; en betald går inte att makulera i huvudboken.
+  await closeInvoice(uid, "in_2", "void");
+  await closeInvoice(uid, "in_1", "void");
+  assert.equal(await countOpenInvoices(uid), 0);
+  assert.equal((await db.doc(`billing/${uid}/ledger/in_1`).get()).data()?.status, "granted");
+});
+
+test("faktura: osäker fordran som betalas ändå ger krediter", async () => {
+  const uid = "late_payer";
+  await recordIssuedInvoice(uid, "in_3", {
+    requestId: "inv_req_3",
+    packId: "pack300",
+    credits: 300,
+    amountDue: 99900,
+    currency: "sek",
+    number: null,
+    hostedInvoiceUrl: null,
+  });
+  await closeInvoice(uid, "in_3", "uncollectible");
+  assert.equal(await grantInvoicedCredits(uid, "in_3", 300, { packId: "pack300", amountPaid: 99900, currency: "sek" }), true);
+  assert.equal(await credits(uid), 300);
 });

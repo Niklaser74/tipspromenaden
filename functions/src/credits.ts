@@ -4,8 +4,9 @@
  * skriver här — `firestore.rules` nekar alla klientskrivningar.
  *
  *   billing/{uid}                 { credits, recentGenerations[], updatedAt }
- *   billing/{uid}/ledger/{id}     en rad per generering (id = requestId)
- *                                 eller köp (id = Stripe Checkout Session-id)
+ *   billing/{uid}/ledger/{id}     en rad per generering (id = requestId),
+ *                                 köp (id = Stripe Checkout Session-id)
+ *                                 eller faktura (id = Stripe Invoice-id)
  *
  * Flödet för en generering:
  *   reserveCredits  → drar krediten i förväg, ledger.status = "reserved"
@@ -22,7 +23,15 @@ import type { UsageSummary } from "./ai";
 import type { GenerationResult } from "./prompt";
 import type { Mode } from "./request";
 
-export type LedgerStatus = "reserved" | "consumed" | "refunded" | "granted" | "reversed";
+export type LedgerStatus =
+  | "reserved"
+  | "consumed"
+  | "refunded"
+  | "granted"
+  | "reversed"
+  | "open"
+  | "void"
+  | "uncollectible";
 
 interface BillingDoc {
   credits?: number;
@@ -30,7 +39,7 @@ interface BillingDoc {
 }
 
 interface LedgerDoc {
-  type: "generation" | "purchase" | "refund";
+  type: "generation" | "purchase" | "refund" | "invoice";
   status: LedgerStatus;
   delta: number;
   result?: GenerationResult;
@@ -238,5 +247,109 @@ export async function reverseRefundedCredits(
       { merge: true }
     );
     return removed;
+  });
+}
+
+// -------------------- Faktura (skolor/föreningar) --------------------
+
+export interface IssuedInvoice {
+  requestId: string;
+  packId: string;
+  credits: number;
+  amountDue: number;
+  currency: string;
+  number: string | null;
+  hostedInvoiceUrl: string | null;
+}
+
+/**
+ * Registrerar en skickad faktura (`ledger/{invoiceId}`, status "open",
+ * delta 0). Krediterna läggs till först när fakturan betalas.
+ * @returns false om fakturan redan var registrerad.
+ */
+export async function recordIssuedInvoice(uid: string, invoiceId: string, invoice: IssuedInvoice): Promise<boolean> {
+  try {
+    await ledgerRef(uid, invoiceId).create({
+      type: "invoice",
+      status: "open",
+      delta: 0,
+      ...invoice,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    return true;
+  } catch (e) {
+    // ALREADY_EXISTS (gRPC 6) — ett nytt försök med samma requestId.
+    if ((e as { code?: number }).code === 6) return false;
+    throw e;
+  }
+}
+
+/** Fakturan som redan skickats för ett requestId, eller null. */
+export async function findIssuedInvoice(uid: string, requestId: string): Promise<string | null> {
+  const snap = await billingRef(uid)
+    .collection("ledger")
+    .where("requestId", "==", requestId)
+    .where("type", "==", "invoice")
+    .limit(1)
+    .get();
+  return snap.empty ? null : snap.docs[0].id;
+}
+
+export async function countOpenInvoices(uid: string): Promise<number> {
+  const snap = await billingRef(uid)
+    .collection("ledger")
+    .where("type", "==", "invoice")
+    .where("status", "==", "open")
+    .count()
+    .get();
+  return snap.data().count;
+}
+
+/**
+ * Lägger till krediterna när en faktura är betald. Idempotent per faktura.
+ * Fungerar även om raden saknas (faktura skapad direkt i Dashboard med
+ * rätt metadata) och för en faktura som först markerats som osäker
+ * fordran men sedan betalats ändå.
+ * @returns false om krediterna redan var tillagda.
+ */
+export async function grantInvoicedCredits(
+  uid: string,
+  invoiceId: string,
+  credits: number,
+  details: { packId: string; amountPaid: number; currency: string }
+): Promise<boolean> {
+  return getFirestore().runTransaction(async (tx: Transaction) => {
+    const ref = ledgerRef(uid, invoiceId);
+    const snap = await tx.get(ref);
+    if (snap.data()?.status === "granted") return false;
+    tx.set(
+      billingRef(uid),
+      { credits: FieldValue.increment(credits), updatedAt: FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+    tx.set(
+      ref,
+      {
+        type: "invoice",
+        status: "granted",
+        delta: credits,
+        credits,
+        ...details,
+        paidAt: FieldValue.serverTimestamp(),
+        ...(snap.exists ? {} : { createdAt: FieldValue.serverTimestamp() }),
+      },
+      { merge: true }
+    );
+    return true;
+  });
+}
+
+/** Makulerad eller osäker fordran — raden slutar räknas som öppen. */
+export async function closeInvoice(uid: string, invoiceId: string, status: "void" | "uncollectible"): Promise<void> {
+  await getFirestore().runTransaction(async (tx: Transaction) => {
+    const ref = ledgerRef(uid, invoiceId);
+    const snap = await tx.get(ref);
+    if (snap.data()?.status !== "open") return;
+    tx.update(ref, { status, closedAt: FieldValue.serverTimestamp() });
   });
 }

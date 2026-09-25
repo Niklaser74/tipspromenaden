@@ -13,7 +13,8 @@ All kod ligger i `functions/`. Firestore-reglerna för `billing/` ligger i
 |---|---|---|
 | `generateQuestions` | callable | Drar krediter, anropar Claude, returnerar ett tipspack. Återbetalar vid fel. |
 | `createCheckoutSession` | callable | Skapar en Stripe Checkout Session för ett kreditpaket och returnerar `url`. Köper som användarens egen Stripe Customer, skapar kvittofaktura med moms och samlar in adress + ev. org-/momsnummer. |
-| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter) och `charge.refunded` (drar tillbaka dem). |
+| `createInvoice` | callable | Skickar en faktura (30 dagar netto) för ett större kreditpaket till en skola eller förening. Krediterna kommer när fakturan är betald. |
+| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter), `charge.refunded` (drar tillbaka dem) och `invoice.paid` / `invoice.voided` / `invoice.marked_uncollectible` (kreditfakturor). |
 
 Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 (avstängt i emulatorn).
@@ -21,13 +22,18 @@ Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 ### Data
 
 ```
-billing/{uid}                { credits, recentGenerations[], stripeCustomerId?, updatedAt }
+billing/{uid}                { credits, recentGenerations[], stripeCustomerId?,
+                               stripeOrgCustomerId?, updatedAt }
 billing/{uid}/ledger/{id}    generation: id = requestId
                                { type:"generation", status: reserved|consumed|refunded,
                                  delta:-N, mode, result?, usage?, error? }
                              köp: id = Stripe Checkout Session-id
                                { type:"purchase", status:"granted", delta:+N,
                                  packId, amountTotal, currency }
+                             faktura: id = Stripe Invoice-id
+                               { type:"invoice", status: open|granted|void|uncollectible,
+                                 delta: 0 tills betald, sedan +N, requestId, packId,
+                                 credits, amountDue, number, hostedInvoiceUrl }
                              återbetalning: id = refund_<chargeId>
                                { type:"refund", status:"reversed", delta:-N,
                                  creditsReversed, removedTotal, uncollected }
@@ -102,6 +108,30 @@ const { data } = await checkout({ packId: "pack10" }); // pack10 | pack30
 location.href = data.url; // retur: /skapa?kop=ok&session_id=… eller ?kop=avbrutet
 ```
 
+Faktura till skola/förening (bara `pack100` och `pack300`):
+
+```ts
+const invoice = httpsCallable(functions, "createInvoice");
+const { data } = await invoice({
+  packId: "pack100",
+  requestId: crypto.randomUUID(), // samma id vid retry → samma faktura
+  organization: {
+    name: "Hammarskolan",
+    orgNumber: "212000-0142",     // valfritt, Luhn-kontrolleras för SE
+    vatNumber: "",                // valfritt, SE + orgnr + 01
+    email: "ekonomi@kommun.se",   // dit fakturan mejlas
+    reference: "Anna Andersson / 4711", // "Er referens", valfritt
+    address: { line1, line2?, postalCode, city, country: "SE" }, // EU-land
+  },
+});
+// data = { invoiceId, number, hostedInvoiceUrl, amountDue, currency, dueDate }
+```
+
+- Fakturan mejlas direkt och kan betalas med kort på `hostedInvoiceUrl`, eller till bankgiro enligt fakturan.
+- Krediterna läggs till när den är betald. Bankgirobetalningar markeras i Dashboard: fakturan → *Mark as paid* → *Paid out of band*. Det ger `invoice.paid` och krediterna.
+- Högst 3 obetalda fakturor per användare (`reason: "too-many-open-invoices"`).
+- Faktureringsuppgifterna ligger på en egen Stripe-kund per användare (`stripeOrgCustomerId`), så privata kvitton och skolans fakturor hålls isär.
+
 Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
 
 ## Setup (en gång)
@@ -116,7 +146,16 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
      ```
 3. **Stripe:**
    - Aktivera kort och Swish (Settings → Payment methods).
-   - Skapa två priser i SEK: 10 krediter (t.ex. 49 kr) och 30 krediter (t.ex. 119 kr). Notera deras `price_…`-id:n.
+   - Skapa fyra priser i SEK och notera deras `price_…`-id:n:
+     - 10 krediter (t.ex. 49 kr)
+     - 30 krediter (t.ex. 119 kr)
+     - 100 krediter (t.ex. 349 kr), går att få på faktura
+     - 300 krediter (t.ex. 899 kr), går att få på faktura
+   - Fakturor (Settings → **Invoices**):
+     - Sätt ett nummerprefix, t.ex. `TP`.
+     - Lägg bankgiro och betalningsvillkor i sidfoten (*Default footer*).
+     - Välj betalsätt för fakturasidan (kort räcker).
+   - Slå på *Email finalized invoices to customers* under Settings → **Customer emails**, och påminnelser för förfallna fakturor under **Subscriptions and emails → Manage invoices sent to customers**.
    - Lägg in nyckeln: `npx firebase functions:secrets:set STRIPE_SECRET_KEY`.
    - Moms, välj ett av två sätt:
      - **Stripe Tax** (räknar rätt moms även för kunder i andra EU-länder, kostar en avgift per transaktion): aktivera Stripe Tax och sätt `STRIPE_AUTOMATIC_TAX=true`.
@@ -128,12 +167,20 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
 4. **Första deploy** frågar efter parametrarna och sparar dem i `functions/.env.tipspromenaden-491207`:
    - `STRIPE_PRICE_PACK_10`
    - `STRIPE_PRICE_PACK_30`
+   - `STRIPE_PRICE_PACK_100`
+   - `STRIPE_PRICE_PACK_300`
    - `STRIPE_AUTOMATIC_TAX`
    - `STRIPE_TAX_RATE_ID` (tom om Stripe Tax används)
    - `WEB_BASE_URL`
 5. **Webhook:** Stripe Dashboard → Developers → Webhooks.
    - Lägg till endpoint `https://europe-north1-tipspromenaden-491207.cloudfunctions.net/stripeWebhook`.
-   - Välj händelserna `checkout.session.completed`, `checkout.session.async_payment_succeeded` och `charge.refunded`.
+   - Välj händelserna:
+     - `checkout.session.completed`
+     - `checkout.session.async_payment_succeeded`
+     - `charge.refunded`
+     - `invoice.paid`
+     - `invoice.voided`
+     - `invoice.marked_uncollectible`
    - Lägg in signeringsnyckeln: `npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`.
 6. **Villkor och integritetspolicy:**
    - Villkoren behöver text om krediter och ångerrätt för digitalt innehåll.
@@ -171,5 +218,6 @@ till exakt en gång, även med `stripe events resend <id>`.
 
 - Webb-UI: `AiGenerateDialog`, `BuyCreditsDialog`, CSP `connect-src`.
 - Eval-set med ~20 promptar. Jämför effort `low` och `medium` och gör en faktagranskning.
-- Faktura för skolor/föreningar (Stripe Invoicing) och prenumerationen Pro (Stripe Billing).
+- Webb-UI för faktura (formulär i köpdialogen).
+- Prenumerationen Pro (Stripe Billing).
 - Appen (fas 3): samma callable, inga köplänkar i appen.

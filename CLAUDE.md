@@ -581,6 +581,11 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **`createCheckoutSession`** (callable) och **`stripeWebhook`** (HTTP)
   hanterar kreditköp via Stripe Checkout. Webhooken är idempotent per
   Checkout Session.
+- **`createInvoice`** (callable) skickar en faktura (Stripe Invoicing,
+  30 dagar netto) för större kreditpaket till skolor/föreningar.
+  Krediterna läggs till vid `invoice.paid`, aldrig när fakturan skickas.
+  Alla Stripe-objekt märks med `metadata.kind` (`functions/src/stripe.ts`)
+  så att webhooken inte krediterar Checkouts kvittofakturor två gånger.
 - **Krediter:** `billing/{uid}` plus `ledger/`.
   - Klienten får läsa men aldrig skriva (`firestore.rules`). Allt skrivs
     via Admin SDK.

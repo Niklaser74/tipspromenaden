@@ -15,7 +15,11 @@
  * Checkout skapar en kvittofaktura med moms (`invoice_creation`) och
  * samlar in adress + ev. org-/momsnummer så att föreningar och företag
  * kan bokföra köpet. Återbetalningar (`charge.refunded`) drar tillbaka
- * motsvarande krediter.
+ * motsvarande krediter — både för kortköp och betalda fakturor.
+ *
+ * Webhooken tar också emot fakturahändelser (`invoice.paid`, `.voided`,
+ * `.marked_uncollectible`) för kreditfakturor; logiken ligger i
+ * `invoicing.ts`.
  */
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
@@ -24,6 +28,7 @@ import { CREDIT_PACKS, ENFORCE_APP_CHECK, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECR
 import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
 import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
+import { handleCreditInvoiceClosed, handleCreditInvoicePaid, invoiceForPaymentIntent } from "./invoicing";
 
 export const createCheckoutSession = onCall(
   { secrets: [STRIPE_SECRET_KEY], enforceAppCheck: ENFORCE_APP_CHECK },
@@ -93,24 +98,50 @@ async function handleCompletedSession(session: Stripe.Checkout.Session): Promise
   logger.info(granted ? "Krediter tillagda" : "Köpet redan registrerat", { uid, credits, id: session.id });
 }
 
+/** Kredituppgifterna bakom en betalning: kortköp (PaymentIntent) eller faktura. */
+async function creditsForPayment(
+  stripe: Stripe,
+  paymentIntentId: string
+): Promise<{ uid: string; credits: number } | null> {
+  const pi = await stripe.paymentIntents.retrieve(paymentIntentId);
+  let metadata: Stripe.Metadata | null | undefined = pi.metadata;
+  if (!metadata?.uid) {
+    // Fakturabetalningar bär inte vår metadata — den ligger på fakturan.
+    const invoice = await invoiceForPaymentIntent(stripe, paymentIntentId);
+    metadata = invoice?.metadata?.kind === METADATA_KIND.invoice ? invoice.metadata : null;
+  }
+  const uid = metadata?.uid;
+  const credits = Number(metadata?.credits ?? CREDIT_PACKS[metadata?.packId ?? ""]?.credits);
+  if (!uid || !Number.isInteger(credits) || credits <= 0) return null;
+  return { uid, credits };
+}
+
 async function handleRefundedCharge(charge: Stripe.Charge): Promise<void> {
-  // Metadata ligger på PaymentIntent, inte på Charge.
   const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
   if (!piId) return;
-  const pi = await stripeClient().paymentIntents.retrieve(piId);
-  const uid = pi.metadata?.uid;
-  const credits = Number(pi.metadata?.credits ?? CREDIT_PACKS[pi.metadata?.packId ?? ""]?.credits);
-  if (!uid || !Number.isInteger(credits) || credits <= 0) {
-    // Inte ett kreditköp (t.ex. en framtida prenumeration) — inget att dra.
+  const purchase = await creditsForPayment(stripeClient(), piId);
+  if (!purchase) {
+    // Inte ett kreditköp (t.ex. en Pro-avgift) — inget att dra.
     logger.info("charge.refunded utan kredit-metadata", { charge: charge.id });
     return;
   }
-  const removed = await reverseRefundedCredits(uid, charge.id, {
-    credits,
+  const removed = await reverseRefundedCredits(purchase.uid, charge.id, {
+    credits: purchase.credits,
     amount: charge.amount,
     amountRefunded: charge.amount_refunded,
   });
-  logger.info("Återbetalning — krediter dragna", { uid, charge: charge.id, removed });
+  logger.info("Återbetalning — krediter dragna", { uid: purchase.uid, charge: charge.id, removed });
+}
+
+async function handleInvoiceEvent(
+  type: "invoice.paid" | "invoice.voided" | "invoice.marked_uncollectible",
+  invoice: Stripe.Invoice
+): Promise<void> {
+  // Checkouts kvittofakturor ger också invoice.paid — de är redan
+  // krediterade via checkout.session.completed och har inte kind=credit_invoice.
+  if (invoice.metadata?.kind !== METADATA_KIND.invoice) return;
+  if (type === "invoice.paid") await handleCreditInvoicePaid(invoice);
+  else await handleCreditInvoiceClosed(invoice, type === "invoice.voided" ? "void" : "uncollectible");
 }
 
 export const stripeWebhook = onRequest(
@@ -143,6 +174,12 @@ export const stripeWebhook = onRequest(
         await handleCompletedSession(event.data.object);
       } else if (event.type === "charge.refunded") {
         await handleRefundedCharge(event.data.object);
+      } else if (
+        event.type === "invoice.paid" ||
+        event.type === "invoice.voided" ||
+        event.type === "invoice.marked_uncollectible"
+      ) {
+        await handleInvoiceEvent(event.type, event.data.object);
       }
       res.status(200).json({ received: true });
     } catch (e) {
