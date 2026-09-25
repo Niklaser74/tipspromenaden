@@ -16,6 +16,7 @@ tipspromenaden.app) godkänner du dessa användarvillkor.
 Tipspromenaden drivs och säljs av **Knackpot AB**:
 
 - Organisationsnummer: 559591-7153
+- Momsregistreringsnummer: SE559591715301
 - Postadress: Signalgatan 4, 813 36 Hofors
 - Säte: Hofors kommun, Gävleborgs län
 - E-post: **[legal@tipspromenaden.app](mailto:legal@tipspromenaden.app)**
@@ -273,7 +274,8 @@ Hur vi hanterar dina personuppgifter beskrivs i vår
 
 These Terms of Service are published in Swedish for our primary user
 base. Key points: provided and sold by Knackpot AB (org. no.
-559591-7153, Signalgatan 4, 813 36 Hofors, Sweden); a free service with
+559591-7153, VAT no. SE559591715301, Signalgatan 4, 813 36 Hofors,
+Sweden); a free service with
 optional paid AI features
 (AI credits and the Pro subscription, see §7: prices include Swedish
 VAT, unused Pro credits don't carry over, cancel any time, 14-day
