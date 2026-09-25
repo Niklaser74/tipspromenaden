@@ -10,6 +10,12 @@
  *
  * Antalet krediter läses från metadata som vi själva satte när sessionen
  * skapades — klienten kan inte påverka det.
+ *
+ * Varje användare köper som samma Stripe Customer (`stripeCustomer.ts`).
+ * Checkout skapar en kvittofaktura med moms (`invoice_creation`) och
+ * samlar in adress + ev. org-/momsnummer så att föreningar och företag
+ * kan bokföra köpet. Återbetalningar (`charge.refunded`) drar tillbaka
+ * motsvarande krediter.
  */
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
@@ -22,7 +28,8 @@ import {
   STRIPE_WEBHOOK_SECRET,
   WEB_BASE_URL,
 } from "./config";
-import { grantPurchasedCredits } from "./credits";
+import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
+import { getOrCreateCustomer } from "./stripeCustomer";
 
 function stripeClient(): Stripe {
   return new Stripe(STRIPE_SECRET_KEY.value());
@@ -44,13 +51,31 @@ export const createCheckoutSession = onCall(
     if (!pack) throw new HttpsError("invalid-argument", "Okänt kreditpaket.");
 
     const base = WEB_BASE_URL.value().replace(/\/$/, "");
-    const session = await stripeClient().checkout.sessions.create({
+    const stripe = stripeClient();
+    const customer = await getOrCreateCustomer(
+      stripe,
+      auth.uid,
+      typeof auth.token.email === "string" ? auth.token.email : undefined
+    );
+    const metadata = { uid: auth.uid, packId: pack.id, credits: String(pack.credits) };
+    const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: pack.price(), quantity: 1 }],
       client_reference_id: auth.uid,
-      customer_email: typeof auth.token.email === "string" ? auth.token.email : undefined,
-      metadata: { uid: auth.uid, packId: pack.id, credits: String(pack.credits) },
-      payment_intent_data: { metadata: { uid: auth.uid, packId: pack.id } },
+      customer,
+      // Adress + namn sparas på kunden så att kvittot/momsen blir rätt
+      // och nästa köp slipper fylla i igen.
+      billing_address_collection: "required",
+      customer_update: { address: "auto", name: "auto" },
+      tax_id_collection: { enabled: true },
+      invoice_creation: {
+        enabled: true,
+        invoice_data: { description: `Tipspromenaden – ${pack.credits} AI-krediter`, metadata },
+      },
+      metadata,
+      // PaymentIntent-metadata behövs för att knyta en återbetalning
+      // (charge.refunded) till rätt användare och paket.
+      payment_intent_data: { metadata },
       automatic_tax: { enabled: STRIPE_AUTOMATIC_TAX.value() === "true" },
       locale: "auto",
       success_url: `${base}/skapa?kop=ok&session_id={CHECKOUT_SESSION_ID}`,
@@ -82,6 +107,26 @@ async function handleCompletedSession(session: Stripe.Checkout.Session): Promise
   logger.info(granted ? "Krediter tillagda" : "Köpet redan registrerat", { uid, credits, id: session.id });
 }
 
+async function handleRefundedCharge(charge: Stripe.Charge): Promise<void> {
+  // Metadata ligger på PaymentIntent, inte på Charge.
+  const piId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
+  if (!piId) return;
+  const pi = await stripeClient().paymentIntents.retrieve(piId);
+  const uid = pi.metadata?.uid;
+  const credits = Number(pi.metadata?.credits ?? CREDIT_PACKS[pi.metadata?.packId ?? ""]?.credits);
+  if (!uid || !Number.isInteger(credits) || credits <= 0) {
+    // Inte ett kreditköp (t.ex. en framtida prenumeration) — inget att dra.
+    logger.info("charge.refunded utan kredit-metadata", { charge: charge.id });
+    return;
+  }
+  const removed = await reverseRefundedCredits(uid, charge.id, {
+    credits,
+    amount: charge.amount,
+    amountRefunded: charge.amount_refunded,
+  });
+  logger.info("Återbetalning — krediter dragna", { uid, charge: charge.id, removed });
+}
+
 export const stripeWebhook = onRequest(
   { secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET] },
   async (req, res) => {
@@ -110,6 +155,8 @@ export const stripeWebhook = onRequest(
         event.type === "checkout.session.async_payment_succeeded"
       ) {
         await handleCompletedSession(event.data.object);
+      } else if (event.type === "charge.refunded") {
+        await handleRefundedCharge(event.data.object);
       }
       res.status(200).json({ received: true });
     } catch (e) {

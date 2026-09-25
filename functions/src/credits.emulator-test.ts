@@ -9,7 +9,7 @@ import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError } from "firebase-functions/v2/https";
 import { RATE_LIMIT_MAX } from "./config";
-import { consumeCredits, grantPurchasedCredits, refundCredits, reserveCredits } from "./credits";
+import { consumeCredits, grantPurchasedCredits, refundCredits, reserveCredits, reverseRefundedCredits } from "./credits";
 import type { GenerationResult } from "./prompt";
 
 assert.ok(process.env.FIRESTORE_EMULATOR_HOST, "FIRESTORE_EMULATOR_HOST måste vara satt");
@@ -83,4 +83,25 @@ test("rate limit", async () => {
   }
   await assert.rejects(reserveCredits(uid, "req_rate_x", 1, "topic"), (e) => reason(e) === "rate-limited");
   assert.equal(await credits(uid), 100 - RATE_LIMIT_MAX);
+});
+
+test("återbetalning drar krediter proportionellt, idempotent och aldrig under noll", async () => {
+  const uid = "refunded";
+  await grantPurchasedCredits(uid, "cs_r", 10, { packId: "pack10", amountTotal: 4900, currency: "sek" });
+  // Halv återbetalning → 5 krediter
+  assert.equal(await reverseRefundedCredits(uid, "ch_1", { credits: 10, amount: 4900, amountRefunded: 2450 }), 5);
+  // Samma webhook igen → inget mer
+  assert.equal(await reverseRefundedCredits(uid, "ch_1", { credits: 10, amount: 4900, amountRefunded: 2450 }), 0);
+  assert.equal(await credits(uid), 5);
+  // Användaren förbrukar 4 → 1 kvar; full återbetalning ska dra 5 men bara 1 finns
+  for (let i = 0; i < 4; i++) {
+    await reserveCredits(uid, `req_ref_${i}`, 1, "topic");
+  }
+  assert.equal(await credits(uid), 1);
+  assert.equal(await reverseRefundedCredits(uid, "ch_1", { credits: 10, amount: 4900, amountRefunded: 4900 }), 1);
+  assert.equal(await credits(uid), 0);
+  const row = (await db.doc(`billing/${uid}/ledger/refund_ch_1`).get()).data()!;
+  assert.equal(row.creditsReversed, 10);
+  assert.equal(row.removedTotal, 6);
+  assert.equal(row.uncollected, 4);
 });

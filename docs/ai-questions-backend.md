@@ -12,8 +12,8 @@ All kod ligger i `functions/`. Firestore-reglerna för `billing/` ligger i
 | Funktion | Typ | Vad den gör |
 |---|---|---|
 | `generateQuestions` | callable | Drar krediter, anropar Claude, returnerar ett tipspack. Återbetalar vid fel. |
-| `createCheckoutSession` | callable | Skapar en Stripe Checkout Session för ett kreditpaket och returnerar `url`. |
-| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` och lägger till krediter. |
+| `createCheckoutSession` | callable | Skapar en Stripe Checkout Session för ett kreditpaket och returnerar `url`. Köper som användarens egen Stripe Customer, skapar kvittofaktura med moms och samlar in adress + ev. org-/momsnummer. |
+| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter) och `charge.refunded` (drar tillbaka dem). |
 
 Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 (avstängt i emulatorn).
@@ -21,14 +21,21 @@ Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 ### Data
 
 ```
-billing/{uid}                { credits, recentGenerations[], updatedAt }
+billing/{uid}                { credits, recentGenerations[], stripeCustomerId?, updatedAt }
 billing/{uid}/ledger/{id}    generation: id = requestId
                                { type:"generation", status: reserved|consumed|refunded,
                                  delta:-N, mode, result?, usage?, error? }
                              köp: id = Stripe Checkout Session-id
                                { type:"purchase", status:"granted", delta:+N,
                                  packId, amountTotal, currency }
+                             återbetalning: id = refund_<chargeId>
+                               { type:"refund", status:"reversed", delta:-N,
+                                 creditsReversed, removedTotal, uncollected }
 ```
+
+Vid återbetalning dras krediterna proportionellt mot återbetalt belopp.
+Saldot blir aldrig negativt: har användaren redan förbrukat krediterna
+dras det som finns, och resten hamnar i `uncollected` för manuell koll.
 
 Klienten får **läsa** sitt eget `billing/{uid}` och sin `ledger`. Den får
 inte **skriva** någonting där; det gör bara Admin SDK.
@@ -112,6 +119,8 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
    - Skapa två priser i SEK: 10 krediter (t.ex. 49 kr) och 30 krediter (t.ex. 119 kr). Notera deras `price_…`-id:n.
    - Lägg in nyckeln: `npx firebase functions:secrets:set STRIPE_SECRET_KEY`.
    - Om Stripe Tax är aktiverat: sätt parametern `STRIPE_AUTOMATIC_TAX=true`.
+   - Kvitton: Settings → **Customer emails** → slå på *Successful payments*. Kvittofakturan (PDF med moms) skapas av Checkout och mejlas automatiskt.
+   - Lägg in företagsnamn, adress och momsregistreringsnummer under Settings → **Business details** och **Invoices** — de trycks på kvittot.
 4. **Första deploy** frågar efter parametrarna och sparar dem i `functions/.env.tipspromenaden-491207`:
    - `STRIPE_PRICE_PACK_10`
    - `STRIPE_PRICE_PACK_30`
@@ -119,7 +128,7 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
    - `WEB_BASE_URL`
 5. **Webhook:** Stripe Dashboard → Developers → Webhooks.
    - Lägg till endpoint `https://europe-north1-tipspromenaden-491207.cloudfunctions.net/stripeWebhook`.
-   - Välj händelserna `checkout.session.completed` och `checkout.session.async_payment_succeeded`.
+   - Välj händelserna `checkout.session.completed`, `checkout.session.async_payment_succeeded` och `charge.refunded`.
    - Lägg in signeringsnyckeln: `npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`.
 6. **Villkor och integritetspolicy:**
    - Villkoren behöver text om krediter och ångerrätt för digitalt innehåll.
@@ -157,5 +166,5 @@ till exakt en gång, även med `stripe events resend <id>`.
 
 - Webb-UI: `AiGenerateDialog`, `BuyCreditsDialog`, CSP `connect-src`.
 - Eval-set med ~20 promptar. Jämför effort `low` och `medium` och gör en faktagranskning.
-- Återbetalningar i Stripe (`charge.refunded`) drar inte tillbaka krediter automatiskt. De hanteras manuellt tills vidare.
+- Faktura för skolor/föreningar (Stripe Invoicing) och prenumerationen Pro (Stripe Billing).
 - Appen (fas 3): samma callable, inga köplänkar i appen.

@@ -22,7 +22,7 @@ import type { UsageSummary } from "./ai";
 import type { GenerationResult } from "./prompt";
 import type { Mode } from "./request";
 
-export type LedgerStatus = "reserved" | "consumed" | "refunded" | "granted";
+export type LedgerStatus = "reserved" | "consumed" | "refunded" | "granted" | "reversed";
 
 interface BillingDoc {
   credits?: number;
@@ -30,7 +30,7 @@ interface BillingDoc {
 }
 
 interface LedgerDoc {
-  type: "generation" | "purchase";
+  type: "generation" | "purchase" | "refund";
   status: LedgerStatus;
   delta: number;
   result?: GenerationResult;
@@ -178,5 +178,60 @@ export async function grantPurchasedCredits(
       createdAt: FieldValue.serverTimestamp(),
     });
     return true;
+  });
+}
+
+/**
+ * Drar tillbaka krediter när ett kortköp återbetalas i Stripe.
+ *
+ * Delåterbetalningar ger proportionellt avdrag (avrundat). Raden
+ * `ledger/refund_<chargeId>` håller hur mycket som redan dragits, så att
+ * upprepade webhooks och flera delåterbetalningar av samma charge bara
+ * drar mellanskillnaden. Saldot blir aldrig negativt — har användaren
+ * redan förbrukat krediterna dras det som finns kvar, och resten loggas
+ * på raden (`uncollected`) för manuell uppföljning.
+ * @returns antal krediter som faktiskt drogs nu.
+ */
+export async function reverseRefundedCredits(
+  uid: string,
+  chargeId: string,
+  refund: { credits: number; amount: number; amountRefunded: number }
+): Promise<number> {
+  return getFirestore().runTransaction(async (tx: Transaction) => {
+    const ref = ledgerRef(uid, `refund_${chargeId}`);
+    const [billingSnap, ledgerSnap] = await Promise.all([tx.get(billingRef(uid)), tx.get(ref)]);
+    const already = (ledgerSnap.data()?.creditsReversed as number | undefined) ?? 0;
+    const target =
+      refund.amount > 0
+        ? Math.min(refund.credits, Math.round((refund.credits * refund.amountRefunded) / refund.amount))
+        : 0;
+    const toReverse = target - already;
+    if (toReverse <= 0) return 0;
+
+    const balance = ((billingSnap.data() ?? {}) as BillingDoc).credits ?? 0;
+    const removed = Math.min(toReverse, Math.max(0, balance));
+    const prev = ledgerSnap.data() ?? {};
+    const removedTotal = ((prev.removedTotal as number | undefined) ?? 0) + removed;
+    tx.set(
+      billingRef(uid),
+      { credits: balance - removed, updatedAt: FieldValue.serverTimestamp() },
+      { merge: true }
+    );
+    tx.set(
+      ref,
+      {
+        type: "refund",
+        status: "reversed",
+        delta: -removedTotal,
+        chargeId,
+        creditsReversed: target,
+        removedTotal,
+        uncollected: ((prev.uncollected as number | undefined) ?? 0) + (toReverse - removed),
+        amountRefunded: refund.amountRefunded,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return removed;
   });
 }
