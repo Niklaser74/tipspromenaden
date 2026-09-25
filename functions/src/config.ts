@@ -28,10 +28,22 @@ export const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 /** Stripe price-id:n för kreditpaketen (skapas i Stripe Dashboard). */
 export const STRIPE_PRICE_PACK_10 = defineString("STRIPE_PRICE_PACK_10");
 export const STRIPE_PRICE_PACK_30 = defineString("STRIPE_PRICE_PACK_30");
+/** Större paket för skolor/föreningar — köps på faktura eller via Checkout. */
+export const STRIPE_PRICE_PACK_100 = defineString("STRIPE_PRICE_PACK_100");
+export const STRIPE_PRICE_PACK_300 = defineString("STRIPE_PRICE_PACK_300");
+/** Pro-prenumerationen: månadspris krävs, årspris är valfritt (tomt = av). */
+export const STRIPE_PRICE_PRO_MONTHLY = defineString("STRIPE_PRICE_PRO_MONTHLY");
+export const STRIPE_PRICE_PRO_YEARLY = defineString("STRIPE_PRICE_PRO_YEARLY", { default: "" });
 /** "true" när Stripe Tax är aktiverat i kontot — annars vägrar Checkout. */
 export const STRIPE_AUTOMATIC_TAX = defineString("STRIPE_AUTOMATIC_TAX", {
   default: "false",
 });
+/**
+ * Fast momssats (`txr_…`) när Stripe Tax inte används, t.ex. "Moms 25 %,
+ * inkluderad". Tom = ingen moms på raderna. Ignoreras när
+ * STRIPE_AUTOMATIC_TAX=true.
+ */
+export const STRIPE_TAX_RATE_ID = defineString("STRIPE_TAX_RATE_ID", { default: "" });
 /** Bas-URL för retur från Checkout. */
 export const WEB_BASE_URL = defineString("WEB_BASE_URL", {
   default: "https://tipspromenaden.app",
@@ -62,11 +74,44 @@ export interface CreditPack {
   id: string;
   credits: number;
   price: () => string;
+  /** Får köpas på faktura (bara större paket — fakturor kostar administration). */
+  invoice: boolean;
 }
 
 export const CREDIT_PACKS: Record<string, CreditPack> = {
-  pack10: { id: "pack10", credits: 10, price: () => STRIPE_PRICE_PACK_10.value() },
-  pack30: { id: "pack30", credits: 30, price: () => STRIPE_PRICE_PACK_30.value() },
+  pack10: { id: "pack10", credits: 10, price: () => STRIPE_PRICE_PACK_10.value(), invoice: false },
+  pack30: { id: "pack30", credits: 30, price: () => STRIPE_PRICE_PACK_30.value(), invoice: false },
+  pack100: { id: "pack100", credits: 100, price: () => STRIPE_PRICE_PACK_100.value(), invoice: true },
+  pack300: { id: "pack300", credits: 300, price: () => STRIPE_PRICE_PACK_300.value(), invoice: true },
+};
+
+/** Betalningsvillkor på fakturor (dagar netto). */
+export const INVOICE_DAYS_UNTIL_DUE = 30;
+/**
+ * Max antal obetalda fakturor per användare. Krediterna kommer först när
+ * fakturan är betald, men ett tak hindrar att någon skickar mängder av
+ * fakturor till påhittade adresser i vårt namn.
+ */
+export const MAX_OPEN_INVOICES = 3;
+
+// -------------------- Pro --------------------
+
+/**
+ * Krediter per månad som ingår i Pro. De fylls på (sätts, läggs inte
+ * till) vid varje betald period och sparas inte till nästa — köpta
+ * krediter påverkas aldrig. Årsplanen får 12 × detta en gång per år.
+ */
+export const PRO_CREDITS_PER_MONTH = 20;
+
+export interface ProPlan {
+  id: "pro_month" | "pro_year";
+  months: number;
+  price: () => string;
+}
+
+export const PRO_PLANS: Record<ProPlan["id"], ProPlan> = {
+  pro_month: { id: "pro_month", months: 1, price: () => STRIPE_PRICE_PRO_MONTHLY.value() },
+  pro_year: { id: "pro_year", months: 12, price: () => STRIPE_PRICE_PRO_YEARLY.value() },
 };
 
 /** Max antal genereringar per användare inom RATE_LIMIT_WINDOW_MS. */

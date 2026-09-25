@@ -14,7 +14,7 @@
     "test": "npm run build && node --test \"lib/**/*.test.js\"",
     "serve": "npm run build && firebase emulators:start --only functions,firestore,auth --project tipspromenaden-491207",
     "deploy": "firebase deploy --only functions --project tipspromenaden-491207",
-    "test:emulator": "npm run build && firebase emulators:exec --only firestore --project demo-tipspromenaden \"node --test lib/credits.emulator-test.js\""
+    "test:emulator": "npm run build && firebase emulators:exec --only firestore --project demo-tipspromenaden \"node --test lib/*.emulator-test.js\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",
