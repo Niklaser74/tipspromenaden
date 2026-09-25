@@ -20,6 +20,8 @@ import {
   refundCredits,
   reserveCredits,
   reverseRefundedCredits,
+  refillSubscriptionCredits,
+  setProState,
 } from "./credits";
 import type { GenerationResult } from "./prompt";
 
@@ -163,4 +165,59 @@ test("faktura: osäker fordran som betalas ändå ger krediter", async () => {
   await closeInvoice(uid, "in_3", "uncollectible");
   assert.equal(await grantInvoicedCredits(uid, "in_3", 300, { packId: "pack300", amountPaid: 99900, currency: "sek" }), true);
   assert.equal(await credits(uid), 300);
+});
+
+async function bucket(uid: string): Promise<{ credits: number; sub: number }> {
+  const d = (await db.doc(`billing/${uid}`).get()).data() ?? {};
+  return { credits: d.credits ?? 0, sub: d.subscriptionCredits ?? 0 };
+}
+
+test("Pro: påfyllning sätts (sparas inte), Pro-krediter dras först och återbetalas till rätt hink", async () => {
+  const uid = "pro_user";
+  await grantPurchasedCredits(uid, "cs_pro", 10, { packId: "pack10", amountTotal: null, currency: null });
+  const month = { planId: "pro_month", credits: 20, subscriptionId: "sub_1" };
+  assert.equal(await refillSubscriptionCredits(uid, "in_p1", { ...month, periodStart: 1000, periodEnd: 2000 }), true);
+  assert.equal(await refillSubscriptionCredits(uid, "in_p1", { ...month, periodStart: 1000, periodEnd: 2000 }), false);
+  assert.deepEqual(await bucket(uid), { credits: 10, sub: 20 });
+
+  // 19 från Pro, sedan en generering för 2 som tar 1 + 1
+  for (let i = 0; i < 9; i++) await reserveCredits(uid, `req_pro_${i}`, 2, "place");
+  await db.doc(`billing/${uid}`).update({ recentGenerations: [] });
+  assert.deepEqual(await bucket(uid), { credits: 10, sub: 2 });
+  const r = await reserveCredits(uid, "req_pro_split", 3, "place");
+  assert.equal(r.kind, "reserved");
+  assert.equal(r.creditsLeft, 9);
+  assert.deepEqual(await bucket(uid), { credits: 9, sub: 0 });
+  await refundCredits(uid, "req_pro_split", "test");
+  assert.deepEqual(await bucket(uid), { credits: 10, sub: 2 });
+
+  // Ny period: oanvända Pro-krediter försvinner, köpta finns kvar
+  assert.equal(await refillSubscriptionCredits(uid, "in_p2", { ...month, periodStart: 2000, periodEnd: 3000 }), true);
+  assert.deepEqual(await bucket(uid), { credits: 10, sub: 20 });
+  assert.equal((await db.doc(`billing/${uid}/ledger/in_p2`).get()).data()?.expired, 2);
+
+  // En äldre faktura som kommer sent nollställer inget
+  assert.equal(await refillSubscriptionCredits(uid, "in_p0", { ...month, periodStart: 500, periodEnd: 1000 }), false);
+  assert.deepEqual(await bucket(uid), { credits: 10, sub: 20 });
+
+  // Utan krediter alls: felet visar summan
+  await assert.rejects(reserveCredits(uid, "req_pro_big", 31, "topic"), (e) => {
+    return reason(e) === "no-credits" && (e as HttpsError).details && ((e as HttpsError).details as { credits: number }).credits === 30;
+  });
+});
+
+test("Pro-status: avslutad nollar Pro-krediter, skriver inte över en annan aktiv prenumeration", async () => {
+  const uid = "pro_state";
+  const active = { status: "active", subscriptionId: "sub_a", planId: "pro_month", currentPeriodEnd: 2000, cancelAtPeriodEnd: false };
+  assert.equal(await setProState(uid, active), true);
+  await refillSubscriptionCredits(uid, "in_s1", { planId: "pro_month", credits: 20, periodStart: 1000, periodEnd: 2000, subscriptionId: "sub_a" });
+
+  // En dubbel prenumeration som sägs upp ska inte ta bort den aktiva
+  assert.equal(await setProState(uid, { ...active, subscriptionId: "sub_b", status: "canceled" }), false);
+  assert.equal((await db.doc(`billing/${uid}`).get()).data()?.pro.subscriptionId, "sub_a");
+  assert.equal((await bucket(uid)).sub, 20);
+
+  assert.equal(await setProState(uid, { ...active, status: "canceled" }), true);
+  assert.equal((await bucket(uid)).sub, 0);
+  assert.equal((await db.doc(`billing/${uid}`).get()).data()?.pro.status, "canceled");
 });

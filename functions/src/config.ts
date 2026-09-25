@@ -31,6 +31,9 @@ export const STRIPE_PRICE_PACK_30 = defineString("STRIPE_PRICE_PACK_30");
 /** Större paket för skolor/föreningar — köps på faktura eller via Checkout. */
 export const STRIPE_PRICE_PACK_100 = defineString("STRIPE_PRICE_PACK_100");
 export const STRIPE_PRICE_PACK_300 = defineString("STRIPE_PRICE_PACK_300");
+/** Pro-prenumerationen: månadspris krävs, årspris är valfritt (tomt = av). */
+export const STRIPE_PRICE_PRO_MONTHLY = defineString("STRIPE_PRICE_PRO_MONTHLY");
+export const STRIPE_PRICE_PRO_YEARLY = defineString("STRIPE_PRICE_PRO_YEARLY", { default: "" });
 /** "true" när Stripe Tax är aktiverat i kontot — annars vägrar Checkout. */
 export const STRIPE_AUTOMATIC_TAX = defineString("STRIPE_AUTOMATIC_TAX", {
   default: "false",
@@ -90,6 +93,26 @@ export const INVOICE_DAYS_UNTIL_DUE = 30;
  * fakturor till påhittade adresser i vårt namn.
  */
 export const MAX_OPEN_INVOICES = 3;
+
+// -------------------- Pro --------------------
+
+/**
+ * Krediter per månad som ingår i Pro. De fylls på (sätts, läggs inte
+ * till) vid varje betald period och sparas inte till nästa — köpta
+ * krediter påverkas aldrig. Årsplanen får 12 × detta en gång per år.
+ */
+export const PRO_CREDITS_PER_MONTH = 20;
+
+export interface ProPlan {
+  id: "pro_month" | "pro_year";
+  months: number;
+  price: () => string;
+}
+
+export const PRO_PLANS: Record<ProPlan["id"], ProPlan> = {
+  pro_month: { id: "pro_month", months: 1, price: () => STRIPE_PRICE_PRO_MONTHLY.value() },
+  pro_year: { id: "pro_year", months: 12, price: () => STRIPE_PRICE_PRO_YEARLY.value() },
+};
 
 /** Max antal genereringar per användare inom RATE_LIMIT_WINDOW_MS. */
 export const RATE_LIMIT_MAX = 10;

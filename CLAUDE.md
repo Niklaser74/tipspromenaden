@@ -586,6 +586,11 @@ npx firebase deploy --only functions --project tipspromenaden-491207
   Krediterna läggs till vid `invoice.paid`, aldrig när fakturan skickas.
   Alla Stripe-objekt märks med `metadata.kind` (`functions/src/stripe.ts`)
   så att webhooken inte krediterar Checkouts kvittofakturor två gånger.
+- **Pro** (`subscriptions.ts`): `createProCheckout` och
+  `createPortalSession` (Stripes kundportal). Månadskrediterna ligger i
+  `billing/{uid}.subscriptionCredits`, skilt från köpta `credits`. De
+  **sätts** vid varje betald period, sparas inte, och dras först.
+  Klienter visar summan av båda.
 - **Krediter:** `billing/{uid}` plus `ledger/`.
   - Klienten får läsa men aldrig skriva (`firestore.rules`). Allt skrivs
     via Admin SDK.

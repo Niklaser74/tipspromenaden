@@ -19,7 +19,8 @@
  *
  * Webhooken tar också emot fakturahändelser (`invoice.paid`, `.voided`,
  * `.marked_uncollectible`) för kreditfakturor; logiken ligger i
- * `invoicing.ts`.
+ * `invoicing.ts`. Prenumerationshändelser (`customer.subscription.*` och
+ * `invoice.paid` för Pro) hanteras i `subscriptions.ts`.
  */
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
@@ -28,6 +29,7 @@ import { CREDIT_PACKS, ENFORCE_APP_CHECK, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECR
 import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
 import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
+import { handleSubscriptionChanged, handleSubscriptionInvoicePaid, subscriptionOfInvoice } from "./subscriptions";
 import { handleCreditInvoiceClosed, handleCreditInvoicePaid, invoiceForPaymentIntent } from "./invoicing";
 
 export const createCheckoutSession = onCall(
@@ -137,6 +139,11 @@ async function handleInvoiceEvent(
   type: "invoice.paid" | "invoice.voided" | "invoice.marked_uncollectible",
   invoice: Stripe.Invoice
 ): Promise<void> {
+  const subscriptionId = subscriptionOfInvoice(invoice);
+  if (subscriptionId) {
+    if (type === "invoice.paid") await handleSubscriptionInvoicePaid(invoice, subscriptionId);
+    return;
+  }
   // Checkouts kvittofakturor ger också invoice.paid — de är redan
   // krediterade via checkout.session.completed och har inte kind=credit_invoice.
   if (invoice.metadata?.kind !== METADATA_KIND.invoice) return;
@@ -180,6 +187,12 @@ export const stripeWebhook = onRequest(
         event.type === "invoice.marked_uncollectible"
       ) {
         await handleInvoiceEvent(event.type, event.data.object);
+      } else if (
+        event.type === "customer.subscription.created" ||
+        event.type === "customer.subscription.updated" ||
+        event.type === "customer.subscription.deleted"
+      ) {
+        await handleSubscriptionChanged(event.data.object.id);
       }
       res.status(200).json({ received: true });
     } catch (e) {

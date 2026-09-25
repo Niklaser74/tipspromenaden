@@ -14,7 +14,9 @@ All kod ligger i `functions/`. Firestore-reglerna för `billing/` ligger i
 | `generateQuestions` | callable | Drar krediter, anropar Claude, returnerar ett tipspack. Återbetalar vid fel. |
 | `createCheckoutSession` | callable | Skapar en Stripe Checkout Session för ett kreditpaket och returnerar `url`. Köper som användarens egen Stripe Customer, skapar kvittofaktura med moms och samlar in adress + ev. org-/momsnummer. |
 | `createInvoice` | callable | Skickar en faktura (30 dagar netto) för ett större kreditpaket till en skola eller förening. Krediterna kommer när fakturan är betald. |
-| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter), `charge.refunded` (drar tillbaka dem) och `invoice.paid` / `invoice.voided` / `invoice.marked_uncollectible` (kreditfakturor). |
+| `createProCheckout` | callable | Checkout för Pro-prenumerationen (månad eller år). |
+| `createPortalSession` | callable | Öppnar Stripes kundportal: kort, plan, uppsägning, kvitton. |
+| `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter), `charge.refunded` (drar tillbaka dem) `invoice.paid` / `invoice.voided` / `invoice.marked_uncollectible` (kreditfakturor och Pro-påfyllning) och `customer.subscription.*` (Pro-status). |
 
 Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 (avstängt i emulatorn).
@@ -22,7 +24,10 @@ Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
 ### Data
 
 ```
-billing/{uid}                { credits, recentGenerations[], stripeCustomerId?,
+billing/{uid}                { credits, subscriptionCredits?, subscriptionPeriodStart?,
+                               pro?: { status, subscriptionId, planId,
+                                       currentPeriodEnd, cancelAtPeriodEnd },
+                               recentGenerations[], stripeCustomerId?,
                                stripeOrgCustomerId?, updatedAt }
 billing/{uid}/ledger/{id}    generation: id = requestId
                                { type:"generation", status: reserved|consumed|refunded,
@@ -34,6 +39,9 @@ billing/{uid}/ledger/{id}    generation: id = requestId
                                { type:"invoice", status: open|granted|void|uncollectible,
                                  delta: 0 tills betald, sedan +N, requestId, packId,
                                  credits, amountDue, number, hostedInvoiceUrl }
+                             Pro-period: id = Stripe Invoice-id
+                               { type:"subscription", status: granted|stale,
+                                 delta, expired, planId, credits, periodStart, periodEnd }
                              återbetalning: id = refund_<chargeId>
                                { type:"refund", status:"reversed", delta:-N,
                                  creditsReversed, removedTotal, uncollected }
@@ -45,6 +53,17 @@ dras det som finns, och resten hamnar i `uncollected` för manuell koll.
 
 Klienten får **läsa** sitt eget `billing/{uid}` och sin `ledger`. Den får
 inte **skriva** någonting där; det gör bara Admin SDK.
+
+### Pro
+
+- Pro ger `PRO_CREDITS_PER_MONTH` (20) krediter per månad; årsplanen ger 240 per år.
+- Pro-krediterna ligger i `subscriptionCredits`, skilt från köpta `credits`.
+  - Vid varje betald period **sätts** de till periodens antal. Oanvända sparas inte, de loggas som `expired`.
+  - Köpta krediter påverkas aldrig och tar aldrig slut.
+  - En generering drar från Pro-krediterna först. Misslyckas den går krediten tillbaka till samma hink.
+- Saldot som visas är `credits + subscriptionCredits`. `creditsLeft` och `details.credits` i felen är redan summan.
+- När prenumerationen är slut (`canceled`, `unpaid`, `incomplete_expired`) nollas Pro-krediterna.
+- Återbetalas en Pro-avgift dras inga krediter automatiskt. Säg upp prenumerationen i Dashboard om det behövs.
 
 ### Kostnad per generering (krediter)
 
@@ -132,6 +151,18 @@ const { data } = await invoice({
 - Högst 3 obetalda fakturor per användare (`reason: "too-many-open-invoices"`).
 - Faktureringsuppgifterna ligger på en egen Stripe-kund per användare (`stripeOrgCustomerId`), så privata kvitton och skolans fakturor hålls isär.
 
+Pro och kundportal:
+
+```ts
+const pro = httpsCallable(functions, "createProCheckout");
+const { data } = await pro({ plan: "pro_month" }); // pro_month | pro_year
+location.href = data.url; // retur: /skapa?pro=ok&session_id=… eller ?pro=avbrutet
+// reason "already-subscribed" → skicka till portalen i stället
+
+const portal = httpsCallable(functions, "createPortalSession");
+location.href = (await portal()).data.url; // reason "no-customer" om inget köp finns
+```
+
 Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
 
 ## Setup (en gång)
@@ -151,6 +182,11 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
      - 30 krediter (t.ex. 119 kr)
      - 100 krediter (t.ex. 349 kr), går att få på faktura
      - 300 krediter (t.ex. 899 kr), går att få på faktura
+   - Pro: skapa en produkt "Tipspromenaden Pro" med ett månadspris (t.ex. 79 kr/mån) och eventuellt ett årspris (t.ex. 790 kr/år). Båda ska vara återkommande i SEK, inklusive moms.
+   - Kundportal (Settings → **Billing → Customer portal**):
+     - Tillåt byte av betalkort, uppdatering av faktureringsadress och momsnummer, fakturahistorik och uppsägning vid periodens slut.
+     - Om årsplanen finns: tillåt byte mellan månads- och årspriset (*Subscriptions → Customers can switch plans*).
+   - Misslyckade kortdragningar (Settings → **Billing → Subscriptions and emails**): slå på *Smart Retries* och mejl vid misslyckad betalning. Efter sista försöket: *Cancel the subscription*.
    - Fakturor (Settings → **Invoices**):
      - Sätt ett nummerprefix, t.ex. `TP`.
      - Lägg bankgiro och betalningsvillkor i sidfoten (*Default footer*).
@@ -169,6 +205,8 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
    - `STRIPE_PRICE_PACK_30`
    - `STRIPE_PRICE_PACK_100`
    - `STRIPE_PRICE_PACK_300`
+   - `STRIPE_PRICE_PRO_MONTHLY`
+   - `STRIPE_PRICE_PRO_YEARLY` (tom = ingen årsplan)
    - `STRIPE_AUTOMATIC_TAX`
    - `STRIPE_TAX_RATE_ID` (tom om Stripe Tax används)
    - `WEB_BASE_URL`
@@ -181,6 +219,9 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
      - `invoice.paid`
      - `invoice.voided`
      - `invoice.marked_uncollectible`
+     - `customer.subscription.created`
+     - `customer.subscription.updated`
+     - `customer.subscription.deleted`
    - Lägg in signeringsnyckeln: `npx firebase functions:secrets:set STRIPE_WEBHOOK_SECRET`.
 6. **Villkor och integritetspolicy:**
    - Villkoren behöver text om krediter och ångerrätt för digitalt innehåll.
@@ -214,10 +255,17 @@ stripe listen --forward-to localhost:5001/tipspromenaden-491207/europe-north1/st
 Köp med testkortet `4242 4242 4242 4242`. Kontrollera att krediterna läggs
 till exakt en gång, även med `stripe events resend <id>`.
 
+Faktura: skicka en faktura via `createInvoice`, markera den som betald i
+Dashboard och kontrollera att krediterna kommer en gång.
+
+Pro: teckna med testkortet och kontrollera `billing/{uid}.pro` och
+`subscriptionCredits`. Spola fram en period med en *test clock* (Billing →
+Test clocks) och kontrollera att Pro-krediterna fylls på, inte läggs ihop.
+
 ## Kvar att göra
 
 - Webb-UI: `AiGenerateDialog`, `BuyCreditsDialog`, CSP `connect-src`.
 - Eval-set med ~20 promptar. Jämför effort `low` och `medium` och gör en faktagranskning.
-- Webb-UI för faktura (formulär i köpdialogen).
-- Prenumerationen Pro (Stripe Billing).
+- Test i Stripe testläge av faktura och Pro, se *Test* ovan.
+- Villkoren behöver text om Pro: vad som ingår, att oanvända Pro-krediter inte sparas, och uppsägning.
 - Appen (fas 3): samma callable, inga köplänkar i appen.
