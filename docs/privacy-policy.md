@@ -13,9 +13,11 @@ personuppgifter. Den uppfyller kraven i EU:s dataskyddsförordning (GDPR).
 
 ## 1. Personuppgiftsansvarig
 
-Tipspromenaden drivs av **Niklas Eriksson** som privatperson, hemmahörande i
-Sverige. Kontakt:
-**[privacy@tipspromenaden.app](mailto:privacy@tipspromenaden.app)**.
+Personuppgiftsansvarig är **Knackpot AB**, som driver Tipspromenaden:
+
+- Organisationsnummer: 559591-7153
+- Postadress: Signalgatan 4, 813 36 Hofors
+- E-post: **[privacy@tipspromenaden.app](mailto:privacy@tipspromenaden.app)**
 
 Vi är inte skyldiga att utse dataskyddsombud (DPO) — vi behandlar inte
 personuppgifter i den omfattning eller känslighet som GDPR Art. 37 kräver.
@@ -204,8 +206,9 @@ git-historiken på vårt offentliga GitHub-repo.
 ## English summary
 
 This privacy policy is published in Swedish as our primary user base is in
-Sweden. An English translation is in preparation. Until then, the key
-points: we collect only what's needed to run quiz walks (nickname, answers,
+Sweden. An English translation is in preparation. The controller is
+Knackpot AB (org. no. 559591-7153, Signalgatan 4, 813 36 Hofors, Sweden).
+Until then, the key points: we collect only what's needed to run quiz walks (nickname, answers,
 GPS during a walk, optionally email if you sign in with Google). We use
 Google Firebase as data processor (data stored in EU + USA under the
 EU-US Data Privacy Framework). If you use the optional paid AI features,
