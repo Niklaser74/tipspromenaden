@@ -591,6 +591,12 @@ npx firebase deploy --only functions --project tipspromenaden-491207
   `billing/{uid}.subscriptionCredits`, skilt från köpta `credits`. De
   **sätts** vid varje betald period, sparas inte, och dras först.
   Klienter visar summan av båda.
+- **Kontoradering** (`accountDeletion.ts`): Auth onDelete-triggern
+  `cleanupDeletedUserBilling` (1st gen, eftersom 2nd gen saknar onDelete)
+  säger upp Pro, makulerar obetalda kreditfakturor och raderar
+  `billing/{uid}`. Stripe-kunderna och kvittona finns kvar i sju år
+  (bokföringslagen). Webhook-hanterare måste kolla `accountExists(uid)`
+  innan de skriver, annars återskapar sena händelser `billing/{uid}`.
 - **Krediter:** `billing/{uid}` plus `ledger/`.
   - Klienten får läsa men aldrig skriva (`firestore.rules`). Allt skrivs
     via Admin SDK.

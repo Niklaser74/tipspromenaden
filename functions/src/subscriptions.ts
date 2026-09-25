@@ -20,6 +20,7 @@ import { logger } from "firebase-functions/v2";
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import type Stripe from "stripe";
+import { accountExists } from "./accountDeletion";
 import { ENFORCE_APP_CHECK, PRO_CREDITS_PER_MONTH, PRO_PLANS, STRIPE_SECRET_KEY, type ProPlan } from "./config";
 import { refillSubscriptionCredits, setProState } from "./credits";
 import { isActiveStatus, refillForInvoice } from "./proPlan";
@@ -112,6 +113,8 @@ export async function handleSubscriptionChanged(subscriptionId: string): Promise
     logger.error("Prenumeration utan uid", { subscription: sub.id });
     return;
   }
+  // Vår egen uppsägning vid kontoradering ger också den här händelsen.
+  if (!(await accountExists(uid))) return;
   const item = sub.items.data[0];
   const priceId = item?.price?.id;
   const written = await setProState(uid, {
@@ -149,6 +152,10 @@ export async function handleSubscriptionInvoicePaid(invoice: Stripe.Invoice, sub
   const uid = metadataUid ?? (await uidForSubscription(stripe, await stripe.subscriptions.retrieve(subscriptionId)));
   if (!uid) {
     logger.error("Prenumerationsfaktura utan uid", { invoice: invoice.id });
+    return;
+  }
+  if (!(await accountExists(uid))) {
+    logger.error("Betald Pro-faktura för raderat konto — återbetala i Dashboard", { uid, invoice: invoice.id });
     return;
   }
   const refilled = await refillSubscriptionCredits(uid, invoice.id, { ...refill, subscriptionId });

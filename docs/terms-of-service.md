@@ -227,9 +227,9 @@ under svensk lag eller GDPR.
 
 Vi kan stänga ditt konto utan förvarning vid grova villkorsbrott.
 
-Du kan när som helst sluta använda appen. Har du Pro: säg upp det
-under *Kvitton och prenumeration* innan du raderar ditt konto. När
-kontot raderas försvinner dina oanvända krediter. För att radera ditt konto
+Du kan när som helst sluta använda appen. När du raderar ditt konto
+sägs en aktiv Pro-prenumeration upp direkt, utan återbetalning för den
+påbörjade perioden, och dina oanvända krediter försvinner. För att radera ditt konto
 + all data: se [account-deletion.md](account-deletion.md) eller
 **Inställningar → Radera konto** i appen.
 

@@ -20,6 +20,7 @@
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import type Stripe from "stripe";
+import { accountExists } from "./accountDeletion";
 import { CREDIT_PACKS, ENFORCE_APP_CHECK, INVOICE_DAYS_UNTIL_DUE, MAX_OPEN_INVOICES, STRIPE_SECRET_KEY } from "./config";
 import {
   closeInvoice,
@@ -163,6 +164,10 @@ export async function handleCreditInvoicePaid(invoice: Stripe.Invoice): Promise<
     logger.error("Kreditfaktura saknar uid/credits i metadata", { invoice: invoice.id });
     return;
   }
+  if (!(await accountExists(uid))) {
+    logger.error("Betald kreditfaktura för raderat konto — återbetala i Dashboard", { uid, invoice: invoice.id });
+    return;
+  }
   const granted = await grantInvoicedCredits(uid, invoice.id, credits, {
     packId: invoice.metadata?.packId ?? "",
     amountPaid: invoice.amount_paid,
@@ -180,7 +185,7 @@ export async function handleCreditInvoiceClosed(
   status: "void" | "uncollectible"
 ): Promise<void> {
   const uid = invoice.metadata?.uid;
-  if (!uid) return;
+  if (!uid || !(await accountExists(uid))) return;
   await closeInvoice(uid, invoice.id, status);
   logger.info("Faktura stängd", { uid, invoice: invoice.id, status });
 }

@@ -16,6 +16,7 @@ All kod ligger i `functions/`. Firestore-reglerna för `billing/` ligger i
 | `createInvoice` | callable | Skickar en faktura (30 dagar netto) för ett större kreditpaket till en skola eller förening. Krediterna kommer när fakturan är betald. |
 | `createProCheckout` | callable | Checkout för Pro-prenumerationen (månad eller år). |
 | `createPortalSession` | callable | Öppnar Stripes kundportal: kort, plan, uppsägning, kvitton. |
+| `cleanupDeletedUserBilling` | Auth onDelete (1st gen) | När ett konto raderas: säger upp Pro, makulerar obetalda kreditfakturor och raderar `billing/{uid}` med `ledger/`. |
 | `stripeWebhook` | HTTP | Tar emot `checkout.session.completed` (lägger till krediter), `charge.refunded` (drar tillbaka dem) `invoice.paid` / `invoice.voided` / `invoice.marked_uncollectible` (kreditfakturor och Pro-påfyllning) och `customer.subscription.*` (Pro-status). |
 
 Region `europe-north1`, `maxInstances: 10`. App Check krävs på callables
@@ -53,6 +54,31 @@ dras det som finns, och resten hamnar i `uncollected` för manuell koll.
 
 Klienten får **läsa** sitt eget `billing/{uid}` och sin `ledger`. Den får
 inte **skriva** någonting där; det gör bara Admin SDK.
+
+### Kontoradering
+
+`cleanupDeletedUserBilling` (`functions/src/accountDeletion.ts`) körs för
+varje raderat Firebase-konto, oavsett om det raderas från appen, webben
+eller Console. Klienten behöver inte anropa något.
+
+1. Alla prenumerationer på användarens Stripe-kund som inte redan är
+   avslutade sägs upp direkt, utan återbetalning (villkoren §10).
+2. Öppna kreditfakturor (`kind=credit_invoice`) på båda kunderna makuleras.
+3. Stripe-kunderna märks med `metadata.firebaseDeletedAt` men raderas
+   **inte**. Kvitton och fakturor är bokföringsunderlag och ska sparas i
+   sju år (bokföringslagen). De ligger bara hos Stripe.
+4. `billing/{uid}` och hela `ledger/` raderas (`recursiveDelete`). Vi
+   behåller ingen egen kopia av köphistoriken.
+
+Stegen är idempotenta och triggern har `failurePolicy`, så ett fel mot
+Stripe ger nya försök. Firestore raderas sist, så att id:na finns kvar
+till nästa försök.
+
+Webhooks som kommer efter raderingen skriver ingenting: hanterarna kollar
+`accountExists(uid)` först. Det gäller även `customer.subscription.deleted`
+från vår egen uppsägning. Betalas något ändå för ett raderat konto (t.ex.
+en Checkout som blev klar under raderingen) loggas ett fel som säger att
+betalningen ska återbetalas manuellt i Dashboard.
 
 ### Pro
 
@@ -243,7 +269,7 @@ npx firebase deploy --only functions,firestore:rules --project tipspromenaden-49
 ```
 cd functions
 npm test               # enhetstester: validering av indata, kreditkostnad, JSON → tipspack
-npm run test:emulator  # kreditlogiken mot Firestore-emulatorn (kräver Java)
+npm run test:emulator  # kreditlogiken och kontoraderingen mot Firestore-emulatorn (kräver Java)
 ```
 
 Med Stripe i testläge:

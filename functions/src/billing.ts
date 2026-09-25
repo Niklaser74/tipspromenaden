@@ -25,6 +25,7 @@
 import { logger } from "firebase-functions/v2";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import Stripe from "stripe";
+import { accountExists } from "./accountDeletion";
 import { CREDIT_PACKS, ENFORCE_APP_CHECK, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "./config";
 import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
 import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
@@ -90,6 +91,11 @@ async function handleCompletedSession(session: Stripe.Checkout.Session): Promise
     logger.error("Checkout Session saknar uid/credits i metadata", { id: session.id });
     return;
   }
+  if (!(await accountExists(uid))) {
+    // Kontot raderades medan betalningen pågick — återbetala manuellt.
+    logger.error("Betalt kreditköp för raderat konto — återbetala i Dashboard", { uid, id: session.id });
+    return;
+  }
   const granted = await grantPurchasedCredits(uid, session.id, credits, {
     packId: session.metadata?.packId ?? "",
     amountTotal: session.amount_total,
@@ -127,6 +133,7 @@ async function handleRefundedCharge(charge: Stripe.Charge): Promise<void> {
     logger.info("charge.refunded utan kredit-metadata", { charge: charge.id });
     return;
   }
+  if (!(await accountExists(purchase.uid))) return;
   const removed = await reverseRefundedCredits(purchase.uid, charge.id, {
     credits: purchase.credits,
     amount: charge.amount,
