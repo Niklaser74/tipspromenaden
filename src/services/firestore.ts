@@ -31,6 +31,7 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../config/firebase";
 import { Walk, Session, Participant, WalkFeedback } from "../types";
+import { isRoundStale } from "../utils/staleRound";
 
 const WALKS_COLLECTION = "walks";
 const SESSIONS_COLLECTION = "sessions";
@@ -447,7 +448,7 @@ export async function updateParticipant(
       participant.id
     ),
     // lastActivityAt åker med i den skrivning som ändå sker — ingen extra
-    // rundtur. Det är signalen `lastActivityOf` läser för att avgöra om en
+    // rundtur. Det är signalen `utils/staleRound.ts` läser för att avgöra
     // öppen runda är övergiven.
     stripUndefined({ ...participant, lastActivityAt: Date.now() })
   );
@@ -695,47 +696,13 @@ export async function findLatestSession(
 }
 
 /**
- * Hur länge en öppen runda får ligga helt stilla innan den räknas som
- * övergiven. En tipspromenad tar sällan mer än ett par timmar; åtta
- * timmar utan att en enda deltagare besvarat en enda fråga betyder att
- * ingen går kvar. Tröskeln mäts mot faktisk aktivitet, inte mot när
- * rundan startade, så en lång cykelrunda kapas inte mitt i.
- */
-export const STALE_ROUND_MS = 8 * 60 * 60 * 1000;
-
-/**
- * Senaste livstecknet i en runda: nyaste `lastActivityAt` bland
- * deltagarna, annars `completedAt`, annars när sessionen skapades.
- * Fallback-kedjan finns för deltagare skrivna av klienter äldre än
- * 1.9.2, som inte har `lastActivityAt`.
- */
-function lastActivityOf(session: Session, participants: Participant[]): number {
-  let latest = session.createdAt;
-  for (const p of participants) {
-    const t = p.lastActivityAt ?? p.completedAt ?? 0;
-    if (t > latest) latest = t;
-  }
-  return latest;
-}
-
-/**
- * Är promenaden ett event som pågår just nu? Pågående event får aldrig
- * auto-stängas: deltagare ansluter under hela datumfönstret och en lucka
- * på en natt mellan två dagar är helt normal.
- */
-function isEventWindowOpen(walk: Walk | undefined): boolean {
-  if (!walk?.event) return false;
-  const today = new Date().toISOString().split("T")[0];
-  return today >= walk.event.startDate && today <= walk.event.endDate;
-}
-
-/**
  * Stänger en övergiven runda. Best-effort och medvetet tyst: reglerna
  * släpper bara igenom stängningen från walk-ägaren eller någon som redan
- * är deltagare i sessionen, och den vanligaste anroparen är en ny
- * deltagare som är ingetdera. Misslyckas den ligger sessionsdokumentet
- * kvar som `active` — ofarligt, eftersom `findActiveSession` ändå inte
- * återanvänder det, och arrangörens "Avsluta rundan" städar bort det.
+ * är deltagare i sessionen, och en ny deltagare är ingetdera — därför
+ * misslyckas den oftast. Det riktiga städandet görs av det schemalagda
+ * jobbet `closeStaleRounds` i `functions/src/rounds.ts`, som kör som
+ * admin och därmed får stänga. Den här raden är bara en genväg för
+ * fallet där det råkar vara ägaren själv som startar nästa runda.
  */
 async function closeStaleRound(sessionId: string): Promise<void> {
   try {
@@ -748,10 +715,11 @@ async function closeStaleRound(sessionId: string): Promise<void> {
 /**
  * Söker efter en aktiv eller väntande session för en given promenad.
  *
- * Skicka med `walk` för att aktivera auto-stängning: har ingen rört sig i
- * rundan på `STALE_ROUND_MS` returneras `null`, så anroparen startar en ny
- * runda i stället för att ärva den gamlas topplista. Utan `walk` behålls
- * det gamla beteendet — vilken öppen session som helst duger.
+ * Skicka med `walk` för att hoppa över övergivna rundor: har ingen
+ * **svarat** på något i rundan på `STALE_ROUND_MS` returneras `null`, så
+ * anroparen startar en ny runda i stället för att ärva den gamlas
+ * topplista. Att bara ansluta räknas inte som aktivitet — se
+ * `utils/staleRound.ts`. Utan `walk` behålls det gamla beteendet.
  *
  * Undantag: är det DU själv som ligger halvfärdig i den övergivna rundan
  * får du den tillbaka ändå, så att "Fortsätt promenaden" fungerar även
@@ -777,13 +745,12 @@ export async function findActiveSession(
     sessions.sort((a, b) => b.createdAt - a.createdAt);
     const newest = sessions[0];
 
-    // Pågående event: fönstret styr, inte aktiviteten.
-    if (!walk || isEventWindowOpen(walk)) return newest;
+    // Utan `walk` kan vi inte avgöra om det är ett pågående event —
+    // behåll då det gamla beteendet och återanvänd sessionen.
+    if (!walk) return newest;
 
     const participants = await getParticipants(newest.id);
-    if (Date.now() - lastActivityOf(newest, participants) < STALE_ROUND_MS) {
-      return newest;
-    }
+    if (!isRoundStale(newest, participants, walk)) return newest;
 
     // Övergiven — men inte för den som själv står halvfärdig i den.
     // Den får fortsätta där hen slutade i stället för att tappa sina svar,

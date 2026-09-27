@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Rätt svar hamnar inte längre alltid först 🔀 När du hämtar frågor från ett tipspack blandas svarsalternativen automatiskt. Vill du gå samma promenad igen trycker du på Blanda svarsalternativ i redigeringen, så får rätt svar nya platser. Svar som är årtal eller tal sorteras i stället i stigande ordning.",
-        en: "The correct answer is no longer always first 🔀 When you take questions from a question pack the answer options are shuffled automatically. Running the same walk again? Tap Shuffle answer options while editing and the correct answers move to new places. Answers that are years or numbers are sorted in ascending order instead.",
+        sv: "Gamla rundor städas nu på riktigt 🧹 Ett jobb på servern stänger varje timme rundor som ingen svarat i på åtta timmar, så din promenad visar inte längre att en runda pågår i dagar efteråt. Att bara ansluta utan att svara räknas inte längre som aktivitet. Pågående evenemang rörs aldrig.",
+        en: "Old rounds are now really cleaned up 🧹 An hourly job on the server closes rounds nobody has answered in for eight hours, so your walk no longer shows a round in progress for days afterwards. Joining without answering no longer counts as activity. Ongoing events are never touched.",
       },
     },
   },

@@ -13,7 +13,8 @@
 import { setGlobalOptions } from "firebase-functions/v2";
 import { defineSecret, defineString } from "firebase-functions/params";
 
-export const REGION = "europe-north1";
+export { REGION } from "./region";
+import { REGION } from "./region";
 
 // Sätts här (inte i index.ts) eftersom varje funktion läser de globala
 // inställningarna när den definieras, och config importeras först av alla.

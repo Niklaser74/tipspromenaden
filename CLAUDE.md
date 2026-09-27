@@ -496,19 +496,24 @@ AAB:n kan publiceras:
   först hur många som är mitt i rundan så bekräftelsen kan säga vad som
   går förlorat. Irreversibelt — reglerna tillåter bara framåtriktade
   statusövergångar.
-  (2) **Automatiskt:** `Participant.lastActivityAt` stämplas vid
-  anslutning och vid varje svar (åker med i skrivningen som ändå sker,
-  ingen extra rundtur, ingen regeländring — `hasValidParticipantShape`
-  validerar innehåll, inte fältuppsättning). `findActiveSession(walkId,
-  walk)` returnerar `null` när inget rört sig på `STALE_ROUND_MS` (8 h)
-  → nästa start får en ny runda. Mäts mot aktivitet, inte `createdAt`,
-  så en lång cykelrunda kapas inte. **Pågående event undantas helt**
-  (fönstret styr). **Den som själv står halvfärdig i en övergiven runda
-  får den tillbaka** så resume överlever en lång paus — bara nya
-  deltagare får ny runda. Stängningen av det överhoppade dokumentet är
-  best-effort och tyst: en ny deltagare varken äger walken eller finns i
-  sessionen, så reglerna nekar oftast. Ofarligt — dokumentet återanvänds
-  ändå inte, och "Avsluta rundan" städar det.
+  (2) **Klienten hoppar över** övergivna rundor:
+  `findActiveSession(walkId, walk)` returnerar `null` när ingen **svarat**
+  i rundan på `STALE_ROUND_MS` (8 h) → nästa start får en ny runda i
+  stället för att ärva topplistan. Regeln bor i `utils/staleRound.ts`.
+  **Den som själv står halvfärdig får sin runda tillbaka** så resume
+  överlever en lång paus. Klienten kan däremot inte *stänga* rundan:
+  reglerna släpper bara igenom `completed` från ägaren eller en deltagare
+  i sessionen, så `closeStaleRound` misslyckas nästan alltid (tyst).
+  (3) **Servern stänger** (2026-09-27): schemalagt `closeStaleRounds` i
+  `functions/src/rounds.ts`, varje timme, admin-behörighet. Det var det
+  som faktiskt saknades — mellan 14 och 27 sep stängdes ingenting och 174
+  rundor stod öppna i upp till 14 dagar. Jobbet lämnar ALLA
+  eventpromenader i fred (`keepEventWalks`), även avslutade. Manuellt
+  svep: `node scripts/close-stale-rounds.mjs [--apply]`.
+  **Att bara ansluta räknas inte som aktivitet** — `addParticipant`
+  stämplar `lastActivityAt` redan vid namn-inmatning, och innan
+  2026-09-27 höll en person som anslöt utan att svara rundan vid liv i
+  8 h till. Bara `answers.length > 0` eller `completedAt` räknas nu.
   Topplistan når avslutade rundor via `findLatestSession` (senaste
   sessionen oavsett status); `findActiveSession` hade svarat "ingen
   topplista än" så fort rundan stängts.
@@ -571,6 +576,15 @@ av `eas build` eller av `eas update`:
 npx firebase deploy --only functions --project tipspromenaden-491207
 ```
 
+- **`closeStaleRounds`** (schemalagt, varje timme) stänger övergivna
+  rundor — se funktionslistan ovan. Ligger i **`us-central1`**, inte
+  `europe-north1`: Cloud Scheduler i projektet accepterar bara
+  us-central1 (den följer App Engine-regionen), och deploy mot
+  europe-north1 failar med "Location europe-north1 is not a valid
+  location". Därför importerar `rounds.ts` regionen från
+  `src/region.ts` och inte från `config.ts` — `config.ts` definierar
+  secrets, och då kräver firebase-tools värden för Stripe-nycklarna även
+  när man bara deployar det här jobbet.
 - **`generateQuestions`** (callable) genererar ett tipspack med Claude
   (`claude-opus-5-5`, effort `medium`) mot krediter.
   - Kreditposten reserveras i en transaktion innan anropet och
@@ -610,6 +624,10 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **Secrets:** `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY` och
   `STRIPE_WEBHOOK_SECRET` ligger i Secret Manager, aldrig i repot.
 - **Setup, klientkontrakt och felkoder:** se `docs/ai-questions-backend.md`.
+- **Deploy-fallgrop på den här maskinen:** firebase-tools hinner inte
+  analysera koden inom sin standardgräns (10 s) — `User code failed to
+  load. Cannot determine backend specification`. Koden laddar på ~0,5 s,
+  så det är verktyget. Kör med `FUNCTIONS_DISCOVERY_TIMEOUT=180`.
 - **Test:**
   - `cd functions && npm test` kör enhetstesterna.
   - `npm run test:emulator` kör kreditlogiken mot Firestore-emulatorn.

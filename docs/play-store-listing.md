@@ -185,6 +185,55 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-27 — Rundor stängs på servern (auto-stängningen fungerade inte)
+
+Rapporterat av Niklas: auto-stängningen från 14 sep stängde ingenting. Den
+var byggd som "klienten hoppar över en övergiven runda", och stängningen av
+själva dokumentet var best-effort — den som startar nästa runda äger varken
+walken eller finns i den gamla sessionen, så `firestore.rules` nekade.
+Mätning i produktion 27 sep: **235 öppna rundor, 174 utan aktivitet i över
+8 h**, den äldsta i 14 dagar. För arrangören såg det ut som att rundan
+pågick. Release-noten 14 sep sa "räknas som avslutad" — vilseledande.
+
+Tre ändringar:
+
+1. **Nytt schemalagt jobb** `closeStaleRounds` (`functions/src/rounds.ts`,
+   varje timme). Kör som admin, förbi reglerna, och stänger det klienten
+   inte får. Fungerar oavsett vilken klientversion telefonen kör — två
+   rundor hade återanvänts efter 21 respektive 50 timmar av klienter som
+   inte fått OTA:n (bara runtime 1.9.0 och 1.9.2 har fått den; en iPhone
+   kvar på 1.9.1 har aldrig fått någon av veckans funktioner).
+2. **Bara svar räknas som aktivitet** — `addParticipant` stämplar
+   `lastActivityAt` redan när namnet skrivs in, så en person som anslöt
+   och gick därifrån höll rundan vid liv i 8 h till, och nästa förlängde
+   igen. Regeln bor nu i `utils/staleRound.ts`, delad med jobbet via
+   `functions/scripts/sync-shared.mjs`. Enhetstester i
+   `functions/src/rounds.test.ts`.
+3. **Engångsstädning:** `scripts/close-stale-rounds.mjs --apply` stängde
+   de 174. Kvar: 60 pågående event + 1 färsk runda.
+
+Eventpromenader lämnas i fred av jobbet, även avslutade
+(`keepEventWalks`): en fryst topplista går inte att öppna igen och
+arrangören visar ofta upp resultatet dagarna efter. Klienten startar ändå
+en ny runda när fönstret passerat. 55 rundor från avslutade event står
+därför kvar öppna — medvetet, arrangören har "Avsluta rundan".
+
+**Driftnoter:** jobbet ligger i `us-central1`, inte `europe-north1` som
+övriga funktioner — Cloud Scheduler i projektet accepterar bara
+us-central1 (följer App Engine-regionen). `REGION` flyttad till
+`functions/src/region.ts` så jobbet kan deployas utan att dra in
+`config.ts`s secrets; annars kräver firebase-tools Stripe-nycklarna som
+inte är satta än. Deploy behöver `FUNCTIONS_DISCOVERY_TIMEOUT=180` på den
+här maskinen.
+
+**Release notes till användarna (sv):**
+Gamla rundor städas nu på riktigt 🧹 Ett jobb på servern stänger varje timme rundor som ingen svarat i på åtta timmar, så din promenad visar inte längre att en runda pågår i dagar efteråt. Att bara ansluta utan att svara räknas inte längre som aktivitet. Pågående evenemang rörs aldrig.
+
+**Release notes (en):**
+Old rounds are now really cleaned up 🧹 An hourly job on the server closes rounds nobody has answered in for eight hours, so your walk no longer shows a round in progress for days afterwards. Joining without answering no longer counts as activity. Ongoing events are never touched.
+
+---
+
 ### OTA 2026-09-18 — Svarsalternativen blandas
 
 Frågornas ordning slumpades redan vid tipspack-import, men alternativen

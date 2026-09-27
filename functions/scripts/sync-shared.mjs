@@ -14,7 +14,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const appSrc = join(here, "..", "..", "src");
 const target = join(here, "..", "src", "shared");
 
-const FILES = [["services/tipspackValidator.ts", "tipspackValidator.ts"]];
+const FILES = [
+  ["services/tipspackValidator.ts", "tipspackValidator.ts"],
+  ["utils/staleRound.ts", "staleRound.ts"],
+];
 
 mkdirSync(target, { recursive: true });
 for (const [from, to] of FILES) {
