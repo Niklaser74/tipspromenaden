@@ -18,7 +18,7 @@
  * motsvarande krediter — både för kortköp och betalda fakturor.
  *
  * Webhooken tar också emot fakturahändelser (`invoice.paid`, `.voided`,
- * `.marked_uncollectible`) för kreditfakturor; logiken ligger i
+ * `.marked_uncollectible`, `credit_note.created`) för kreditfakturor; logiken ligger i
  * `invoicing.ts`. Prenumerationshändelser (`customer.subscription.*` och
  * `invoice.paid` för Pro) hanteras i `subscriptions.ts`.
  */
@@ -31,7 +31,12 @@ import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
 import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
 import { handleSubscriptionChanged, handleSubscriptionInvoicePaid, subscriptionOfInvoice } from "./subscriptions";
-import { handleCreditInvoiceClosed, handleCreditInvoicePaid, invoiceForPaymentIntent } from "./invoicing";
+import {
+  handleCreditInvoiceClosed,
+  handleCreditInvoicePaid,
+  handleCreditNoteCreated,
+  invoiceForPaymentIntent,
+} from "./invoicing";
 
 export const createCheckoutSession = onCall(
   { secrets: [STRIPE_SECRET_KEY], enforceAppCheck: ENFORCE_APP_CHECK },
@@ -188,6 +193,8 @@ export const stripeWebhook = onRequest(
         await handleCompletedSession(event.data.object);
       } else if (event.type === "charge.refunded") {
         await handleRefundedCharge(event.data.object);
+      } else if (event.type === "credit_note.created") {
+        await handleCreditNoteCreated(stripeClient(), event.data.object);
       } else if (
         event.type === "invoice.paid" ||
         event.type === "invoice.voided" ||

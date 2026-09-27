@@ -12,6 +12,10 @@
  *   (bankgiro), som markeras "Paid out of band" i Dashboard.
  * - `invoice.voided` / `invoice.marked_uncollectible` stänger raden i
  *   huvudboken så att den inte räknas mot taket på öppna fakturor.
+ * - `credit_note.created` på en betald kreditfaktura drar tillbaka
+ *   krediter i proportion till det krediterade beloppet — men bara den
+ *   del som inte återbetalats via Stripe (den dras via `charge.refunded`).
+ *   Täcker t.ex. en bankgirobetald faktura som krediteras "utanför Stripe".
  *
  * Samma requestId två gånger ger samma faktura (idempotensnyckel mot
  * Stripe + raden `ledger/{invoiceId}`), så ett nätverksfel i klienten
@@ -22,12 +26,14 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import type Stripe from "stripe";
 import { accountExists } from "./accountDeletion";
 import { CREDIT_PACKS, ENFORCE_APP_CHECK, INVOICE_DAYS_UNTIL_DUE, MAX_OPEN_INVOICES, STRIPE_SECRET_KEY } from "./config";
+import { creditedOutsideRefunds } from "./creditNotes";
 import {
   closeInvoice,
   countOpenInvoices,
   findIssuedInvoice,
   grantInvoicedCredits,
   recordIssuedInvoice,
+  reverseRefundedCredits,
 } from "./credits";
 import { parseInvoiceRequest } from "./invoiceRequest";
 import { RequestError } from "./request";
@@ -188,6 +194,30 @@ export async function handleCreditInvoiceClosed(
   if (!uid || !(await accountExists(uid))) return;
   await closeInvoice(uid, invoice.id, status);
   logger.info("Faktura stängd", { uid, invoice: invoice.id, status });
+}
+
+/** `credit_note.created` → dra krediter för det som inte återbetalades via Stripe. */
+export async function handleCreditNoteCreated(stripe: Stripe, note: Stripe.CreditNote): Promise<void> {
+  const amount = creditedOutsideRefunds(note);
+  if (amount <= 0) return;
+  const invoiceId = typeof note.invoice === "string" ? note.invoice : note.invoice.id;
+  const invoice = await stripe.invoices.retrieve(invoiceId);
+  // Bara kreditfakturor — Pro-fakturor och Checkouts kvitton har ingen
+  // kredit-metadata att räkna mot.
+  if (invoice.metadata?.kind !== METADATA_KIND.invoice) return;
+  const uid = invoice.metadata?.uid;
+  const credits = Number(invoice.metadata?.credits);
+  if (!uid || !Number.isInteger(credits) || credits <= 0) return;
+  if (!(await accountExists(uid))) return;
+  // Egen huvudboksrad per kreditnota (refund_cn_<id>), så flera
+  // kreditnotor på samma faktura summeras och en omskickad webhook inte
+  // drar två gånger.
+  const removed = await reverseRefundedCredits(uid, `cn_${note.id}`, {
+    credits,
+    amount: invoice.total,
+    amountRefunded: amount,
+  });
+  logger.info("Kreditnota — krediter dragna", { uid, creditNote: note.id, invoice: invoice.id, removed });
 }
 
 /**
