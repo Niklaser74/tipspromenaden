@@ -69,3 +69,30 @@ export function refillForInvoice(
   }
   return best;
 }
+
+export interface SubscriptionEndLike {
+  cancel_at_period_end: boolean;
+  /** Sekunder sedan epoch; satt när prenumerationen är uppsagd. */
+  cancel_at: number | null;
+}
+
+/**
+ * Om prenumerationen är uppsagd och när Pro i så fall tar slut.
+ *
+ * Med `billing_mode: flexible` sätter kundportalen `cancel_at` (till
+ * periodens slut) i stället för `cancel_at_period_end` — båda betyder
+ * "förnyas inte". `cancel_at` kan också ligga före periodens slut om
+ * uppsägningen görs till ett visst datum; då gäller det tidigare.
+ */
+export function subscriptionEnd(
+  sub: SubscriptionEndLike,
+  periodEnd: number | null
+): { cancelAtPeriodEnd: boolean; currentPeriodEnd: number | null } {
+  if (sub.cancel_at !== null) {
+    return {
+      cancelAtPeriodEnd: true,
+      currentPeriodEnd: periodEnd === null ? sub.cancel_at : Math.min(sub.cancel_at, periodEnd),
+    };
+  }
+  return { cancelAtPeriodEnd: sub.cancel_at_period_end, currentPeriodEnd: periodEnd };
+}

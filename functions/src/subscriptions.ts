@@ -23,7 +23,7 @@ import type Stripe from "stripe";
 import { accountExists } from "./accountDeletion";
 import { ENFORCE_APP_CHECK, PRO_CREDITS_PER_MONTH, PRO_PLANS, STRIPE_SECRET_KEY, type ProPlan } from "./config";
 import { refillSubscriptionCredits, setProState } from "./credits";
-import { isActiveStatus, refillForInvoice } from "./proPlan";
+import { isActiveStatus, refillForInvoice, subscriptionEnd } from "./proPlan";
 import { METADATA_KIND, NO_MANAGED_PAYMENTS, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
 
@@ -125,8 +125,7 @@ export async function handleSubscriptionChanged(subscriptionId: string): Promise
     status: sub.status,
     subscriptionId: sub.id,
     planId: (priceId && planByPrice()[priceId]?.id) || sub.metadata?.plan || null,
-    currentPeriodEnd: item?.current_period_end ?? null,
-    cancelAtPeriodEnd: sub.cancel_at_period_end,
+    ...subscriptionEnd(sub, item?.current_period_end ?? null),
   });
   logger.info(written ? "Pro-status uppdaterad" : "Pro-status överhoppad (annan aktiv prenumeration)", {
     uid,
