@@ -632,7 +632,10 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **Kontoradering** (`accountDeletion.ts`): Auth onDelete-triggern
   `cleanupDeletedUserBilling` (1st gen, eftersom 2nd gen saknar onDelete)
   säger upp Pro, makulerar obetalda kreditfakturor och raderar
-  `billing/{uid}`. Stripe-kunderna och kvittona finns kvar i sju år
+  `billing/{uid}`. Ligger i **`europe-west1`** (`V1_REGION` i
+  `src/region.ts`): 1st gen finns inte i europe-north1, och deploy dit
+  failar med "403 Permission denied on locations/europe-north1" — även
+  när man bara deployar en 2nd gen-funktion. Stripe-kunderna och kvittona finns kvar i sju år
   (bokföringslagen). Webhook-hanterare måste kolla `accountExists(uid)`
   innan de skriver, annars återskapar sena händelser `billing/{uid}`.
 - **Krediter:** `billing/{uid}` plus `ledger/`.
