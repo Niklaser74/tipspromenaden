@@ -24,7 +24,7 @@ import { accountExists } from "./accountDeletion";
 import { ENFORCE_APP_CHECK, PRO_CREDITS_PER_MONTH, PRO_PLANS, STRIPE_SECRET_KEY, type ProPlan } from "./config";
 import { refillSubscriptionCredits, setProState } from "./credits";
 import { isActiveStatus, refillForInvoice } from "./proPlan";
-import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
+import { METADATA_KIND, NO_MANAGED_PAYMENTS, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
 
 /** price-id → plan, för planer som har ett pris konfigurerat. */
@@ -73,6 +73,7 @@ export const createProCheckout = onCall(
       subscription_data: { metadata, billing_mode: { type: "flexible" } },
       metadata,
       automatic_tax: automaticTax(),
+      managed_payments: NO_MANAGED_PAYMENTS,
       locale: "auto",
       success_url: `${base}/skapa?pro=ok&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/skapa?pro=avbrutet`,
