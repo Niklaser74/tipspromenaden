@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Gamla rundor städas nu på riktigt 🧹 Ett jobb på servern stänger varje timme rundor som ingen svarat i på åtta timmar, så din promenad visar inte längre att en runda pågår i dagar efteråt. Att bara ansluta utan att svara räknas inte längre som aktivitet. Pågående evenemang rörs aldrig.",
-        en: "Old rounds are now really cleaned up 🧹 An hourly job on the server closes rounds nobody has answered in for eight hours, so your walk no longer shows a round in progress for days afterwards. Joining without answering no longer counts as activity. Ongoing events are never touched.",
+        sv: "Topplistan finns kvar när eventet är slut 🏆 Öppna promenaden och tryck Visa topplista — det fungerar nu även när rundan är stängd, och utan att fylla i ditt namn. Listan visar deltagarna från eventets datum. Sätter du nya datum börjar en ny omgång, och en tidigare redovisning låses inte längre om när du rättar något i promenaden.",
+        en: "The leaderboard stays after the event ends 🏆 Open the walk and tap Show leaderboard — it now works even when the round is closed, and without entering your name. The list shows participants from the event dates. New dates start a new round, and fixing a typo no longer re-hides results you already revealed.",
       },
     },
   },

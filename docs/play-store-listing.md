@@ -185,6 +185,60 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-28 — Topplistan nåbar efter att eventet tagit slut
+
+Rapporterat av Niklas. Tre fel staplade på varandra i `JoinWalkScreen` gjorde
+att en deltagare inte kom åt topplistan för ett avslutat event:
+
+1. Namn-gaten låg först i `handleStart`, så knappen svarade "Ange ditt namn"
+   för alla utan förifyllt namn (alla utom Google/Apple-inloggade med
+   `displayName`).
+2. Knappen navigerade bara `if (existingSessionId)`, och den kommer från
+   `findActiveSession` som ger `null` när rundan är stängd eller övergiven —
+   normalfallet efter ett event. Annars: "Ingen session hittades".
+3. Knappen ritades grå (`!eventActive`) fast den var enda vägen dit.
+
+Ingen av dem krävde ett nytt nätanrop: `LeaderboardScreen` prenumererar i
+eventläget på alla sessioner via `walkId` och använder inte `sessionId` alls
+(`session`-state var död kod och är borttaget). Ny `openEventLeaderboard()`
+navigerar med `sessionId: ""`, samma mönster som MyWalksList redan använde.
+Namnfältet döljs när eventet är slut, och hint-raden förklarar läget
+(ny nyckel `join.endedHint`, alla 8 språk).
+
+**Topplistan scopas till aktuell omgång.** `subscribeToWalkSessions` hämtar
+alla sessioner för walken, så förra årets deltagare stod kvar när eventet
+kördes igen med nya datum. Ny `utils/eventRound.ts` filtrerar mot eventets
+datumfönster (lokal midnatt via `parseIsoDate`, +12 h marginal efter sista
+dagen). Nya datum = ny omgång; en stavfelsrättning ändrar ingenting.
+
+**Filtret går på DELTAGARNAS tidsstämplar, inte på sessionens `createdAt`.**
+Första utkastet filtrerade på sessionen och hade dolt hela listor: arrangörer
+testar promenaden dagar i förväg, och eftersom en öppen runda återanvänds
+hamnar de riktiga deltagarna i testrundans session. Medborgarskapspromenaden
+(41 deltagare) hade tappat allihop — session skapad 21 aug, målgång 25 aug.
+Mätt mot produktionsdata: med deltagarregeln krymper 8 av 67 eventtopplistor,
+och det som faller bort är daterat före eventets datum, alltså testrundor.
+
+Dessutom: `CreateWalkScreen` bär nu med `resultsRevealedAt` när eventets
+datum är oförändrade. Tidigare nollställde varje redigering redovisningen, så
+en stavfelsrättning efter eventet skickade deltagarna tillbaka till vänte-vyn
+för resultat de redan sett.
+
+Verifierat mot riktig data i webbversionen: "Tockendagen 2026" (avslutat
+2026-07-25, en stängd och en öppen runda) — ett tryck ger topplistan med 9
+rankade, testrundans 2 från dagen före är borta. Vanlig promenad utan event
+oförändrad. Enhetstester i `functions/src/eventRound.test.ts` (41 gröna).
+
+JS-only → OTA (dubbel-publish runtime 1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Topplistan finns kvar när eventet är slut 🏆 Öppna promenaden och tryck Visa topplista — det fungerar nu även när rundan är stängd, och utan att fylla i ditt namn. Listan visar deltagarna från eventets datum. Sätter du nya datum börjar en ny omgång, och en tidigare redovisning låses inte längre om när du rättar något i promenaden.
+
+**Release notes (en):**
+The leaderboard stays after the event ends 🏆 Open the walk and tap Show leaderboard — it now works even when the round is closed, and without entering your name. The list shows participants from the event dates. New dates start a new round, and fixing a typo no longer re-hides results you already revealed.
+
+---
+
 ### OTA 2026-09-27 — Rundor stängs på servern (auto-stängningen fungerade inte)
 
 Rapporterat av Niklas: auto-stängningen från 14 sep stängde ingenting. Den

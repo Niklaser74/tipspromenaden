@@ -429,7 +429,8 @@
     "updatedNotice": "Promenaden har uppdaterats av skaparen — du har nyaste versionen",
     "startButton": "Starta promenaden",
     "notOpenButton": "Inte öppet ännu",
-    "gpsHint": "Se till att GPS är aktiverat på din enhet"
+    "gpsHint": "Se till att GPS är aktiverat på din enhet",
+    "endedHint": "Eventet är avslutat. Topplistan ligger kvar tills arrangören ändrar eventets datum."
   },
   "leaderboard": {
     "loading": "Laddar topplista...",

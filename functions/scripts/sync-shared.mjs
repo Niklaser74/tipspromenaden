@@ -17,6 +17,10 @@ const target = join(here, "..", "src", "shared");
 const FILES = [
   ["services/tipspackValidator.ts", "tipspackValidator.ts"],
   ["utils/staleRound.ts", "staleRound.ts"],
+  // eventRound importerar parseIsoDate ur date.ts — båda måste med,
+  // annars går den speglade kopian inte att kompilera.
+  ["utils/eventRound.ts", "eventRound.ts"],
+  ["utils/date.ts", "date.ts"],
 ];
 
 mkdirSync(target, { recursive: true });

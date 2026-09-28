@@ -349,7 +349,8 @@
     "updatedNotice": "Tipsturen har blitt oppdatert av skaperen — du har den nyeste versjonen",
     "startButton": "Start tipsturen",
     "notOpenButton": "Ikke åpent ennå",
-    "gpsHint": "Sørg for at GPS er aktivert på enheten din"
+    "gpsHint": "Sørg for at GPS er aktivert på enheten din",
+    "endedHint": "Arrangementet er avsluttet. Resultatlisten blir stående til arrangøren endrer datoene."
   },
   "leaderboard": {
     "loading": "Laster topplista...",

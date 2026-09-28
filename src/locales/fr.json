@@ -349,7 +349,8 @@
     "updatedNotice": "La balade a été mise à jour par son créateur — vous avez la dernière version",
     "startButton": "Commencer la balade",
     "notOpenButton": "Pas encore ouvert",
-    "gpsHint": "Assurez-vous que le GPS est activé sur votre appareil"
+    "gpsHint": "Assurez-vous que le GPS est activé sur votre appareil",
+    "endedHint": "L'événement est terminé. Le classement reste affiché jusqu'à ce que l'organisateur change les dates."
   },
   "leaderboard": {
     "loading": "Chargement du classement...",

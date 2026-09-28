@@ -517,6 +517,22 @@ AAB:n kan publiceras:
   Topplistan når avslutade rundor via `findLatestSession` (senaste
   sessionen oavsett status); `findActiveSession` hade svarat "ingen
   topplista än" så fort rundan stängts.
+- **Eventtopplista efter slutdatum (OTA 2026-09-28)** — ett avslutat event
+  når sin topplista via `JoinWalkScreen`s knapp, som går rakt på
+  `openEventLeaderboard()` med `sessionId: ""`. I eventläget använder
+  `LeaderboardScreen` bara `walkId` + `subscribeToWalkSessions` — `sessionId`
+  behövs inte, och stängda sessioner läses ändå (reglerna ger public read).
+  Namn-gaten i `handleStart` ligger nu EFTER event-grenarna; låg den först
+  blockerade den vägen till topplistan.
+  `utils/eventRound.ts` scopar listan till eventets datumfönster (lokal
+  midnatt via `parseIsoDate`, +12 h marginal efter sista dagen), speglad till
+  functions via sync-shared och testad i `functions/src/eventRound.test.ts`.
+  **Filtret går på deltagarnas `completedAt`/`lastActivityAt`, ALDRIG på
+  sessionens `createdAt`** — arrangörer testar promenaden dagar i förväg och
+  den öppna testrundan återanvänds av de riktiga deltagarna, så sessionens
+  starttid säger ingenting om när folk gick. Nya eventdatum = ny omgång;
+  `isSameEventWindow` avgör också om `resultsRevealedAt` följer med vid
+  redigering (annars låstes en redovisad topplista om vid varje sparning).
 - **Blandade svarsalternativ (OTA 2026-09-18)** — `utils/shuffleOptions.ts`
   `shuffleQuestionOptions(questions)`. **Byte-för-byte identisk** med
   `tipspromenaden-web/src/lib/shuffleOptions.ts` — ändra båda. Jämn

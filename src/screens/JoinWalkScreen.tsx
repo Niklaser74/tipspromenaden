@@ -185,13 +185,31 @@ export default function JoinWalkScreen() {
     );
   };
 
+  /**
+   * Topplistan för ett event läses via `walkId`, inte via en enskild
+   * session: LeaderboardScreen prenumererar på ALLA sessioner för walken
+   * och använder inte `sessionId` i eventläget. Därför behövs ingen
+   * session-lookup här — och därför fungerar det även när rundan är
+   * stängd eller övergiven, då `findActiveSession` ger null. Samma
+   * mönster som MyWalksList använder för egna event.
+   */
+  const openEventLeaderboard = () => {
+    navigation.navigate("Leaderboard", {
+      sessionId: existingSessionId ?? "",
+      walkTitle: walk.title,
+      totalQuestions: walk.questions.length,
+      participantId: auth.currentUser?.uid,
+      walkId: walk.id,
+      isEvent: true,
+    });
+  };
+
   const handleStart = async (opts?: { freshStart?: boolean }) => {
     const freshStart = !!opts?.freshStart;
-    if (!name.trim()) {
-      Alert.alert(t("join.enterNameTitle"), t("join.enterNameMessage"));
-      return;
-    }
 
+    // Event-grenarna först. Namnet behövs bara för att faktiskt STARTA en
+    // promenad — låg namn-gaten kvar överst blockerade den enda vägen till
+    // topplistan för alla som inte har ett förifyllt namn.
     if (eventNotStarted) {
       Alert.alert(
         t("join.notOpenTitle"),
@@ -201,29 +219,12 @@ export default function JoinWalkScreen() {
     }
 
     if (eventEnded) {
-      Alert.alert(
-        t("join.endedTitle"),
-        t("join.endedMessage"),
-        [
-          { text: t("common.cancel"), style: "cancel" },
-          {
-            text: t("join.showLeaderboard"),
-            onPress: () => {
-              if (existingSessionId) {
-                navigation.navigate("Leaderboard", {
-                  sessionId: existingSessionId,
-                  walkTitle: walk.title,
-                  totalQuestions: walk.questions.length,
-                  walkId: walk.id,
-                  isEvent: true,
-                });
-              } else {
-                Alert.alert(t("join.errorTitle"), t("join.noSessionError"));
-              }
-            },
-          },
-        ]
-      );
+      openEventLeaderboard();
+      return;
+    }
+
+    if (!name.trim()) {
+      Alert.alert(t("join.enterNameTitle"), t("join.enterNameMessage"));
       return;
     }
 
@@ -353,7 +354,10 @@ export default function JoinWalkScreen() {
           )
         )}
 
-        {/* Name input */}
+        {/* Name input — döljs när eventet är slut: man startar ingen
+            promenad då, och fältets autoFocus lade tangentbordet över
+            knappen till topplistan. */}
+        {!eventEnded && (
         <View style={styles.inputSection}>
           <Text style={styles.inputLabel}>{t("join.nameLabel")}</Text>
           <TextInput
@@ -371,14 +375,18 @@ export default function JoinWalkScreen() {
           />
           <Text style={styles.privacyHint}>{t("join.privacyHint")}</Text>
         </View>
+        )}
 
         {/* Start button */}
         <TouchableOpacity
           style={[
             styles.startButton,
-            (!eventActive || loading) && styles.startButtonDisabled,
+            // Bara "inte öppnat än" ska se inaktiverat ut. Ett avslutat
+            // event har en fullt fungerande knapp — den leder till
+            // topplistan.
+            (eventNotStarted || loading) && styles.startButtonDisabled,
           ]}
-          onPress={() => handleStart()}
+          onPress={eventEnded ? openEventLeaderboard : () => handleStart()}
           disabled={loading}
           activeOpacity={0.8}
         >
@@ -413,9 +421,11 @@ export default function JoinWalkScreen() {
           </TouchableOpacity>
         )}
 
-        {!eventNotStarted && !eventEnded && (
+        {eventEnded ? (
+          <Text style={styles.hint}>{t("join.endedHint")}</Text>
+        ) : !eventNotStarted ? (
           <Text style={styles.hint}>{t("join.gpsHint")}</Text>
-        )}
+        ) : null}
         </ContentContainer>
       </ScrollView>
     </KeyboardAvoidingView>

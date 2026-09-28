@@ -429,7 +429,8 @@
     "updatedNotice": "The walk was updated by the creator — you have the latest version",
     "startButton": "Start the walk",
     "notOpenButton": "Not open yet",
-    "gpsHint": "Make sure GPS is enabled on your device"
+    "gpsHint": "Make sure GPS is enabled on your device",
+    "endedHint": "The event has ended. The leaderboard stays up until the organiser changes the event dates."
   },
   "leaderboard": {
     "loading": "Loading leaderboard...",

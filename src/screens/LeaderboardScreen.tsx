@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {
   closeOpenRounds,
 } from "../services/firestore";
 import { Session, Participant, Walk } from "../types";
+import { filterParticipantsToEventRound } from "../utils/eventRound";
 import { useAuth } from "../context/AuthContext";
 import { useTranslation } from "../i18n";
 import { ShareBadge } from "../components/ShareBadge";
@@ -50,8 +51,10 @@ export default function LeaderboardScreen() {
   };
 
   const { user } = useAuth();
-  const [session, setSession] = useState<Session | null>(null);
-  const [allParticipants, setAllParticipants] = useState<Participant[]>([]);
+  // Rådata från prenumerationen. Mergning, filtrering och "är något öppet"
+  // räknas fram nedan — i eventläget måste de gå via walk-doc:ets datum,
+  // och det landar i en egen prenumeration som kan komma efter den här.
+  const [allSessions, setAllSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   // Walk-doc:et i realtid — bär hideResultsUntilReveal + resultsRevealedAt
   // så deltagare som väntar ser arrangörens "Redovisa" i samma sekund.
@@ -61,12 +64,6 @@ export default function LeaderboardScreen() {
   const [walkLoading, setWalkLoading] = useState(!!walkId);
   const [revealing, setRevealing] = useState(false);
   const [closingRound, setClosingRound] = useState(false);
-  // Finns det något öppet att avsluta? Egen state i stället för att läsa
-  // `session.status`: i eventläget pekar `session` på EN av flera
-  // sessioner och kan råka vara en redan avslutad, medan andra står
-  // öppna. Uppdateras av samma prenumeration som topplistan, så knappen
-  // försvinner av sig själv när sista deltagaren går i mål.
-  const [roundOpen, setRoundOpen] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [sharing, setSharing] = useState(false);
   const badgeRef = useRef<View>(null);
@@ -81,29 +78,14 @@ export default function LeaderboardScreen() {
   useEffect(() => {
     if (isEvent && walkId) {
       const unsub = subscribeToWalkSessions(walkId, (sessions) => {
-        const merged: Participant[] = [];
-        for (const s of sessions) {
-          for (const p of s.participants) {
-            if (!merged.some((m) => m.id === p.id)) {
-              merged.push(p);
-            }
-          }
-        }
-        setAllParticipants(merged);
-        const mainSession = sessions.find((s) => s.id === sessionId);
-        if (mainSession) setSession(mainSession);
-        else if (sessions.length > 0) setSession(sessions[0]);
-        setRoundOpen(sessions.some((s) => s.status !== "completed"));
-
+        setAllSessions(sessions);
         setLoading(false);
         setLastUpdated(new Date());
       });
       return unsub;
     } else {
       const unsub = subscribeToSession(sessionId, (s) => {
-        setSession(s);
-        setRoundOpen(s.status !== "completed");
-        setAllParticipants(s.participants);
+        setAllSessions([s]);
         setLoading(false);
         setLastUpdated(new Date());
       });
@@ -119,6 +101,43 @@ export default function LeaderboardScreen() {
     });
     return unsub;
   }, [walkId]);
+
+  // Samma deltagare kan finnas i flera sessioner i eventläget (en per
+  // grupp som startat) — första förekomsten vinner.
+  const mergedParticipants = useMemo(() => {
+    const merged: Participant[] = [];
+    for (const s of allSessions) {
+      for (const p of s.participants) {
+        if (!merged.some((m) => m.id === p.id)) merged.push(p);
+      }
+    }
+    return merged;
+  }, [allSessions]);
+
+  // Ett event kan köras om år efter år på samma promenad, och
+  // `subscribeToWalkSessions` hämtar ALLA sessioner för walken. Utan det
+  // här filtret stod förra årets deltagare kvar på topplistan när nya
+  // datum sattes.
+  //
+  // Filtret går på deltagarnas tidsstämplar, INTE på när sessionen
+  // skapades: arrangörer testar ofta promenaden några dagar i förväg, och
+  // eftersom en öppen runda återanvänds hamnar de riktiga deltagarna i
+  // just den sessionen. Se utils/eventRound.ts.
+  //
+  // Regeln läser walk-doc:et i realtid, så listan omscopas av sig själv i
+  // samma sekund arrangören ändrar datumen.
+  const allParticipants = useMemo(
+    () => filterParticipantsToEventRound(mergedParticipants, walkDoc ?? undefined),
+    [mergedParticipants, walkDoc?.event?.startDate, walkDoc?.event?.endDate]
+  );
+
+  // Finns det något öppet att avsluta? Uppdateras av samma prenumeration
+  // som topplistan, så knappen försvinner av sig själv när sista
+  // deltagaren går i mål.
+  const roundOpen = useMemo(
+    () => allSessions.some((s) => s.status !== "completed"),
+    [allSessions]
+  );
 
   // Dolda resultat-gate: hidden = skaparen valde läget, revealed =
   // arrangören har tryckt "Redovisa resultat". Arrangören ser alltid

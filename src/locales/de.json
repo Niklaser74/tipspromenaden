@@ -349,7 +349,8 @@
     "updatedNotice": "Die Wanderung wurde vom Ersteller aktualisiert — du hast die neueste Version",
     "startButton": "Wanderung starten",
     "notOpenButton": "Noch nicht geöffnet",
-    "gpsHint": "Stelle sicher, dass GPS auf deinem Gerät aktiviert ist"
+    "gpsHint": "Stelle sicher, dass GPS auf deinem Gerät aktiviert ist",
+    "endedHint": "Das Event ist beendet. Die Bestenliste bleibt stehen, bis die Veranstalterin oder der Veranstalter die Event-Daten ändert."
   },
   "leaderboard": {
     "loading": "Rangliste wird geladen...",

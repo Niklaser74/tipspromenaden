@@ -349,7 +349,8 @@
     "updatedNotice": "Quizgåturen er blevet opdateret af skaberen — du har den nyeste version",
     "startButton": "Start quizgåturen",
     "notOpenButton": "Ikke åbent endnu",
-    "gpsHint": "Sørg for at GPS er aktiveret på din enhed"
+    "gpsHint": "Sørg for at GPS er aktiveret på din enhed",
+    "endedHint": "Begivenheden er slut. Resultatlisten bliver stående, indtil arrangøren ændrer datoerne."
   },
   "leaderboard": {
     "loading": "Indlæser topliste...",

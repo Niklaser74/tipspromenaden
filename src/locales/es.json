@@ -349,7 +349,8 @@
     "updatedNotice": "El creador ha actualizado el paseo — tienes la versión más reciente",
     "startButton": "Empezar el paseo",
     "notOpenButton": "Aún no está abierto",
-    "gpsHint": "Asegúrate de que el GPS está activado en tu dispositivo"
+    "gpsHint": "Asegúrate de que el GPS está activado en tu dispositivo",
+    "endedHint": "El evento ha terminado. La clasificación permanece visible hasta que la organización cambie las fechas."
   },
   "leaderboard": {
     "loading": "Cargando clasificación...",

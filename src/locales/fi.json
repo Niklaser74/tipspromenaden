@@ -349,7 +349,8 @@
     "updatedNotice": "Tekijä on päivittänyt tietokävelyä — sinulla on uusin versio",
     "startButton": "Aloita tietokävely",
     "notOpenButton": "Ei vielä auki",
-    "gpsHint": "Varmista, että GPS on käytössä laitteellasi"
+    "gpsHint": "Varmista, että GPS on käytössä laitteellasi",
+    "endedHint": "Tapahtuma on päättynyt. Tulostaulukko jää näkyviin, kunnes järjestäjä vaihtaa tapahtuman päivämäärät."
   },
   "leaderboard": {
     "loading": "Ladataan tulostaulua...",

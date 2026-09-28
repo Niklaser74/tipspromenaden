@@ -43,6 +43,7 @@ import {
   closeOpenRounds,
 } from "../services/firestore";
 import { shuffleQuestionOptions } from "../utils/shuffleOptions";
+import { isSameEventWindow } from "../utils/eventRound";
 import { saveWalkLocally, getSavedWalks, displayWalkTitle } from "../services/storage";
 import type { SavedWalk } from "../types";
 import { recordWalkCreation } from "../services/stats";
@@ -1224,10 +1225,24 @@ export default function CreateWalkScreen() {
         // Strict-order: bara persistera om aktivt, så äldre walks
         // (utan fältet) fortsätter behandlas som fri-läge.
         ...(enforceSequentialOrder ? { enforceSequentialOrder: true } : {}),
-        // Dolda resultat: samma utelämna-vid-default-mönster. OBS:
-        // resultsRevealedAt bärs MEDVETET inte med — att redigera walken
-        // nollställer en tidigare redovisning (nytt event = nytt lås).
+        // Dolda resultat: samma utelämna-vid-default-mönster.
         ...(hideResultsUntilReveal ? { hideResultsUntilReveal: true } : {}),
+        // En redan redovisad topplista ska förbli redovisad så länge det
+        // är SAMMA omgång. `saveWalk` kör setDoc utan merge, så fältet
+        // måste bäras med aktivt. Ändras eventets datum är det en ny
+        // omgång och låset slår till igen — samma gräns som topplistan
+        // scopas efter (utils/eventRound.ts). Tidigare nollställdes
+        // redovisningen vid VARJE redigering, så en stavfelsrättning efter
+        // eventet skickade deltagarna tillbaka till vänte-vyn.
+        ...(existingWalk?.resultsRevealedAt &&
+        isSameEventWindow(
+          existingWalk.event,
+          isEvent && eventStartDate && eventEndDate
+            ? { startDate: eventStartDate, endDate: eventEndDate }
+            : undefined
+        )
+          ? { resultsRevealedAt: existingWalk.resultsRevealedAt }
+          : {}),
       };
 
       // Spara till Firebase (setDoc upserts automatiskt)
