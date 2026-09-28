@@ -28,7 +28,7 @@ import Stripe from "stripe";
 import { accountExists } from "./accountDeletion";
 import { CREDIT_PACKS, ENFORCE_APP_CHECK, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET } from "./config";
 import { grantPurchasedCredits, reverseRefundedCredits } from "./credits";
-import { METADATA_KIND, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
+import { METADATA_KIND, NO_MANAGED_PAYMENTS, automaticTax, requireAccount, stripeClient, taxRates, webBase } from "./stripe";
 import { getOrCreateCustomer } from "./stripeCustomer";
 import { handleSubscriptionChanged, handleSubscriptionInvoicePaid, subscriptionOfInvoice } from "./subscriptions";
 import {
@@ -70,6 +70,7 @@ export const createCheckoutSession = onCall(
       // (charge.refunded) till rätt användare och paket.
       payment_intent_data: { metadata },
       automatic_tax: automaticTax(),
+      managed_payments: NO_MANAGED_PAYMENTS,
       locale: "auto",
       success_url: `${base}/skapa?kop=ok&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/skapa?kop=avbrutet`,

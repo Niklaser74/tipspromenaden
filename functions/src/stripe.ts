@@ -66,6 +66,15 @@ export function taxRates(): string[] {
   return id ? [id] : [];
 }
 
+/**
+ * Stänger av Managed Payments (Stripe som säljare av rekord) per Checkout.
+ * Nya konton har det på som standard, och då vägrar Checkout
+ * `invoice_creation.invoice_data` och egna `tax_rates` — anropet failar
+ * och klienten ser bara "INTERNAL". Vi säljer själva och sköter momsen,
+ * så det ska alltid vara av, oavsett kontots standardinställning.
+ */
+export const NO_MANAGED_PAYMENTS = { enabled: false } as const;
+
 /** Stripes fel på indata (t.ex. ogiltigt momsnummer) → invalid-argument. */
 export function toHttpsError(e: unknown, fallback: string): HttpsError {
   if (e instanceof HttpsError) return e;
