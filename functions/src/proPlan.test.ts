@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { isActiveStatus, isEndedStatus, refillForInvoice, type InvoiceLineLike } from "./proPlan";
+import { isActiveStatus, isEndedStatus, refillForInvoice, subscriptionEnd, type InvoiceLineLike } from "./proPlan";
 
 const plans = {
   price_month: { id: "pro_month", months: 1 },
@@ -48,4 +48,26 @@ test("statusar", () => {
   assert.ok(!isActiveStatus("canceled"));
   assert.ok(isEndedStatus("canceled"));
   assert.ok(!isEndedStatus("past_due"));
+});
+
+test("uppsägning via cancel_at (flexible billing) räknas som uppsagd", () => {
+  assert.deepEqual(subscriptionEnd({ cancel_at_period_end: false, cancel_at: 500 }, 500), {
+    cancelAtPeriodEnd: true,
+    currentPeriodEnd: 500,
+  });
+});
+
+test("cancel_at före periodens slut gäller", () => {
+  assert.deepEqual(subscriptionEnd({ cancel_at_period_end: false, cancel_at: 300 }, 500), {
+    cancelAtPeriodEnd: true,
+    currentPeriodEnd: 300,
+  });
+});
+
+test("ej uppsagd förnyas vid periodens slut", () => {
+  assert.deepEqual(subscriptionEnd({ cancel_at_period_end: false, cancel_at: null }, 500), {
+    cancelAtPeriodEnd: false,
+    currentPeriodEnd: 500,
+  });
+  assert.equal(subscriptionEnd({ cancel_at_period_end: true, cancel_at: null }, 500).cancelAtPeriodEnd, true);
 });
