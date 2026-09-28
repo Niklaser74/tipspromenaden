@@ -29,7 +29,8 @@ import { getFirestore } from "firebase-admin/firestore";
 import { logger } from "firebase-functions/v2";
 import * as functionsV1 from "firebase-functions/v1";
 import type Stripe from "stripe";
-import { REGION, STRIPE_SECRET_KEY } from "./config";
+import { STRIPE_SECRET_KEY } from "./config";
+import { V1_REGION } from "./region";
 import { METADATA_KIND, stripeClient } from "./stripe";
 
 /** false om Firebase-kontot inte finns (raderat). */
@@ -98,7 +99,7 @@ export async function cleanupBilling(uid: string, stripe: Stripe): Promise<Clean
 // Auth onDelete finns bara som 1st gen-trigger. Den får därför inte
 // setGlobalOptions från config.ts — region och tak sätts här.
 export const cleanupDeletedUserBilling = functionsV1
-  .region(REGION)
+  .region(V1_REGION)
   .runWith({ secrets: [STRIPE_SECRET_KEY], failurePolicy: true, maxInstances: 10 })
   .auth.user()
   .onDelete(async (user) => {
