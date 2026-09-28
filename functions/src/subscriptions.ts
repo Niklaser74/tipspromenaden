@@ -67,7 +67,10 @@ export const createProCheckout = onCall(
       tax_id_collection: { enabled: true },
       // Metadata på prenumerationen följer med till varje faktura
       // (invoice.parent.subscription_details.metadata).
-      subscription_data: { metadata },
+      // Flexible är Stripes rekommenderade läge (exaktare proration och
+      // fakturering vid planbyte). Sätts explicit så att det inte beror på
+      // kontots API-version.
+      subscription_data: { metadata, billing_mode: { type: "flexible" } },
       metadata,
       automatic_tax: automaticTax(),
       locale: "auto",

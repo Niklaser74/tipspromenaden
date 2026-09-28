@@ -174,6 +174,11 @@ const { data } = await invoice({
 
 - Fakturan mejlas direkt och kan betalas med kort på `hostedInvoiceUrl`, eller till bankgiro enligt fakturan.
 - Krediterna läggs till när den är betald. Bankgirobetalningar markeras i Dashboard: fakturan → *Mark as paid* → *Paid out of band*. Det ger `invoice.paid` och krediterna.
+- **Kreditera en betald faktura** med en kreditnota i Dashboard. Krediterna dras i proportion till beloppet:
+  - Den del som återbetalas till kortet dras via `charge.refunded`.
+  - Den del som krediteras på annat sätt (utanför Stripe, t.ex. bankgiro tillbaka, eller som kundsaldo) dras via `credit_note.created`.
+  - Saldot blir aldrig negativt.
+- **Kreditnota före betalning** sänker bara beloppet att betala. Krediterna ges ändå fullt när fakturan betalas, så makulera (*Void*) hellre fakturan och skicka en ny.
 - Högst 3 obetalda fakturor per användare (`reason: "too-many-open-invoices"`).
 - Faktureringsuppgifterna ligger på en egen Stripe-kund per användare (`stripeOrgCustomerId`), så privata kvitton och skolans fakturor hålls isär.
 
@@ -242,6 +247,7 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
      - `checkout.session.completed`
      - `checkout.session.async_payment_succeeded`
      - `charge.refunded`
+     - `credit_note.created`
      - `invoice.paid`
      - `invoice.voided`
      - `invoice.marked_uncollectible`

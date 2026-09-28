@@ -221,3 +221,14 @@ test("Pro-status: avslutad nollar Pro-krediter, skriver inte över en annan akti
   assert.equal((await bucket(uid)).sub, 0);
   assert.equal((await db.doc(`billing/${uid}`).get()).data()?.pro.status, "canceled");
 });
+
+test("kreditnota + kortåterbetalning på samma faktura drar aldrig mer än fakturans krediter", async () => {
+  const uid = "creditnote";
+  await grantInvoicedCredits(uid, "in_cn", 100, { packId: "pack100", amountPaid: 34900, currency: "sek" });
+  // Halva återbetalas till kortet (charge.refunded) …
+  assert.equal(await reverseRefundedCredits(uid, "ch_cn", { credits: 100, amount: 34900, amountRefunded: 17450 }), 50);
+  // … och resten krediteras utanför Stripe (credit_note.created), två gånger (omskickad webhook).
+  assert.equal(await reverseRefundedCredits(uid, "cn_1", { credits: 100, amount: 34900, amountRefunded: 17450 }), 50);
+  assert.equal(await reverseRefundedCredits(uid, "cn_1", { credits: 100, amount: 34900, amountRefunded: 17450 }), 0);
+  assert.equal(await credits(uid), 0);
+});
