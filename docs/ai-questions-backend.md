@@ -294,10 +294,52 @@ Pro: teckna med testkortet och kontrollera `billing/{uid}.pro` och
 `subscriptionCredits`. Spola fram en period med en *test clock* (Billing →
 Test clocks) och kontrollera att Pro-krediterna fylls på, inte läggs ihop.
 
+Hela kedjan testades i sandlådan 2026-09-28: kreditköp med kvitto och moms,
+Pro (teckna, säga upp i kundportalen), faktura betald utanför Stripe,
+återbetalning och generering i alla tre lägen.
+
+### Fallgropar vi har stött på
+
+- **Managed Payments** är på som standard i nya Stripe-konton. Då vägrar
+  Checkout både `invoice_creation.invoice_data` och egna `tax_rates`, och
+  klienten ser bara `INTERNAL`. Koden stänger av det per session
+  (`NO_MANAGED_PAYMENTS` i `stripe.ts`), men stäng av det i Dashboard också
+  (Settings → Managed payments).
+- **Uppsägning i kundportalen** sätter `cancel_at` och inte
+  `cancel_at_period_end`, eftersom Pro kör `billing_mode: flexible`.
+  `subscriptionEnd()` i `proPlan.ts` läser båda.
+- **Sandlådan skickar inga fakturamejl** för fakturor som skapas via API:t,
+  inte ens till teamets egna adresser. Fakturan finns ändå (hosted
+  invoice-länken i dialogen). I live går mejlet ut.
+- Stripe-MCP:n kan inte skapa momssatser (`PostTaxRates`) — skapa dem i
+  Dashboard.
+
+## Gå live
+
+1. Aktivera Stripe-kontot (Knackpot AB, Sverige, bransch mjukvara/digitala
+   tjänster — undvik MCC 8299/7999, där Swish är begränsat).
+2. I live-kontot:
+   - Stäng av Managed Payments.
+   - Betalsätt: kort och Swish på; stäng av Amazon Pay.
+   - Fakturamall: A4, nummerprefix, säljarens momsregistreringsnummer
+     (krav på svenska fakturor), bankgiro i sidfoten.
+   - Settings → Billing → Subscriptions and emails: *Send finalized
+     invoices and credit notes to customers*, Smart Retries, mejl vid
+     misslyckad betalning.
+   - Kundportalen enligt *Setup* ovan.
+   - Customer emails: *Successful payments*.
+3. Skapa produkter, priser (inklusive moms) och momssatsen (25 %,
+   inclusive, SE) i live.
+4. Ny live-webhook med samma URL och händelser som i *Setup*.
+5. Secrets: `STRIPE_SECRET_KEY` (`sk_live_…`) och `STRIPE_WEBHOOK_SECRET`
+   för live-webhooken, via `functions:secrets:set`.
+6. Uppdatera `functions/.env.tipspromenaden-491207` med live-id:na och
+   deploya om alla funktioner.
+7. Gör ett riktigt köp med ett eget kort och återbetala det.
+
 ## Kvar att göra
 
-- Webb-UI: `AiGenerateDialog`, `BuyCreditsDialog`, CSP `connect-src`.
+- Gå live, se *Gå live* ovan.
 - Eval-set med ~20 promptar. Jämför effort `low` och `medium` och gör en faktagranskning.
-- Test i Stripe testläge av faktura och Pro, se *Test* ovan.
 - Villkoren behöver text om Pro: vad som ingår, att oanvända Pro-krediter inte sparas, och uppsägning.
 - Appen (fas 3): samma callable, inga köplänkar i appen.
