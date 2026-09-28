@@ -533,6 +533,14 @@ AAB:n kan publiceras:
   starttid säger ingenting om när folk gick. Nya eventdatum = ny omgång;
   `isSameEventWindow` avgör också om `resultsRevealedAt` följer med vid
   redigering (annars låstes en redovisad topplista om vid varje sparning).
+- **Evenemang-fliken (OTA 2026-09-28)** — `LibraryScreen` filtrerar event på
+  **slutdatum**, inte startdatum: annars försvann ett flerdagarsevent dagen
+  efter start. Datum tolkas med `parseIsoDate` (lokal midnatt), samma regel som
+  `utils/eventRound.ts`. Pågående event visar "Pågår t.o.m. <slut>". Egen
+  sektion "Nyligen avslutade" (30 dagar, max 10) med knapp rakt till
+  `Leaderboard` — inte via `joinWalk()`, som drar med GPS-disclaimern. Fliken
+  listar bara `public: true`, så interna event når sin topplista via
+  promenadens startsida i stället.
 - **Blandade svarsalternativ (OTA 2026-09-18)** — `utils/shuffleOptions.ts`
   `shuffleQuestionOptions(questions)`. **Byte-för-byte identisk** med
   `tipspromenaden-web/src/lib/shuffleOptions.ts` — ändra båda. Jämn

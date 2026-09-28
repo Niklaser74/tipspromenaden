@@ -175,6 +175,9 @@
     "fetchFailed": "Pakettia ei voitu hakea (HTTP {{status}}). Tarkista että linkki on oikein ja että sinulla on internet-yhteys."
   },
   "library": {
+    "eventOngoing": "Käynnissä {{date}} asti",
+    "eventsUpcomingHeader": "Tulevat ja käynnissä",
+    "eventsEndedHeader": "Äskettäin päättyneet",
     "title": "Kirjasto",
     "subtitle": "Valmiit kysymyspaketit",
     "tabTipspacks": "Kysymyspaketit",

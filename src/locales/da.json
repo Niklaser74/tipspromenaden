@@ -175,6 +175,9 @@
     "fetchFailed": "Kunne ikke hente pakken (HTTP {{status}}). Tjek at linket er korrekt, og at du har internetforbindelse."
   },
   "library": {
+    "eventOngoing": "Kører til og med {{date}}",
+    "eventsUpcomingHeader": "Kommende og igangværende",
+    "eventsEndedHeader": "For nylig afsluttet",
     "title": "Bibliotek",
     "subtitle": "Færdige spørgsmålspakker",
     "tabTipspacks": "Spørgsmålspakker",

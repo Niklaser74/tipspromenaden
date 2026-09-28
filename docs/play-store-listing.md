@@ -185,6 +185,47 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-09-28 (II) — Evenemang-fliken: pågående stannar kvar, avslutade syns
+
+Uppföljning samma dag. Fliken filtrerade på **startdatum** (`startDate >= idag`),
+så ett femdagarsevent föll ur listan dagen efter att det började — mitt under
+pågående event. Avslutade event syntes aldrig alls, vilket gjorde fliken värdelös
+för den som startat eventet därifrån: den deltagaren har varken sparad promenad
+eller QR-kod kvar.
+
+- Filtret går nu på **slutdatum**, via `parseIsoDate` (lokal midnatt) i stället
+  för `new Date(iso)` (UTC) — samma datumregel som `utils/eventRound.ts`.
+- Pågående event (start passerad, slut kvar) visar "🟢 Pågår t.o.m. <slutdatum>"
+  i stället för ett startdatum bakåt i tiden som läses som att eventet är över.
+- Ny sektion "Nyligen avslutade": event vars slutdatum passerat de senaste 30
+  dagarna, nyast först, max 10, med knappen "Visa topplista" som går direkt till
+  `Leaderboard` (`sessionId: ""`, `isEvent: true`) — medvetet inte via
+  `joinWalk()`, som ersätter skärmen och drar med sig GPS-disclaimern.
+- Rubrikerna visas bara när båda listorna har innehåll.
+
+Nya nycklar (8 språk): `library.eventsUpcomingHeader`,
+`library.eventsEndedHeader`, `library.eventOngoing`. De sex utöver sv/en saknar
+sedan tidigare flera `library`-nycklar och faller tillbaka på svenskan — därför
+ankras nya nycklar på blockets första rad, inte på en syskonnyckel.
+
+Kvarstår medvetet: fliken listar bara `public: true`-walks, så ett internt
+förenings- eller skolevent syns inte här. Vägen dit är delad länk/QR → knappen på
+promenadens startsida.
+
+Verifierat i webbversionen mot produktionsdata: två pågående event ligger kvar
+med rätt etikett, "Blodomloppet" (avslutat 27 sep) och "Catharina 80 år" listas
+som avslutade, och knappen ger Blodomloppets topplista med 13 rankade.
+
+JS-only → OTA (dubbel-publish runtime 1.9.0 + 1.9.2).
+
+**Release notes till användarna (sv):**
+Evenemang-fliken visar rätt saker nu 📅 Ett flerdagarsevent ligger kvar i listan så länge det pågår — tidigare försvann det dagen efter start. Pågående event märks med Pågår t.o.m. och sitt slutdatum. Nyligen avslutade evenemang listas i en egen sektion den senaste månaden, med en knapp rakt till topplistan.
+
+**Release notes (en):**
+The Events tab shows the right things now 📅 A multi-day event stays in the list while it is running — before, it vanished the day after it started. Ongoing events are marked with Runs until and their end date. Recently ended events get their own section for a month, with a button straight to the leaderboard.
+
+---
+
 ### OTA 2026-09-28 — Topplistan nåbar efter att eventet tagit slut
 
 Rapporterat av Niklas. Tre fel staplade på varandra i `JoinWalkScreen` gjorde

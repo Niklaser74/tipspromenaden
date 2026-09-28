@@ -175,6 +175,9 @@
     "fetchFailed": "Impossible de récupérer le paquet (HTTP {{status}}). Vérifiez que le lien est correct et que vous avez une connexion Internet."
   },
   "library": {
+    "eventOngoing": "En cours jusqu'au {{date}}",
+    "eventsUpcomingHeader": "À venir et en cours",
+    "eventsEndedHeader": "Récemment terminés",
     "title": "Bibliothèque",
     "subtitle": "Paquets de questions prêts à l'emploi",
     "tabTipspacks": "Paquets de questions",

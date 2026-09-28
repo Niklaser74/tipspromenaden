@@ -49,6 +49,7 @@ import { useAuth } from "../context/AuthContext";
 import { useEventTheme } from "../context/EventThemeContext";
 import { WEB_HOST } from "../constants/deepLinks";
 import { getCurrentLocation, getDistanceInMeters, formatDistance } from "../utils/location";
+import { parseIsoDate } from "../utils/date";
 import { WALK_CATEGORIES } from "../constants/categories";
 import ContentContainer from "../components/ContentContainer";
 import { Walk } from "../types";
@@ -57,6 +58,9 @@ import LibraryMapView from "../components/LibraryMapView";
 import { getSavedWalks } from "../services/storage";
 
 type LibraryTab = "mine" | "walks" | "events" | "tipspack";
+
+/** Hur länge ett avslutat event ligger kvar i Evenemang-fliken. */
+const ENDED_EVENT_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 type DiscoverView = "list" | "map";
 
 export default function LibraryScreen() {
@@ -371,38 +375,75 @@ export default function LibraryScreen() {
   // Filter: walks med event.startDate >= idag, sorterade på datum.
   // Ingen separat data-källa — använder samma `walks`-state som
   // Promenader-fliken, bara filtrerad/sorterad annorlunda.
+  /**
+   * Eventets sista dag som lokal midnatt. `parseIsoDate` (inte `new
+   * Date(iso)`, som tolkar strängen som UTC) så gränsen går vid midnatt
+   * på enhetens klocka — samma regel som `utils/eventRound.ts` använder.
+   */
+  const eventEndMs = (w: Walk): number | null => {
+    const d = parseIsoDate(w.event?.endDate ?? w.event?.startDate ?? "");
+    return d ? d.getTime() : null;
+  };
+
+  const todayMs = useMemo(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  }, [walks]);
+
+  const withDistance = (w: Walk) => ({
+    walk: w,
+    distance:
+      userLocation && w.centroid
+        ? getDistanceInMeters(
+            userLocation.latitude,
+            userLocation.longitude,
+            w.centroid.latitude,
+            w.centroid.longitude
+          )
+        : null,
+  });
+
+  /**
+   * Kommande OCH pågående event. Filtret går på SLUTdatum: tidigare
+   * jämfördes startdatum mot idag, så ett femdagarsevent föll ur listan
+   * dagen efter att det började — mitt under pågående event.
+   */
   const upcomingEvents = useMemo(() => {
     if (!walks) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayMs = today.getTime();
     const items = walks
       .filter((w) => {
         if (!w.event?.startDate) return false;
-        // ISO YYYY-MM-DD parses som UTC i Date-konstruktorn vilket räcker
-        // för dag-jämförelse i sv-SE (UTC + 1 eller 2 ger samma kalenderdag).
-        const ms = new Date(w.event.startDate).getTime();
-        return Number.isFinite(ms) && ms >= todayMs;
+        const end = eventEndMs(w);
+        return end !== null && end >= todayMs;
       })
-      .map((w) => {
-        const distance =
-          userLocation && w.centroid
-            ? getDistanceInMeters(
-                userLocation.latitude,
-                userLocation.longitude,
-                w.centroid.latitude,
-                w.centroid.longitude
-              )
-            : null;
-        return { walk: w, distance };
-      });
-    items.sort(
-      (a, b) =>
-        new Date(a.walk.event!.startDate).getTime() -
-        new Date(b.walk.event!.startDate).getTime()
-    );
+      .map(withDistance);
+    items.sort((a, b) => {
+      const aStart = parseIsoDate(a.walk.event!.startDate)?.getTime() ?? 0;
+      const bStart = parseIsoDate(b.walk.event!.startDate)?.getTime() ?? 0;
+      return aStart - bStart;
+    });
     return items;
-  }, [walks, userLocation]);
+  }, [walks, userLocation, todayMs]);
+
+  /**
+   * Nyligen avslutade event, nyast först. De syntes tidigare inte alls,
+   * och deltagare som startat eventet härifrån har ingen sparad promenad
+   * och ingen QR-kod kvar — fliken är deras enda väg tillbaka till
+   * topplistan.
+   */
+  const endedEvents = useMemo(() => {
+    if (!walks) return [];
+    const items = walks
+      .filter((w) => {
+        if (!w.event?.startDate) return false;
+        const end = eventEndMs(w);
+        return end !== null && end < todayMs && end >= todayMs - ENDED_EVENT_WINDOW_MS;
+      })
+      .map(withDistance);
+    items.sort((a, b) => (eventEndMs(b.walk) ?? 0) - (eventEndMs(a.walk) ?? 0));
+    return items.slice(0, 10);
+  }, [walks, userLocation, todayMs]);
 
   /**
    * Relativ datum-text för event-kort. Idag/Imorgon/veckodag (om <7
@@ -834,15 +875,31 @@ export default function LibraryScreen() {
           <Text style={styles.loadingText}>{t("library.loading")}</Text>
         </View>
       )}
-      {tab === "events" && walks !== null && upcomingEvents.length === 0 && (
-        <Text style={styles.empty}>{t("library.eventsEmpty")}</Text>
-      )}
-      {tab === "events" && upcomingEvents.length > 0 && (
+      {tab === "events" &&
+        walks !== null &&
+        upcomingEvents.length === 0 &&
+        endedEvents.length === 0 && (
+          <Text style={styles.empty}>{t("library.eventsEmpty")}</Text>
+        )}
+      {tab === "events" && (upcomingEvents.length > 0 || endedEvents.length > 0) && (
         <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+          {/* Rubrikerna visas bara när båda listorna har innehåll — annars
+              är det uppenbart vad man tittar på. */}
+          {upcomingEvents.length > 0 && endedEvents.length > 0 && (
+            <Text style={styles.sectionHeader}>
+              {t("library.eventsUpcomingHeader")}
+            </Text>
+          )}
           {upcomingEvents.map(({ walk, distance }) => (
             <View key={walk.id} style={styles.card}>
+              {/* Pågående event: visa slutdatumet. Startdatumet ligger då
+                  bakåt i tiden och läses lätt som att eventet är över. */}
               <Text style={styles.eventDate}>
-                📅 {formatEventDate(walk.event!.startDate)}
+                {(parseIsoDate(walk.event!.startDate)?.getTime() ?? 0) <= todayMs
+                  ? `🟢 ${t("library.eventOngoing", {
+                      date: walk.event!.endDate,
+                    })}`
+                  : `📅 ${formatEventDate(walk.event!.startDate)}`}
               </Text>
               <Text style={styles.cardTitle}>
                 {flagForLanguage(walk.language)}
@@ -869,6 +926,61 @@ export default function LibraryScreen() {
                 >
                   <Text style={styles.useButtonText}>
                     {t("library.playWalk")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.reportButton}
+                  onPress={() => reportContent("walk", walk.id, walk.title)}
+                  accessibilityLabel={t("library.reportWalk")}
+                >
+                  <Text style={styles.reportButtonText}>⚐</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))}
+
+          {endedEvents.length > 0 && (
+            <Text style={styles.sectionHeader}>
+              {t("library.eventsEndedHeader")}
+            </Text>
+          )}
+          {endedEvents.map(({ walk }) => (
+            <View key={walk.id} style={styles.card}>
+              <Text style={styles.eventDate}>
+                🏁 {t("join.endedAt", { date: walk.event!.endDate })}
+              </Text>
+              <Text style={styles.cardTitle}>
+                {flagForLanguage(walk.language)}
+                {walk.activityType === "bike" ? " 🚲" : ""}{" "}
+                {walk.title}
+              </Text>
+              <Text style={styles.cardMeta}>
+                {walk.questions.length}{" "}
+                {walk.questions.length === 1
+                  ? t("library.checkpoint")
+                  : t("library.checkpoints")}
+                {walk.city ? ` · 📍 ${walk.city}` : ""}
+              </Text>
+              <View style={styles.actionsRow}>
+                {/* Går medvetet INTE via joinWalk(): den ersätter skärmen med
+                    JoinWalk och drar med sig GPS-disclaimern, vilket är fel
+                    när man bara vill se resultatet. Samma params som
+                    MyWalksList använder — topplistan läser eventets alla
+                    rundor via walkId. */}
+                <TouchableOpacity
+                  style={[styles.useButton, { flex: 1 }]}
+                  onPress={() =>
+                    navigation.navigate("Leaderboard" as never, {
+                      sessionId: "",
+                      walkTitle: walk.title,
+                      totalQuestions: walk.questions.length,
+                      walkId: walk.id,
+                      isEvent: true,
+                    } as never)
+                  }
+                >
+                  <Text style={styles.useButtonText}>
+                    {t("join.showLeaderboard")}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
@@ -1474,6 +1586,15 @@ const styles = StyleSheet.create({
     marginTop: 12,
     color: "#4A5E4C",
     fontSize: 15,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#6B7568",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    marginTop: 4,
+    marginBottom: 8,
   },
   empty: {
     textAlign: "center",

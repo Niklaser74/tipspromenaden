@@ -175,6 +175,9 @@
     "fetchFailed": "Paket konnte nicht geladen werden (HTTP {{status}}). Prüfe, ob der Link korrekt ist und du Internetverbindung hast."
   },
   "library": {
+    "eventOngoing": "Läuft bis {{date}}",
+    "eventsUpcomingHeader": "Bevorstehend und laufend",
+    "eventsEndedHeader": "Kürzlich beendet",
     "title": "Bibliothek",
     "subtitle": "Fertige Fragenpakete",
     "tabTipspacks": "Fragenpakete",

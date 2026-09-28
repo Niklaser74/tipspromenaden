@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "Topplistan finns kvar när eventet är slut 🏆 Öppna promenaden och tryck Visa topplista — det fungerar nu även när rundan är stängd, och utan att fylla i ditt namn. Listan visar deltagarna från eventets datum. Sätter du nya datum börjar en ny omgång, och en tidigare redovisning låses inte längre om när du rättar något i promenaden.",
-        en: "The leaderboard stays after the event ends 🏆 Open the walk and tap Show leaderboard — it now works even when the round is closed, and without entering your name. The list shows participants from the event dates. New dates start a new round, and fixing a typo no longer re-hides results you already revealed.",
+        sv: "Evenemang-fliken visar rätt saker nu 📅 Ett flerdagarsevent ligger kvar i listan så länge det pågår — tidigare försvann det dagen efter start. Pågående event märks med Pågår t.o.m. och sitt slutdatum. Nyligen avslutade evenemang listas i en egen sektion den senaste månaden, med en knapp rakt till topplistan.",
+        en: "The Events tab shows the right things now 📅 A multi-day event stays in the list while it is running — before, it vanished the day after it started. Ongoing events are marked with Runs until and their end date. Recently ended events get their own section for a month, with a button straight to the leaderboard.",
       },
     },
   },
