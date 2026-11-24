@@ -207,7 +207,8 @@ Saldot läses live med `onSnapshot(doc(db, "billing", uid))`.
      cd functions && npx firebase functions:secrets:set ANTHROPIC_API_KEY --project tipspromenaden-491207
      ```
 3. **Stripe:**
-   - Aktivera kort och Swish (Settings → Payment methods).
+   - Aktivera kort, Apple Pay och Google Pay (Settings → Payment methods).
+     Swish kräver tidig åtkomst, se *Gå live*.
    - Skapa fyra priser i SEK och notera deras `price_…`-id:n:
      - 10 krediter (t.ex. 49 kr)
      - 30 krediter (t.ex. 119 kr)
@@ -320,7 +321,15 @@ Pro (teckna, säga upp i kundportalen), faktura betald utanför Stripe,
    tjänster — undvik MCC 8299/7999, där Swish är begränsat).
 2. I live-kontot:
    - Stäng av Managed Payments.
-   - Betalsätt: kort och Swish på; stäng av Amazon Pay.
+   - Betalsätt: kort, Apple Pay och Google Pay på; stäng av Amazon Pay,
+     Pix och andra utländska metoder.
+   - **Swish är i privat förhandsvisning hos Stripe** (besked från
+     supporten 2026-09-29) och syns inte under Betalningsmetoder förrän
+     kontot fått tidig åtkomst. Ansök via https://docs.stripe.com/payments/swish.
+     Ansökan för Knackpot AB skickades 2026-10-01. När den godkänns:
+     aktivera Swish i Dashboard. Ingen kodändring behövs, eftersom Checkout
+     visar aktiverade metoder automatiskt (dock aldrig för Pro, eftersom
+     Swish inte stöder prenumerationer).
    - Fakturamall: A4, nummerprefix, säljarens momsregistreringsnummer
      (krav på svenska fakturor), bankgiro i sidfoten.
    - Settings → Billing → Subscriptions and emails: *Send finalized
