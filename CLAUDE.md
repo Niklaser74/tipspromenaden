@@ -654,10 +654,13 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **Appen förbrukar krediter, bara på Android (kod 2026-11-24).**
   `services/aiQuestions.ts` + `components/AiGenerateModal.tsx`, knapp i
   `CreateWalkScreen`. Bakom fjärrflaggan `config/aiQuestions.androidEnabled`
-  (`scripts/set-ai-questions.mjs --on|--off`; saknat dokument = av) och bara
-  för konton som redan har ett `billing`-dokument. **Lägg ALDRIG till köp,
-  priser, köplänkar eller säljande text i appen, och slå inte på det på
-  iOS** — Google Plays betalningspolicy respektive App Store 3.1.1/3.1.3(b).
+  (`scripts/set-ai-questions.mjs --on|--off`; saknat dokument = av), synlig
+  för alla inloggade konton. **Lägg ALDRIG till köp, priser, köplänkar
+  eller säljande text i appen, och slå inte på det på iOS** — Google Plays
+  betalningspolicy respektive App Store 3.1.1/3.1.3(b). Textraden
+  `ai.whereToBuy` ("AI-krediter köps på tipspromenaden.app") är ett
+  medvetet gränsfall: den ska förbli ren text utan länk och får aldrig
+  bli tryckbar.
   Utredningen står i `docs/ai-questions-backend.md` → *Appen*.
 - **Deploy-fallgrop på den här maskinen:** firebase-tools hinner inte
   analysera koden inom sin standardgräns (10 s) — `User code failed to

@@ -707,6 +707,7 @@
     "needPlace": "Enter a place.",
     "needText": "The text needs to be at least {{min}} characters.",
     "noCredits": "You don't have enough AI credits on your account.",
+    "whereToBuy": "AI credits are bought at tipspromenaden.app.",
     "errorRateLimited": "Too many generations in a short time. Wait a moment.",
     "errorInProgress": "The generation is already running.",
     "errorAnonymous": "Sign in with an account to use AI questions.",

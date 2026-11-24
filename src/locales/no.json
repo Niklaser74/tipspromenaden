@@ -574,6 +574,7 @@
     "needPlace": "Oppgi et sted.",
     "needText": "Teksten må være minst {{min}} tegn.",
     "noCredits": "Du har ikke nok AI-kreditter på kontoen din.",
+    "whereToBuy": "AI-kreditter kjøpes på tipspromenaden.app.",
     "errorRateLimited": "For mange genereringer på kort tid. Vent litt.",
     "errorInProgress": "Genereringen pågår allerede.",
     "errorAnonymous": "Logg inn med en konto for å bruke AI-spørsmål.",

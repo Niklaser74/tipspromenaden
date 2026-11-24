@@ -574,6 +574,7 @@
     "needPlace": "Gib einen Ort an.",
     "needText": "Der Text muss mindestens {{min}} Zeichen lang sein.",
     "noCredits": "Du hast nicht genug KI-Credits auf deinem Konto.",
+    "whereToBuy": "KI-Credits kauft man auf tipspromenaden.app.",
     "errorRateLimited": "Zu viele Erstellungen in kurzer Zeit. Warte einen Moment.",
     "errorInProgress": "Die Erstellung läuft bereits.",
     "errorAnonymous": "Melde dich mit einem Konto an, um KI-Fragen zu nutzen.",

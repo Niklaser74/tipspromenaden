@@ -195,13 +195,14 @@ finns på kontot. Samma callable (`generateQuestions`) och samma saldo
   under bibliotek-knapparna. Dialogen (`components/AiGenerateModal.tsx`) har tema,
   plats och egen text, antal, svårighet och målgrupp. Resultatet går in i
   `applyBattery`, som all annan import.
-- Knappen syns bara på **Android**, bara när fjärrflaggan
-  `config/aiQuestions.androidEnabled` är `true`, och bara för konton som redan
-  har ett `billing`-dokument (har haft krediter).
-- **Inget köp, inga priser och ingen länk till köp i appen.** Slut på krediter
-  ger bara texten "Du har inte tillräckligt med AI-krediter på ditt konto."
+- Knappen syns bara på **Android** och bara när fjärrflaggan
+  `config/aiQuestions.androidEnabled` är `true`, men för alla inloggade konton —
+  även de som aldrig haft krediter (saldo 0).
+- **Inget köp, inga priser och ingen länk till köp i appen.** När saldot inte
+  räcker visas "Du har inte tillräckligt med AI-krediter på ditt konto." och
+  textraden "AI-krediter köps på tipspromenaden.app." — ren text, inte tryckbar.
   Skälet är Google Plays betalningspolicy — se `docs/ai-questions-backend.md` → *Appen*.
-- 36 nya nycklar under `ai.*` i alla åtta språk.
+- 37 nya nycklar under `ai.*` i alla åtta språk.
 
 **Före publicering:**
 

@@ -574,6 +574,7 @@
     "needPlace": "Indica un lugar.",
     "needText": "El texto debe tener al menos {{min}} caracteres.",
     "noCredits": "No tienes suficientes créditos de IA en tu cuenta.",
+    "whereToBuy": "Los créditos de IA se compran en tipspromenaden.app.",
     "errorRateLimited": "Demasiadas generaciones en poco tiempo. Espera un momento.",
     "errorInProgress": "La generación ya está en curso.",
     "errorAnonymous": "Inicia sesión con una cuenta para usar las preguntas con IA.",

@@ -363,9 +363,16 @@ Därav reglerna i koden:
 
 - **Bara Android.** iOS saknar dessutom App Check i appen, som callables kräver.
 - **Inget köp, inga priser, ingen länk till köp och ingen säljande text.** Lägg
-  aldrig till det. Slut på krediter ger bara en upplysning om att saldot inte räcker.
-- **Visas bara för konton med ett `billing`-dokument**, alltså konton som haft
-  krediter. Funktionen marknadsförs inte i appen för den som aldrig köpt.
+  aldrig till det.
+- **En textrad om var krediter köps** (`ai.whereToBuy`: "AI-krediter köps på
+  tipspromenaden.app.") visas när saldot inte räcker. Beslut av Niklas
+  2026-11-25, mot rekommendationen att inte nämna köp alls. Googles FAQ tillåter
+  upplysning om köpmöjligheter "without direct links" men förbjuder språk som
+  uppmuntrar till köp utanför appen, så raden är ett gränsfall. Den ska förbli
+  en saklig mening utan länk, pris eller uppmaning, och får aldrig bli tryckbar.
+  Invänder Google är det raden som tas bort först.
+- **Knappen visas för alla inloggade konton**, även de som aldrig haft krediter
+  (samma beslut). Saldot är då 0.
 - **Fjärrflagga:** `config/aiQuestions.androidEnabled`. Saknas dokumentet, eller
   går det inte att läsa, är funktionen av. Sätts med
   `node scripts/set-ai-questions.mjs --on|--off`. Den finns för att kunna

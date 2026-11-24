@@ -474,10 +474,9 @@ export default function CreateWalkScreen() {
   const [randomFetchingAll, setRandomFetchingAll] = useState(false);
   const [randomCustomCount, setRandomCustomCount] = useState("");
 
-  // AI-frågor mot krediter som redan finns på kontot. `null` = visa inget
-  // (fel plattform, fjärrflaggan av, eller ett konto som aldrig haft
-  // krediter). Inga köp eller köplänkar får läggas till här — se
-  // services/aiQuestions.ts.
+  // AI-frågor mot krediter på kontot. `null` = visa inget (fel plattform,
+  // fjärrflaggan av eller inte inloggad). Inga köp eller köplänkar får
+  // läggas till här — se services/aiQuestions.ts.
   const aiCredits = useAiCredits(user?.uid, user?.isAnonymous ?? true);
   const [aiModalVisible, setAiModalVisible] = useState(false);
 

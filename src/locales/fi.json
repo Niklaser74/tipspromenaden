@@ -574,6 +574,7 @@
     "needPlace": "Anna paikka.",
     "needText": "Tekstin on oltava vähintään {{min}} merkkiä.",
     "noCredits": "Tililläsi ei ole tarpeeksi tekoälykrediittejä.",
+    "whereToBuy": "Tekoälykrediittejä ostetaan osoitteessa tipspromenaden.app.",
     "errorRateLimited": "Liian monta luontia lyhyessä ajassa. Odota hetki.",
     "errorInProgress": "Luonti on jo käynnissä.",
     "errorAnonymous": "Kirjaudu tilillä käyttääksesi tekoälykysymyksiä.",

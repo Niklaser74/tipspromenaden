@@ -14,6 +14,12 @@
  *   som betalats någon annanstans ("consumption-only"), men inte att den
  *   leder användaren till en annan betalmetod. Lägg aldrig till en
  *   köpknapp, en länk till webbens köpdialog eller säljande text.
+ * - **En textrad om var krediter köps finns** (`ai.whereToBuy`), efter
+ *   beslut av Niklas 2026-11-25. Googles FAQ tillåter upplysning om
+ *   köpmöjligheter "without direct links" men förbjuder språk som
+ *   uppmuntrar till köp utanför appen, så raden är gränsfall. Den ska
+ *   förbli en saklig mening utan länk, utan pris och utan uppmaning, och
+ *   får aldrig bli tryckbar. Invänder Google: ta bort raden först.
  * - **Bara Android.** På iOS kräver App Store-riktlinje 3.1.1 köp i appen
  *   för att låsa upp funktioner, och 3.1.3(b) tillåter webbköpta krediter
  *   bara om samma krediter också säljs som köp i appen. iOS saknar
@@ -21,9 +27,9 @@
  * - **Fjärrflagga.** `config/aiQuestions.androidEnabled` måste vara `true`.
  *   Saknas dokumentet eller går det inte att läsa är funktionen av, så att
  *   den kan stängas utan ny release om Google invänder.
- * - Funktionen visas bara för konton som redan har ett `billing`-dokument,
- *   alltså konton som har haft krediter. Den ska inte marknadsföras för
- *   den som aldrig köpt.
+ * - Knappen visas för alla inloggade (icke-anonyma) konton, även de som
+ *   aldrig haft krediter — också det Niklas beslut 2026-11-25. Saldot är
+ *   då 0 och dialogen visar textraden ovan.
  *
  * Utredningen står i vaultets projektnot "Tipspromenaden - AI-frågor och
  * Stripe" (2026-11-24). Kontraktet står i `docs/ai-questions-backend.md`.
@@ -169,7 +175,8 @@ export interface AiCredits {
  * Om AI-funktionen ska visas, och i så fall saldot.
  *
  * `null` = visa ingenting: fel plattform, flaggan av, inte inloggad med
- * ett riktigt konto, eller ett konto som aldrig haft krediter.
+ * ett riktigt konto, eller saldot gick inte att läsa. Ett konto utan
+ * `billing`-dokument har aldrig haft krediter och får saldo 0.
  */
 export function useAiCredits(uid: string | null | undefined, isAnonymous: boolean): AiCredits | null {
   const [enabled, setEnabled] = useState(false);
@@ -193,11 +200,7 @@ export function useAiCredits(uid: string | null | undefined, isAnonymous: boolea
     return onSnapshot(
       doc(db, "billing", uid),
       (snap) => {
-        if (!snap.exists()) {
-          setCredits(null);
-          return;
-        }
-        const d = snap.data();
+        const d = snap.data() ?? {};
         const purchased = typeof d.credits === "number" ? d.credits : 0;
         const subscription = typeof d.subscriptionCredits === "number" ? d.subscriptionCredits : 0;
         setCredits({ total: purchased + subscription });

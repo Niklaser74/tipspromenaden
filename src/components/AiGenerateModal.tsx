@@ -3,10 +3,10 @@
  * @description Dialog för att generera frågor med AI mot krediter som
  * redan finns på kontot. Används från CreateWalkScreen.
  *
- * Bara Android, bakom fjärrflagga, och bara för konton som har haft
- * krediter — se `services/aiQuestions.ts` för varför. Dialogen får aldrig
- * innehålla köp, priser eller länkar till köp (Google Plays
- * betalningspolicy). När krediterna är slut säger den bara det.
+ * Bara Android och bakom fjärrflagga — se `services/aiQuestions.ts` för
+ * varför. Dialogen får aldrig innehålla köp, priser eller länkar till köp
+ * (Google Plays betalningspolicy). När krediterna inte räcker visas en
+ * textrad om att de köps på tipspromenaden.app — ren text, inte tryckbar.
  */
 import React, { useState } from "react";
 import {
@@ -240,6 +240,9 @@ export function AiGenerateModal({ visible, credits, language, location, onGenera
 
               {error && <Text style={styles.error}>{error}</Text>}
               {!error && !enough && <Text style={styles.error}>{t("ai.noCredits")}</Text>}
+              {/* Ren upplysning: ingen länk, ingen knapp, inte tryckbar. Gör
+                  ALDRIG den här raden klickbar — se services/aiQuestions.ts. */}
+              {!enough && <Text style={styles.cost}>{t("ai.whereToBuy")}</Text>}
               {!error && enough && <Text style={styles.cost}>{t("ai.cost", { count: cost })}</Text>}
 
               <TouchableOpacity
