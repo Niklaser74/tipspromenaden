@@ -342,4 +342,37 @@ Pro (teckna, säga upp i kundportalen), faktura betald utanför Stripe,
 - Gå live, se *Gå live* ovan.
 - Eval-set med ~20 promptar. Jämför effort `low` och `medium` och gör en faktagranskning.
 - Villkoren behöver text om Pro: vad som ingår, att oanvända Pro-krediter inte sparas, och uppsägning.
-- Appen (fas 3): samma callable, inga köplänkar i appen.
+- Appen: publicera Android-OTA:n, se *Appen* nedan.
+
+## Appen (Android, kod 2026-11-24)
+
+Appen **förbrukar** krediter som redan finns på kontot. Den säljer ingenting.
+Koden ligger i `src/services/aiQuestions.ts` och
+`src/components/AiGenerateModal.tsx`, och knappen sitter i `CreateWalkScreen`.
+
+Vad butiksvillkoren tillåter, utrett 2026-11-24 mot Apples riktlinjer
+(uppdaterade 2026-10-16), Apples EU-villkor från 2026-10-01 och Google Plays
+betalningspolicy med FAQ:
+
+| | iOS | Android |
+|---|---|---|
+| Förbruka webbköpta krediter | Nej utan köp i appen (3.1.1; 3.1.3(b) kräver att samma krediter också säljs som köp i appen) | Ja ("consumption-only") |
+| Länk eller knapp till webbköpet | Nej utanför USA; i EU mot provision och rapportering | Nej, utom via External offers-programmet |
+
+Därav reglerna i koden:
+
+- **Bara Android.** iOS saknar dessutom App Check i appen, som callables kräver.
+- **Inget köp, inga priser, ingen länk till köp och ingen säljande text.** Lägg
+  aldrig till det. Slut på krediter ger bara en upplysning om att saldot inte räcker.
+- **Visas bara för konton med ett `billing`-dokument**, alltså konton som haft
+  krediter. Funktionen marknadsförs inte i appen för den som aldrig köpt.
+- **Fjärrflagga:** `config/aiQuestions.androidEnabled`. Saknas dokumentet, eller
+  går det inte att läsa, är funktionen av. Sätts med
+  `node scripts/set-ai-questions.mjs --on|--off`. Den finns för att kunna
+  stänga av utan ny release om Google invänder.
+
+Osäkerhet: Googles FAQ talar om "digital content"; att AI-krediter räknas dit
+är vår tolkning, inte Googles besked.
+
+Vägen till iOS är att sälja kreditpaketen som köp i appen. Då blir även
+webbköpta krediter tillåtna enligt 3.1.3(b).

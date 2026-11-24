@@ -651,6 +651,14 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **Secrets:** `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY` och
   `STRIPE_WEBHOOK_SECRET` ligger i Secret Manager, aldrig i repot.
 - **Setup, klientkontrakt och felkoder:** se `docs/ai-questions-backend.md`.
+- **Appen förbrukar krediter, bara på Android (kod 2026-11-24).**
+  `services/aiQuestions.ts` + `components/AiGenerateModal.tsx`, knapp i
+  `CreateWalkScreen`. Bakom fjärrflaggan `config/aiQuestions.androidEnabled`
+  (`scripts/set-ai-questions.mjs --on|--off`; saknat dokument = av) och bara
+  för konton som redan har ett `billing`-dokument. **Lägg ALDRIG till köp,
+  priser, köplänkar eller säljande text i appen, och slå inte på det på
+  iOS** — Google Plays betalningspolicy respektive App Store 3.1.1/3.1.3(b).
+  Utredningen står i `docs/ai-questions-backend.md` → *Appen*.
 - **Deploy-fallgrop på den här maskinen:** firebase-tools hinner inte
   analysera koden inom sin standardgräns (10 s) — `User code failed to
   load. Cannot determine backend specification`. Koden laddar på ~0,5 s,

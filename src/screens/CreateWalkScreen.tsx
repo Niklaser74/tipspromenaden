@@ -70,6 +70,8 @@ import {
   type WalkDraft,
 } from "../services/walkDraft";
 import { useTranslation } from "../i18n";
+import { AiGenerateModal } from "../components/AiGenerateModal";
+import { AI_LANGUAGES, useAiCredits } from "../services/aiQuestions";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 /**
@@ -335,7 +337,7 @@ export default function CreateWalkScreen() {
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const mapRef = useRef<any>(null);
 
   // Redigeringsläge: finns det en befintlig promenad som param?
@@ -471,6 +473,13 @@ export default function CreateWalkScreen() {
   const [randomCountPickerVisible, setRandomCountPickerVisible] = useState(false);
   const [randomFetchingAll, setRandomFetchingAll] = useState(false);
   const [randomCustomCount, setRandomCustomCount] = useState("");
+
+  // AI-frågor mot krediter som redan finns på kontot. `null` = visa inget
+  // (fel plattform, fjärrflaggan av, eller ett konto som aldrig haft
+  // krediter). Inga köp eller köplänkar får läggas till här — se
+  // services/aiQuestions.ts.
+  const aiCredits = useAiCredits(user?.uid, user?.isAnonymous ?? true);
+  const [aiModalVisible, setAiModalVisible] = useState(false);
 
   // Autospar (draft) — hydratedRef hindrar att första render fyr:ar en
   // save innan vi hunnit ladda ev. lagrad draft. Debounce-timer rensas
@@ -1434,6 +1443,22 @@ export default function CreateWalkScreen() {
                   </View>
                   <Text style={styles.importBatteryArrow}>›</Text>
                 </TouchableOpacity>
+                {aiCredits && (
+                  <TouchableOpacity
+                    style={styles.importBatteryButton}
+                    onPress={() => setAiModalVisible(true)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.importBatteryIcon}>✨</Text>
+                    <View style={styles.importBatteryContent}>
+                      <Text style={styles.importBatteryTitle}>{t("ai.buttonTitle")}</Text>
+                      <Text style={styles.importBatterySubtitle}>
+                        {t("ai.buttonDesc", { count: aiCredits.total })}
+                      </Text>
+                    </View>
+                    <Text style={styles.importBatteryArrow}>›</Text>
+                  </TouchableOpacity>
+                )}
               </>
             )}
             <TouchableOpacity
@@ -2034,6 +2059,27 @@ export default function CreateWalkScreen() {
       {/* Count-picker för "🎲 Slumpa N från hela biblioteket". Snabb-val
           + custom input. Loading-spinner visas medan vi parallell-fetchar
           alla pack:s content. */}
+      {aiCredits && (
+        <AiGenerateModal
+          visible={aiModalVisible}
+          credits={aiCredits.total}
+          language={
+            language && AI_LANGUAGES.includes(language)
+              ? language
+              : AI_LANGUAGES.includes(locale)
+                ? locale
+                : "sv"
+          }
+          location={region ? { lat: region.latitude, lng: region.longitude } : undefined}
+          onClose={() => setAiModalVisible(false)}
+          onGenerated={(battery) => {
+            // Stäng först så att användaren ser kartan bakom alerten.
+            setAiModalVisible(false);
+            applyBattery(battery.questions, battery.name, battery.language, false);
+          }}
+        />
+      )}
+
       <Modal
         visible={randomCountPickerVisible}
         animationType="fade"

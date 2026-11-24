@@ -185,6 +185,53 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA (inte publicerad än, kod 2026-11-24) — AI-frågor med kontots krediter, bara Android
+
+Skaparen kan generera frågor med AI i appen och betala med krediter som redan
+finns på kontot. Samma callable (`generateQuestions`) och samma saldo
+(`billing/{uid}`) som webben; servern drar krediterna.
+
+- Ny knapp "✨ Generera frågor med AI" på en tom ny promenad i `CreateWalkScreen`,
+  under bibliotek-knapparna. Dialogen (`components/AiGenerateModal.tsx`) har tema,
+  plats och egen text, antal, svårighet och målgrupp. Resultatet går in i
+  `applyBattery`, som all annan import.
+- Knappen syns bara på **Android**, bara när fjärrflaggan
+  `config/aiQuestions.androidEnabled` är `true`, och bara för konton som redan
+  har ett `billing`-dokument (har haft krediter).
+- **Inget köp, inga priser och ingen länk till köp i appen.** Slut på krediter
+  ger bara texten "Du har inte tillräckligt med AI-krediter på ditt konto."
+  Skälet är Google Plays betalningspolicy — se `docs/ai-questions-backend.md` → *Appen*.
+- 36 nya nycklar under `ai.*` i alla åtta språk.
+
+**Före publicering:**
+
+1. Slå på flaggan: `node scripts/set-ai-questions.mjs --on`.
+2. Prova på en Android-enhet med ett konto som har krediter.
+3. Lägg texterna nedan i `extra.releaseNotes` i `app.config.js`.
+4. Publicera **bara mot Android-runtime 1.9.0**, inte mot iOS 1.9.2. Bannern
+   visas för alla som får OTA:n, och iOS-appen ska inte nämna en funktion som
+   bara finns på Android.
+
+Stänga av i efterhand: `node scripts/set-ai-questions.mjs --off`. Ingen ny release behövs.
+
+**Svenska:**
+```
+✨ Har du AI-krediter på ditt Tipspromenaden-konto? Nu kan du använda dem i
+appen. När du skapar en ny promenad finns knappen "Generera frågor med AI":
+välj tema, plats eller klistra in en egen text, så skriver AI:n frågorna och
+lägger dem på dina kontroller.
+```
+
+**English:**
+```
+✨ Got AI credits on your Tipspromenaden account? You can now use them in the
+app. When you create a new walk there is a "Generate questions with AI"
+button: pick a topic, a place or paste your own text, and the AI writes the
+questions and puts them on your checkpoints.
+```
+
+---
+
 ### OTA 2026-09-28 (II) — Evenemang-fliken: pågående stannar kvar, avslutade syns
 
 Uppföljning samma dag. Fliken filtrerade på **startdatum** (`startDate >= idag`),
