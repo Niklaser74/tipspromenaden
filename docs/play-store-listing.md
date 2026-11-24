@@ -185,6 +185,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-11-25 — AI-frågor på Android, dold för alla utom testare
+
+Bara Android-runtime 1.9.0, `production`-branchen. Koden nedan går ut, men
+fjärrflaggan är av (`androidEnabled: false`) och bara konton i `testerUids` ser
+funktionen. `extra.releaseNotes` är därför **tomma** — ingen banner visas för en
+funktion som användarna inte ser. Inga synliga ändringar för användare.
+
+När funktionen släpps för alla: `node scripts/set-ai-questions.mjs --on` och en
+ny OTA (bara Android-runtime) med texterna längre ner i `extra.releaseNotes`.
+
+**Svenska:** (ingen text — inga synliga ändringar)
+
+**English:** (no text — no visible changes)
+
+---
+
 ### OTA (inte publicerad än, kod 2026-11-24) — AI-frågor med kontots krediter, bara Android
 
 Skaparen kan generera frågor med AI i appen och betala med krediter som redan

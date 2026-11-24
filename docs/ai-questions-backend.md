@@ -375,7 +375,8 @@ Därav reglerna i koden:
   (samma beslut). Saldot är då 0.
 - **Fjärrflagga:** `config/aiQuestions.androidEnabled`. Saknas dokumentet, eller
   går det inte att läsa, är funktionen av. Sätts med
-  `node scripts/set-ai-questions.mjs --on|--off`. Den finns för att kunna
+  `node scripts/set-ai-questions.mjs --on|--off`. `testerUids` i samma dokument
+  (`--testers uid1,uid2`) är konton som ser funktionen även när flaggan är av. Den finns för att kunna
   stänga av utan ny release om Google invänder.
 
 Osäkerhet: Googles FAQ talar om "digital content"; att AI-krediter räknas dit

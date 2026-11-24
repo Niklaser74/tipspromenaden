@@ -10,10 +10,16 @@
  *
  * Ändringen slår igenom nästa gång skaparskärmen öppnas.
  *
+ * `testerUids` är konton som ser funktionen även när flaggan är av — för
+ * att prova i produktionsappen innan den släpps för alla. `--on`/`--off`
+ * rör inte listan.
+ *
  * Usage:
- *   node scripts/set-ai-questions.mjs            # visar läget
- *   node scripts/set-ai-questions.mjs --on       # slår på
- *   node scripts/set-ai-questions.mjs --off      # stänger av
+ *   node scripts/set-ai-questions.mjs                     # visar läget
+ *   node scripts/set-ai-questions.mjs --on                # på för alla
+ *   node scripts/set-ai-questions.mjs --off               # av (testare ser den ändå)
+ *   node scripts/set-ai-questions.mjs --testers uid1,uid2 # sätter testarlistan
+ *   node scripts/set-ai-questions.mjs --testers ""        # tömmer testarlistan
  *
  * Kräver `firebase-admin-key.json` i repo-roten (gitignored).
  */
@@ -35,8 +41,17 @@ if (on && off) {
   console.error("Ange --on eller --off, inte båda.");
   process.exit(1);
 }
-if (on || off) {
-  await ref.set({ androidEnabled: on, updatedAt: Date.now() });
+const testersIdx = process.argv.indexOf("--testers");
+const patch = {};
+if (on || off) patch.androidEnabled = on;
+if (testersIdx >= 0) {
+  patch.testerUids = (process.argv[testersIdx + 1] ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+if (Object.keys(patch).length > 0) {
+  await ref.set({ ...patch, updatedAt: Date.now() }, { merge: true });
 }
 const snap = await ref.get();
 console.log(

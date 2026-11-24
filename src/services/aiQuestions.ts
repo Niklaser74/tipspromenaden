@@ -24,7 +24,9 @@
  *   för att låsa upp funktioner, och 3.1.3(b) tillåter webbköpta krediter
  *   bara om samma krediter också säljs som köp i appen. iOS saknar
  *   dessutom App Check i appen, som funktionen kräver.
- * - **Fjärrflagga.** `config/aiQuestions.androidEnabled` måste vara `true`.
+ * - **Fjärrflagga.** `config/aiQuestions.androidEnabled` måste vara `true`,
+ *   eller så måste kontots uid stå i `testerUids` i samma dokument (för
+ *   att prova i produktionsappen innan funktionen släpps för alla).
  *   Saknas dokumentet eller går det inte att läsa är funktionen av, så att
  *   den kan stängas utan ny release om Google invänder.
  * - Knappen visas för alla inloggade (icke-anonyma) konton, även de som
@@ -155,12 +157,17 @@ export async function generateQuestions(req: AiGenerateRequest): Promise<AiGener
 /**
  * Fjärrflaggan. `false` vid alla fel och på allt som inte är Android —
  * funktionen ska vara av om vi inte säkert vet att den får vara på.
+ * På för alla när `androidEnabled` är `true`, annars bara för uid:n i
+ * `testerUids`.
  */
-export async function isAiEnabledRemotely(): Promise<boolean> {
+export async function isAiEnabledRemotely(uid: string | null | undefined): Promise<boolean> {
   if (Platform.OS !== "android") return false;
   try {
     const snap = await getDoc(doc(db, "config", "aiQuestions"));
-    return snap.exists() && snap.data().androidEnabled === true;
+    if (!snap.exists()) return false;
+    const data = snap.data();
+    if (data.androidEnabled === true) return true;
+    return !!uid && Array.isArray(data.testerUids) && data.testerUids.includes(uid);
   } catch {
     return false;
   }
@@ -184,13 +191,14 @@ export function useAiCredits(uid: string | null | undefined, isAnonymous: boolea
 
   useEffect(() => {
     let cancelled = false;
-    isAiEnabledRemotely().then((on) => {
+    setEnabled(false);
+    isAiEnabledRemotely(uid).then((on) => {
       if (!cancelled) setEnabled(on);
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [uid]);
 
   useEffect(() => {
     if (!enabled || !uid || isAnonymous) {

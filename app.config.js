@@ -234,8 +234,8 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        sv: "✨ Nytt på Android: generera frågor med AI. När du skapar en ny promenad finns knappen Generera frågor med AI — välj tema, plats eller klistra in en egen text, så skriver AI:n frågorna och lägger dem på dina kontroller. Funktionen använder AI-krediterna på ditt Tipspromenaden-konto.",
-        en: "✨ New on Android: generate questions with AI. When you create a new walk there is a Generate questions with AI button — pick a topic, a place or paste your own text, and the AI writes the questions and puts them on your checkpoints. It uses the AI credits on your Tipspromenaden account.",
+        sv: "",
+        en: "",
       },
     },
   },
