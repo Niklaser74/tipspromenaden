@@ -40,7 +40,7 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { getFunctions, httpsCallable } from "firebase/functions";
-import app, { db } from "../config/firebase";
+import app, { db, ensureNativeAppCheck } from "../config/firebase";
 import type { QuestionBattery } from "./tipspackValidator";
 
 export type AiMode = "topic" | "text" | "place";
@@ -148,6 +148,9 @@ export async function generateQuestions(req: AiGenerateRequest): Promise<AiGener
     { timeout: 300_000 }
   );
   try {
+    // Funktionen kräver App Check. Play Integrity konfigureras först här
+    // (och i `useAiCredits`), inte vid uppstart — se `config/firebase.ts`.
+    await ensureNativeAppCheck();
     return (await callable(req)).data;
   } catch (e) {
     throw toAiError(e);
@@ -194,6 +197,8 @@ export function useAiCredits(uid: string | null | undefined, isAnonymous: boolea
     setEnabled(false);
     isAiEnabledRemotely(uid).then((on) => {
       if (!cancelled) setEnabled(on);
+      // Värm upp App Check i förväg, så att token finns när man trycker.
+      if (on) void ensureNativeAppCheck();
     });
     return () => {
       cancelled = true;

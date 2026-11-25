@@ -31,6 +31,7 @@ import {
   type AiMode,
 } from "../services/aiQuestions";
 import type { QuestionBattery } from "../services/tipspackValidator";
+import { lastAppCheckError } from "../config/firebase";
 
 interface Props {
   visible: boolean;
@@ -87,8 +88,12 @@ export function AiGenerateModal({ visible, credits, language, location, onGenera
         return t("ai.errorAnonymous");
       case "generation-failed":
         return t("ai.errorFailed");
-      case "app-check":
-        return t("ai.errorAppCheck");
+      case "app-check": {
+        // Den tekniska orsaken visas med, annars går felet inte att
+        // felsöka utan adb.
+        const detail = lastAppCheckError();
+        return detail ? `${t("ai.errorAppCheck")}\n(${detail.slice(0, 200)})` : t("ai.errorAppCheck");
+      }
       case "network":
         return t("ai.errorNetwork");
       default:

@@ -185,6 +185,22 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-11-25 (2) — App Check konfigureras för AI-frågorna
+
+Bara Android-runtime 1.9.0, `production`-branchen. Första provet på enhet gav
+"Appen kunde inte verifieras": funktionsloggen visade `app: MISSING`. Native
+App Check-modulen hade aldrig fått någon provider konfigurerad, så appen har
+aldrig skickat en token (det märktes inte, eftersom inget tvingade App Check
+förrän AI-frågorna). Play Integrity konfigureras nu, men bara när AI-funktionen
+är påslagen för kontot — alla andra kör som förut. Felrutan visar den tekniska
+orsaken om verifieringen misslyckas. `extra.releaseNotes` fortfarande tomma.
+
+**Svenska:** (ingen text — inga synliga ändringar)
+
+**English:** (no text — no visible changes)
+
+---
+
 ### OTA 2026-11-25 — AI-frågor på Android, dold för alla utom testare
 
 Bara Android-runtime 1.9.0, `production`-branchen. Koden nedan går ut, men
