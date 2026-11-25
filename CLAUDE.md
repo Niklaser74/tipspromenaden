@@ -226,9 +226,14 @@ hardcoded `isAdmin()`-funktion som måste hållas i synk med
 
 **Återstår att aktivera (manuellt i konsolerna):**
 - **Firebase App Check — Enforce** — Stage 2 (native Play Integrity via
-  `@react-native-firebase/app-check`) är AKTIVERAT i 1.8.0/build 21 och
-  skickar tokens på varje request, men Firebase Console står i **Monitor**-
-  läge (rejectar inget än). Återstår: verifiera att legit trafik syns som
+  `@react-native-firebase/app-check`) är byggt in sedan 1.8.0/build 21, men
+  **appen skickade aldrig någon token** förrän 2026-11-25: native-modulen
+  hade ingen provider konfigurerad och felet svaldes. Sedan dess
+  konfigureras Play Integrity i `ensureNativeAppCheck()`
+  (`src/config/firebase.ts`), men bara på begäran av AI-frågorna — alla
+  andra anrop går fortfarande utan token. Flytta anropet till uppstarten
+  när det är belagt på enhet, INNAN något sätts till Enforce. Firebase
+  Console står i **Monitor**-läge (rejectar inget än). Återstår: verifiera att legit trafik syns som
   *verified* i konsolen, sen flippa Firestore + Storage till **Enforce**.
   Init:en finns i `src/config/firebase.ts` (CustomProvider-brygga, icke-
   fatal try-catch). **Hot tills Enforce:** anonyma klienter kan spamma
