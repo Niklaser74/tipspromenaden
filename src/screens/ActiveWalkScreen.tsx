@@ -649,8 +649,14 @@ export default function ActiveWalkScreen() {
   // < 900 px) ändras ingenting — alla overlays och bottomBar fortsätter
   // ligga ovanpå kartan precis som tidigare. useWindowDimensions
   // uppdateras automatiskt vid rotation.
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const isWide = screenWidth >= 900;
+
+  // Tak för frågepanelens scrollyta. Panelen är ankrad i underkanten, så
+  // utan tak växer den uppåt förbi skärmkanten och kapar det som ligger
+  // överst: bilden först, därefter frågetexten. 72 % + handtag och padding
+  // landar kring 85 % av skärmen, så kartan syns fortfarande ovanför.
+  const questionMaxHeight = Math.round(screenHeight * 0.72);
 
   return (
     <View style={[styles.container, isWide && styles.containerRow]}>
@@ -979,159 +985,164 @@ export default function ActiveWalkScreen() {
           <View style={styles.modal}>
             <View style={styles.modalHandle} />
 
-            <View style={styles.questionHeader}>
-              <View style={styles.questionBadge}>
-                <Text style={styles.questionBadgeText}>
-                  {t("create.controlLabel", { order: activeQuestion?.order })}
-                </Text>
-              </View>
-              <View style={styles.questionHeaderActions}>
-                <TouchableOpacity
-                  onPress={() =>
-                    isSpeaking
-                      ? stopSpeaking()
-                      : activeQuestion && speakQuestion(activeQuestion)
-                  }
-                  style={[
-                    styles.iconButton,
-                    isSpeaking && styles.iconButtonActive,
-                  ]}
-                  accessibilityLabel={
-                    isSpeaking ? t("active.stopSpeakLabel") : t("active.startSpeakLabel")
-                  }
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.iconButtonText}>
-                    {isSpeaking ? "⏸" : "🔊"}
+            <ScrollView
+              style={[styles.modalScroll, { maxHeight: questionMaxHeight }]}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              <View style={styles.questionHeader}>
+                <View style={styles.questionBadge}>
+                  <Text style={styles.questionBadgeText}>
+                    {t("create.controlLabel", { order: activeQuestion?.order })}
                   </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => setAutoSpeak((v) => !v)}
-                  style={[
-                    styles.iconButton,
-                    autoSpeak && styles.iconButtonActive,
-                  ]}
-                  accessibilityLabel={
-                    autoSpeak
-                      ? t("active.autoSpeakOffLabel")
-                      : t("active.autoSpeakOnLabel")
-                  }
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.iconButtonText}>
-                    {autoSpeak ? "🎧" : "🔇"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {activeQuestion?.imageUrl && (
-              <Image
-                source={{ uri: activeQuestion.imageUrl }}
-                style={styles.questionImage}
-                resizeMode="cover"
-              />
-            )}
-
-            <Text style={styles.questionText}>{activeQuestion?.text}</Text>
-
-            {activeQuestion?.options.map((option, idx) => {
-              const isSelected = selectedAnswer === idx;
-              // Dolda resultat: ingen grön/röd — bara neutral markering av
-              // valt alternativ så användaren ser vad som registrerades.
-              const showNeutral = answerFeedback?.neutral && isSelected;
-              const showCorrect =
-                answerFeedback &&
-                !answerFeedback.neutral &&
-                idx === activeQuestion.correctOptionIndex;
-              const showWrong =
-                answerFeedback &&
-                !answerFeedback.neutral &&
-                isSelected &&
-                !answerFeedback.correct;
-
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  style={[
-                    styles.optionButton,
-                    showCorrect && styles.optionCorrect,
-                    showWrong && styles.optionWrong,
-                    showNeutral && styles.optionNeutral,
-                  ]}
-                  onPress={() => handleAnswer(idx)}
-                  disabled={selectedAnswer !== null}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.optionInner}>
-                    <View
-                      style={[
-                        styles.optionDot,
-                        showCorrect && styles.optionDotCorrect,
-                        showWrong && styles.optionDotWrong,
-                        showNeutral && styles.optionDotNeutral,
-                      ]}
-                    >
-                      {showCorrect && (
-                        <Text style={styles.optionDotIcon}>✓</Text>
-                      )}
-                      {showWrong && (
-                        <Text style={styles.optionDotIcon}>✗</Text>
-                      )}
-                      {showNeutral && (
-                        <Text style={styles.optionDotIcon}>•</Text>
-                      )}
-                    </View>
-                    <Text
-                      style={[
-                        styles.optionText,
-                        (showCorrect || showWrong || showNeutral) &&
-                          styles.optionTextHighlight,
-                      ]}
-                    >
-                      {option}
+                </View>
+                <View style={styles.questionHeaderActions}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      isSpeaking
+                        ? stopSpeaking()
+                        : activeQuestion && speakQuestion(activeQuestion)
+                    }
+                    style={[
+                      styles.iconButton,
+                      isSpeaking && styles.iconButtonActive,
+                    ]}
+                    accessibilityLabel={
+                      isSpeaking ? t("active.stopSpeakLabel") : t("active.startSpeakLabel")
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.iconButtonText}>
+                      {isSpeaking ? "⏸" : "🔊"}
                     </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setAutoSpeak((v) => !v)}
+                    style={[
+                      styles.iconButton,
+                      autoSpeak && styles.iconButtonActive,
+                    ]}
+                    accessibilityLabel={
+                      autoSpeak
+                        ? t("active.autoSpeakOffLabel")
+                        : t("active.autoSpeakOnLabel")
+                    }
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.iconButtonText}>
+                      {autoSpeak ? "🎧" : "🔇"}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
 
-            {answerFeedback && (
-              <View
-                style={[
-                  styles.feedbackBanner,
-                  answerFeedback.neutral
-                    ? styles.feedbackNeutral
-                    : answerFeedback.correct
-                      ? styles.feedbackCorrect
-                      : styles.feedbackWrong,
-                ]}
-              >
-                <Text style={styles.feedbackEmoji}>
-                  {answerFeedback.neutral
-                    ? "✅"
-                    : answerFeedback.correct
-                      ? "🎉"
-                      : "😔"}
-                </Text>
-                <Text
+              {activeQuestion?.imageUrl && (
+                <Image
+                  source={{ uri: activeQuestion.imageUrl }}
+                  style={styles.questionImage}
+                  resizeMode="cover"
+                />
+              )}
+
+              <Text style={styles.questionText}>{activeQuestion?.text}</Text>
+
+              {activeQuestion?.options.map((option, idx) => {
+                const isSelected = selectedAnswer === idx;
+                // Dolda resultat: ingen grön/röd — bara neutral markering av
+                // valt alternativ så användaren ser vad som registrerades.
+                const showNeutral = answerFeedback?.neutral && isSelected;
+                const showCorrect =
+                  answerFeedback &&
+                  !answerFeedback.neutral &&
+                  idx === activeQuestion.correctOptionIndex;
+                const showWrong =
+                  answerFeedback &&
+                  !answerFeedback.neutral &&
+                  isSelected &&
+                  !answerFeedback.correct;
+
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[
+                      styles.optionButton,
+                      showCorrect && styles.optionCorrect,
+                      showWrong && styles.optionWrong,
+                      showNeutral && styles.optionNeutral,
+                    ]}
+                    onPress={() => handleAnswer(idx)}
+                    disabled={selectedAnswer !== null}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.optionInner}>
+                      <View
+                        style={[
+                          styles.optionDot,
+                          showCorrect && styles.optionDotCorrect,
+                          showWrong && styles.optionDotWrong,
+                          showNeutral && styles.optionDotNeutral,
+                        ]}
+                      >
+                        {showCorrect && (
+                          <Text style={styles.optionDotIcon}>✓</Text>
+                        )}
+                        {showWrong && (
+                          <Text style={styles.optionDotIcon}>✗</Text>
+                        )}
+                        {showNeutral && (
+                          <Text style={styles.optionDotIcon}>•</Text>
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          (showCorrect || showWrong || showNeutral) &&
+                            styles.optionTextHighlight,
+                        ]}
+                      >
+                        {option}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {answerFeedback && (
+                <View
                   style={[
-                    styles.feedbackText,
+                    styles.feedbackBanner,
                     answerFeedback.neutral
-                      ? styles.feedbackTextNeutral
+                      ? styles.feedbackNeutral
                       : answerFeedback.correct
-                        ? styles.feedbackTextCorrect
-                        : styles.feedbackTextWrong,
+                        ? styles.feedbackCorrect
+                        : styles.feedbackWrong,
                   ]}
                 >
-                  {answerFeedback.neutral
-                    ? t("active.answerRegistered")
-                    : answerFeedback.correct
-                      ? t("active.correctAnswerSimple")
-                      : t("active.correctAnswerWith", { answer: answerFeedback.correctAnswer })}
-                </Text>
-              </View>
-            )}
+                  <Text style={styles.feedbackEmoji}>
+                    {answerFeedback.neutral
+                      ? "✅"
+                      : answerFeedback.correct
+                        ? "🎉"
+                        : "😔"}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.feedbackText,
+                      answerFeedback.neutral
+                        ? styles.feedbackTextNeutral
+                        : answerFeedback.correct
+                          ? styles.feedbackTextCorrect
+                          : styles.feedbackTextWrong,
+                    ]}
+                  >
+                    {answerFeedback.neutral
+                      ? t("active.answerRegistered")
+                      : answerFeedback.correct
+                        ? t("active.correctAnswerSimple")
+                        : t("active.correctAnswerWith", { answer: answerFeedback.correctAnswer })}
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1542,7 +1553,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F0E8",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    maxHeight: "88%",
+  },
+  modalScroll: {
+    flexGrow: 0,
+  },
+  modalScrollContent: {
     paddingBottom: 36,
   },
   modalHandle: {

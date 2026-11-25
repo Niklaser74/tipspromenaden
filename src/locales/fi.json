@@ -405,6 +405,7 @@
     "optionsHint": "Napauta ympyrää merkitäksesi oikean vastauksen",
     "optionPlaceholder": "Vaihtoehto {{index}}",
     "addOption": "+ Lisää vaihtoehto",
+    "removeOption": "Poista vaihtoehto {{index}}",
     "errorNoQuestion": "Kirjoita kysymys",
     "errorNoOptions": "Täytä kaikki vastausvaihtoehdot",
     "errorNoTitle": "Anna tietokävelylle nimi",

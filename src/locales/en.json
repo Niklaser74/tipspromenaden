@@ -487,6 +487,7 @@
     "optionsHint": "Tap the circle to mark the correct answer",
     "optionPlaceholder": "Option {{index}}",
     "addOption": "+ Add option",
+    "removeOption": "Remove option {{index}}",
     "errorNoQuestion": "Write a question",
     "errorNoOptions": "Fill in all answer options",
     "errorNoTitle": "Give the walk a name",

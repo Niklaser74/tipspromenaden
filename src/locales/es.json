@@ -405,6 +405,7 @@
     "optionsHint": "Toca el círculo para marcar la respuesta correcta",
     "optionPlaceholder": "Opción {{index}}",
     "addOption": "+ Añadir opción",
+    "removeOption": "Quitar opción {{index}}",
     "errorNoQuestion": "Escribe una pregunta",
     "errorNoOptions": "Rellena todas las opciones de respuesta",
     "errorNoTitle": "Pon nombre al paseo",

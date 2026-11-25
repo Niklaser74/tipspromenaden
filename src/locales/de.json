@@ -405,6 +405,7 @@
     "optionsHint": "Tippe auf den Kreis, um die richtige Antwort zu markieren",
     "optionPlaceholder": "Option {{index}}",
     "addOption": "+ Option hinzufügen",
+    "removeOption": "Option {{index}} entfernen",
     "errorNoQuestion": "Schreibe eine Frage",
     "errorNoOptions": "Fülle alle Antwortmöglichkeiten aus",
     "errorNoTitle": "Gib der Wanderung einen Namen",

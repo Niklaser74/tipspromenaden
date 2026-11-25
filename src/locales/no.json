@@ -405,6 +405,7 @@
     "optionsHint": "Trykk på sirkelen for å markere riktig svar",
     "optionPlaceholder": "Alternativ {{index}}",
     "addOption": "+ Legg til alternativ",
+    "removeOption": "Fjern alternativ {{index}}",
     "errorNoQuestion": "Skriv et spørsmål",
     "errorNoOptions": "Fyll ut alle svaralternativer",
     "errorNoTitle": "Gi tipsturen et navn",

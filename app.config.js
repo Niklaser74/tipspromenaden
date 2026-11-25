@@ -234,10 +234,11 @@ module.exports = () => ({
       // För AAB-uppdateringar styrs notes istället från Firestore-docen
       // `config/appUpdate` (fältet `releaseNotes.sv / .en`).
       releaseNotes: {
-        // Tömda efter Android-OTA:n 2026-11-25 (AI-frågor): texten gällde bara
-        // Android och får inte följa med en iOS-OTA. Fyll i vid nästa OTA.
-        sv: "",
-        en: "",
+        // OTA 2026-11-25 (4): frågepanelen skrollar + ta bort svarsalternativ.
+        // Gäller båda plattformarna, så den här texten får följa med bägge
+        // runtimes (1.9.2 för iOS, 1.9.0 för Android).
+        sv: "📱 Lång fråga? Nu går frågepanelen att skrolla. Tidigare kunde bilden och början av frågetexten hamna utanför skärmen när frågan var lång — nu får allt plats. ✏️ Du kan också ta bort svarsalternativ: ett ✕ vid varje alternativ när du skapar eller redigerar en fråga, så du kan gå från fyra till tre utan att skriva om frågan.",
+        en: "📱 Long question? The question panel now scrolls. The image and the start of a long question could end up off-screen — now everything fits. ✏️ You can also remove answer options: an ✕ next to each option when you create or edit a question, so you can go from four to three without rewriting the question.",
       },
     },
   },

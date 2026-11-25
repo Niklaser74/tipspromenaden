@@ -185,6 +185,34 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-11-25 (4) — Frågepanelen skrollar + ta bort svarsalternativ
+
+Båda runtimes (iOS 1.9.2, Android 1.9.0), bägge branches. Rapporterat av Anna
+Berggren: hennes frågetext var för lång för att synas i mobilen, och bilderna
+"syntes oftast inte". Samma bugg — frågepanelen är ankrad i underkanten och
+hade varken `maxHeight` eller ScrollView, så den växte uppåt förbi skärmkanten
+och kapade innehållet ovanifrån: handtag, badge, **bild**, sedan frågetexten.
+Bilden ligger först i panelen och var därför det första som försvann.
+
+Hon frågade också om hon kunde ta bort det fjärde svarsalternativet för att
+spara utrymme. Det gick inte: det fanns bara "+ Lägg till alternativ", och
+sparningen vägrade tomma alternativ. Nu finns ✕ per rad (minst två måste
+finnas kvar) och rätt svar följer med när raderna flyttar sig.
+
+Inte provat på enhet än — panelen kräver aktiv runda och GPS-närhet.
+
+**Svenska:**
+```
+📱 Lång fråga? Nu går frågepanelen att skrolla. Tidigare kunde bilden och början av frågetexten hamna utanför skärmen när frågan var lång — nu får allt plats. ✏️ Du kan också ta bort svarsalternativ: ett ✕ vid varje alternativ när du skapar eller redigerar en fråga, så du kan gå från fyra till tre utan att skriva om frågan.
+```
+
+**English:**
+```
+📱 Long question? The question panel now scrolls. The image and the start of a long question could end up off-screen — now everything fits. ✏️ You can also remove answer options: an ✕ next to each option when you create or edit a question, so you can go from four to three without rewriting the question.
+```
+
+---
+
 ### OTA 2026-11-25 (3) — AI-frågor med kontots krediter släppt för alla, bara Android
 
 Bara Android-runtime 1.9.0, `production`-branchen. Provad på enhet av Niklas

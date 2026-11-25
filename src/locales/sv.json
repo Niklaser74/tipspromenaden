@@ -487,6 +487,7 @@
     "optionsHint": "Tryck på cirkeln för att markera rätt svar",
     "optionPlaceholder": "Alternativ {{index}}",
     "addOption": "+ Lägg till alternativ",
+    "removeOption": "Ta bort alternativ {{index}}",
     "errorNoQuestion": "Skriv en fråga",
     "errorNoOptions": "Fyll i alla svarsalternativ",
     "errorNoTitle": "Ge promenaden ett namn",

@@ -405,6 +405,7 @@
     "optionsHint": "Tryk på cirklen for at markere det rigtige svar",
     "optionPlaceholder": "Mulighed {{index}}",
     "addOption": "+ Tilføj mulighed",
+    "removeOption": "Fjern mulighed {{index}}",
     "errorNoQuestion": "Skriv et spørgsmål",
     "errorNoOptions": "Udfyld alle svarmuligheder",
     "errorNoTitle": "Giv quizgåturen et navn",

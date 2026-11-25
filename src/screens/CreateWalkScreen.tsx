@@ -147,6 +147,17 @@ function ModalContent({
   // Plus 16 px luft så att fältet inte klistras direkt mot tgb-kanten.
   const kbHeight = useKeyboardHeight();
 
+  // Ta bort ett svarsalternativ. Minst två måste finnas kvar — en fråga med
+  // ett enda alternativ är ingen fråga. Rätt svar följer med raderna: pekar
+  // det på den rad som tas bort flyttas det till första alternativet, låg
+  // raden ovanför det flyttas indexet ned ett steg.
+  const removeOption = (idx: number) => {
+    if (tempOptions.length <= 2) return;
+    setTempOptions(tempOptions.filter((_, i) => i !== idx));
+    if (tempCorrect === idx) setTempCorrect(0);
+    else if (tempCorrect > idx) setTempCorrect(tempCorrect - 1);
+  };
+
   // Swipe-down-to-dismiss på handle + header. translateY följer fingret
   // medan man drar nedåt; vid release över tröskel (eller snabb flick)
   // animeras modalen ut och onCancel triggas. PanResponder anropar bara
@@ -294,6 +305,18 @@ function ModalContent({
                 setTempOptions(copy);
               }}
             />
+            {tempOptions.length > 2 && (
+              <TouchableOpacity
+                style={styles.removeOptionButton}
+                onPress={() => removeOption(idx)}
+                accessibilityLabel={t("create.removeOption", {
+                  index: idx + 1,
+                })}
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              >
+                <Text style={styles.removeOptionText}>✕</Text>
+              </TouchableOpacity>
+            )}
           </View>
         ))}
         <TouchableOpacity
@@ -2902,6 +2925,18 @@ const styles = StyleSheet.create({
   optionInputSelected: {
     borderColor: "#2D7A3A",
     backgroundColor: "#F0F9F3",
+  },
+  removeOptionButton: {
+    width: 32,
+    height: 32,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 6,
+  },
+  removeOptionText: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#B0BAB2",
   },
   addOptionButton: {
     paddingVertical: 8,
