@@ -1,0 +1,179 @@
+<!doctype html>
+<!--
+  Facebook-bild för AI-frågorna (1200×1200). Illustration, inte skärmdumpar:
+  appens dialog är uppritad efter `src/components/AiGenerateModal.tsx` och
+  webbens efter `tipspromenaden-web/src/components/skapa/AiGenerateDialog.tsx`,
+  med samma texter, färger och mått. Exempelfrågorna är påhittade för bilden.
+
+  Bygg om:
+      (Chrome, inte Edge — Edge hänger sig i headless-läge på den här maskinen)
+    chrome.exe --headless=new --hide-scrollbars --screenshot=<full sökväg>.png
+      --window-size=1200,1200 --force-device-scale-factor=2
+      --virtual-time-budget=8000 file:///<full sökväg>/facebook-ai-fragor.html
+-->
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 1200px; overflow: hidden; }
+  body {
+    background: #F5F0E8; color: #2C3E2D;
+    font-family: "Instrument Sans", system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 60px 36px;
+  }
+  .serif { font-family: "Lora", Georgia, serif; }
+  .badge {
+    background: #1B3D2B; color: #F5F0E8; font-size: 17px; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase; padding: 9px 22px; border-radius: 999px;
+  }
+  h1 { font-size: 68px; font-weight: 700; color: #1B3D2B; line-height: 1.05; margin-top: 22px; text-align: center; }
+  .lead { font-size: 24px; line-height: 1.4; text-align: center; margin-top: 12px; white-space: nowrap; }
+  .bar { width: 64px; height: 5px; background: #E8B830; margin-top: 18px; }
+
+  .stage { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; gap: 44px; margin-top: 14px; zoom: 0.9; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .cap { font-size: 19px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: #1B6B35; }
+
+  /* ── Telefon ── */
+  .phone {
+    width: 372px; height: 716px; background: #14201A; border-radius: 46px; padding: 11px;
+    box-shadow: 0 30px 60px rgba(27,61,43,0.28);
+  }
+  .screen {
+    width: 100%; height: 100%; border-radius: 36px; overflow: hidden; position: relative;
+    background: linear-gradient(160deg, #CFE0C8 0%, #B9D1B4 45%, #A9C6B9 100%);
+  }
+  .screen::before { /* dämpad skaparskärm bakom dialogen */
+    content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.4);
+  }
+  .modal {
+    position: absolute; left: 5%; width: 90%; top: 50%; transform: translateY(-50%);
+    background: #FBF7F0; border-radius: 18px; padding: 20px;
+  }
+  .mhead { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .mtitle { font-size: 19px; font-weight: 700; color: #1B3D2B; }
+  .balance {
+    font-size: 13px; font-weight: 600; color: #7A5A0A; background: #FFF8E7;
+    border: 1px solid #E8B830; border-radius: 10px; padding: 4px 10px; white-space: nowrap;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip { border: 1.5px solid #D9D2C2; border-radius: 10px; padding: 8px 12px; background: #fff; font-size: 14px; color: #4F5F50; }
+  .chip.on { border-color: #1B6B35; background: #E6F2EA; color: #1B3D2B; font-weight: 700; }
+  .input { border: 1px solid #D9D2C2; border-radius: 10px; padding: 10px 14px; font-size: 15px; background: #fff; margin-bottom: 12px; }
+  .label { font-size: 13px; font-weight: 600; color: #4F5F50; margin-bottom: 6px; }
+  .cost { font-size: 13px; color: #4F5F50; line-height: 18px; margin-bottom: 10px; }
+  .gen { background: #1B6B35; color: #F5F0E8; border-radius: 12px; padding: 13px 0; text-align: center; font-size: 16px; font-weight: 700; margin-top: 4px; }
+  .cancel { text-align: center; padding: 12px 0 0; font-size: 15px; color: #4F5F50; }
+
+  /* ── Webbläsare ── */
+  .browser {
+    width: 628px; background: #fff; border-radius: 16px; overflow: hidden;
+    border: 1px solid #D9D2C2; box-shadow: 0 30px 60px rgba(27,61,43,0.22);
+  }
+  .chrome { background: #E9E3D6; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .dots { display: flex; gap: 7px; }
+  .dots i { width: 12px; height: 12px; border-radius: 50%; background: #C9C1AF; display: block; }
+  .url { flex: 1; background: #fff; border-radius: 999px; padding: 7px 16px; font-size: 15px; color: #4F5F50; }
+  .dhead { padding: 18px 24px 14px; border-bottom: 1px solid #F0EEE8; display: flex; justify-content: space-between; align-items: center; }
+  .dhead .t { font-size: 24px; color: #1B3D2B; font-weight: 500; }
+  .dhead .x { font-size: 20px; color: #8A9A8D; }
+  .dbody { padding: 18px 24px; }
+  .warn { font-size: 14px; line-height: 1.45; color: #78350F; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 8px; padding: 9px 12px; }
+  .pack { font-size: 20px; color: #1B3D2B; margin-top: 16px; font-weight: 500; }
+  .packd { font-size: 14px; color: #2C3E2D; margin-top: 2px; }
+  .q { border: 1px solid rgba(27,61,43,0.3); border-radius: 12px; padding: 12px; margin-top: 12px; display: flex; gap: 12px; }
+  .q.off { border-color: #E5E7EB; background: #F9FAFB; opacity: 0.6; }
+  .box { width: 16px; height: 16px; border-radius: 3px; background: #1B3D2B; color: #fff; font-size: 12px; line-height: 16px; text-align: center; margin-top: 3px; flex: none; }
+  .q.off .box { background: #fff; border: 1.5px solid #9CA3AF; }
+  .qt { font-size: 15px; font-weight: 600; }
+  .q ul { list-style: none; margin-top: 4px; font-size: 14.5px; line-height: 1.5; }
+  .q li.ok { color: #1B3D2B; font-weight: 600; }
+  .expl { font-size: 12.5px; font-style: italic; margin-top: 4px; }
+  .src { font-size: 12.5px; color: #1B3D2B; text-decoration: underline; margin-top: 4px; }
+  .dfoot { padding: 14px 24px; border-top: 1px solid #F0EEE8; display: flex; justify-content: space-between; align-items: center; }
+  .dfoot span { font-size: 13px; }
+  .use { background: #1B3D2B; color: #F5F0E8; padding: 9px 24px; border-radius: 999px; font-weight: 600; font-size: 16px; }
+
+  .foot { display: flex; align-items: center; gap: 16px; margin-top: 14px; }
+  .foot img { width: 56px; height: 56px; border-radius: 14px; }
+  .foot .u { font-size: 30px; font-weight: 700; color: #1B3D2B; }
+  .foot .s { font-size: 18px; color: #4F5F50; margin-top: 2px; }
+</style>
+</head>
+<body>
+  <span class="badge">Nytt · önskat av er</span>
+  <h1 class="serif">Låt AI skriva frågorna</h1>
+  <p class="lead">Beskriv vad promenaden ska handla om — få ett färdigt frågebatteri på under en minut.</p>
+  <div class="bar"></div>
+
+  <div class="stage">
+    <div class="col">
+      <div class="phone"><div class="screen">
+        <div class="modal">
+          <div class="mhead"><span class="mtitle">✨ Frågor med AI</span><span class="balance">Saldo: 10</span></div>
+          <div class="chips"><span class="chip on">💡 Tema</span><span class="chip">📍 Plats</span><span class="chip">📄 Egen text</span></div>
+          <div class="input">Djur i den svenska skogen</div>
+          <div class="label">Antal frågor</div>
+          <div class="chips"><span class="chip">5</span><span class="chip on">10</span><span class="chip">15</span><span class="chip">20</span></div>
+          <div class="label">Svårighet</div>
+          <div class="chips"><span class="chip on">Lätt</span><span class="chip">Medel</span><span class="chip">Svår</span></div>
+          <div class="label">Målgrupp</div>
+          <div class="chips"><span class="chip">Blandat/familj</span><span class="chip">Vuxna</span><span class="chip on">Barn 8–12</span></div>
+          <div class="cost">Drar 1 från ditt saldo av AI-krediter.</div>
+          <div class="gen">Generera</div>
+          <div class="cancel">Avbryt</div>
+        </div>
+      </div></div>
+      <span class="cap">I Android-appen</span>
+    </div>
+
+    <div class="col">
+      <div class="browser">
+        <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">tipspromenaden.app/skapa</div></div>
+        <div class="dhead"><span class="t serif">✨ Generera frågor med AI</span><span class="x">✕</span></div>
+        <div class="dbody">
+          <div class="warn">⚠️ AI-genererat — kontrollera fakta innan du använder frågorna. Bocka ur frågor du inte vill ha; du kan redigera resten efteråt.</div>
+          <div class="pack serif">Djur i den svenska skogen</div>
+          <div class="packd">Tio lätta frågor för barn 8–12 år.</div>
+
+          <div class="q">
+            <div class="box">✓</div>
+            <div>
+              <div class="qt">1. Vilket är Sveriges största rovdjur på land?</div>
+              <ul><li>· Varg</li><li class="ok">✓ Brunbjörn</li><li>· Lodjur</li></ul>
+              <div class="expl">En vuxen björnhane kan väga över 300 kilo.</div>
+              <div class="src">Källa: https://sv.wikipedia.org/wiki/Brunbjörn</div>
+            </div>
+          </div>
+          <div class="q">
+            <div class="box">✓</div>
+            <div>
+              <div class="qt">2. Vad kallas älgens unge?</div>
+              <ul><li class="ok">✓ Kalv</li><li>· Kid</li><li>· Föl</li></ul>
+              <div class="expl">Älgkon föder oftast en eller två kalvar på våren.</div>
+              <div class="src">Källa: https://sv.wikipedia.org/wiki/Älg</div>
+            </div>
+          </div>
+          <div class="q off">
+            <div class="box"></div>
+            <div>
+              <div class="qt">3. Vilket djur sover vintersömn i ett ide?</div>
+              <ul><li>· Räv</li><li>· Rådjur</li><li class="ok">✓ Björn</li></ul>
+            </div>
+          </div>
+        </div>
+        <div class="dfoot"><span>← Ändra och generera nya</span><span class="use">Använd 9 frågor</span></div>
+      </div>
+      <span class="cap">På webben</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <img src="../../../tipspromenaden-web/public/icon.png" alt="" />
+    <div><div class="u">tipspromenaden.app/skapa</div><div class="s">Från 49 kr för 10 krediter · allt annat är gratis</div></div>
+  </div>
+</body>
+</html>
