@@ -24,7 +24,7 @@
  *   för att låsa upp funktioner, och 3.1.3(b) tillåter webbköpta krediter
  *   bara om samma krediter också säljs som köp i appen. iOS saknar
  *   dessutom App Check i appen, som funktionen kräver.
- * - **Fjärrflagga.** `config/aiQuestions.androidEnabled` måste vara `true`,
+ * - **Fjärrflagga.** `config/aiQuestions.androidLive` måste vara `true`,
  *   eller så måste kontots uid stå i `testerUids` i samma dokument (för
  *   att prova i produktionsappen innan funktionen släpps för alla).
  *   Saknas dokumentet eller går det inte att läsa är funktionen av, så att
@@ -160,7 +160,7 @@ export async function generateQuestions(req: AiGenerateRequest): Promise<AiGener
 /**
  * Fjärrflaggan. `false` vid alla fel och på allt som inte är Android —
  * funktionen ska vara av om vi inte säkert vet att den får vara på.
- * På för alla när `androidEnabled` är `true`, annars bara för uid:n i
+ * På för alla när `androidLive` är `true`, annars bara för uid:n i
  * `testerUids`.
  */
 export async function isAiEnabledRemotely(uid: string | null | undefined): Promise<boolean> {
@@ -169,7 +169,7 @@ export async function isAiEnabledRemotely(uid: string | null | undefined): Promi
     const snap = await getDoc(doc(db, "config", "aiQuestions"));
     if (!snap.exists()) return false;
     const data = snap.data();
-    if (data.androidEnabled === true) return true;
+    if (data.androidLive === true) return true;
     return !!uid && Array.isArray(data.testerUids) && data.testerUids.includes(uid);
   } catch {
     return false;

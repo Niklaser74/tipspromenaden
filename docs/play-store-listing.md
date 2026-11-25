@@ -185,6 +185,32 @@ Hålls i omvänd kronologisk ordning. Senaste överst.
 
 ---
 
+### OTA 2026-11-25 (3) — AI-frågor med kontots krediter släppt för alla, bara Android
+
+Bara Android-runtime 1.9.0, `production`-branchen. Provad på enhet av Niklas
+(generering gick igenom med Play Integrity). Flaggfältet heter från och med nu
+`androidLive`: bundeln från i morse (`…43eb6247`) läser `androidEnabled` men kan
+inte hämta App Check-token, så det fältet ska förbli `false`. iOS får inte den
+här OTA:n — bannern ska inte nämna en funktion som bara finns på Android.
+
+**Svenska:**
+```
+✨ Har du AI-krediter på ditt Tipspromenaden-konto? Nu kan du använda dem i
+appen. När du skapar en ny promenad finns knappen "Generera frågor med AI":
+välj tema, plats eller klistra in en egen text, så skriver AI:n frågorna och
+lägger dem på dina kontroller.
+```
+
+**English:**
+```
+✨ Got AI credits on your Tipspromenaden account? You can now use them in the
+app. When you create a new walk there is a "Generate questions with AI"
+button: pick a topic, a place or paste your own text, and the AI writes the
+questions and puts them on your checkpoints.
+```
+
+---
+
 ### OTA 2026-11-25 (2) — App Check konfigureras för AI-frågorna
 
 Bara Android-runtime 1.9.0, `production`-branchen. Första provet på enhet gav

@@ -373,7 +373,7 @@ Därav reglerna i koden:
   Invänder Google är det raden som tas bort först.
 - **Knappen visas för alla inloggade konton**, även de som aldrig haft krediter
   (samma beslut). Saldot är då 0.
-- **Fjärrflagga:** `config/aiQuestions.androidEnabled`. Saknas dokumentet, eller
+- **Fjärrflagga:** `config/aiQuestions.androidLive`. Saknas dokumentet, eller
   går det inte att läsa, är funktionen av. Sätts med
   `node scripts/set-ai-questions.mjs --on|--off`. `testerUids` i samma dokument
   (`--testers uid1,uid2`) är konton som ser funktionen även när flaggan är av. Den finns för att kunna

@@ -658,7 +658,7 @@ npx firebase deploy --only functions --project tipspromenaden-491207
 - **Setup, klientkontrakt och felkoder:** se `docs/ai-questions-backend.md`.
 - **Appen förbrukar krediter, bara på Android (kod 2026-11-24).**
   `services/aiQuestions.ts` + `components/AiGenerateModal.tsx`, knapp i
-  `CreateWalkScreen`. Bakom fjärrflaggan `config/aiQuestions.androidEnabled`
+  `CreateWalkScreen`. Bakom fjärrflaggan `config/aiQuestions.androidLive`
   (`scripts/set-ai-questions.mjs --on|--off`; saknat dokument = av), synlig
   för alla inloggade konton. **Lägg ALDRIG till köp, priser, köplänkar
   eller säljande text i appen, och slå inte på det på iOS** — Google Plays

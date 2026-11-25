@@ -2,13 +2,17 @@
 /**
  * Fjärrflaggan för AI-frågor i Android-appen: `config/aiQuestions`.
  *
- * Appen visar AI-genereringen bara när `androidEnabled === true`
+ * Appen visar AI-genereringen bara när `androidLive === true`
  * (`src/services/aiQuestions.ts`). Saknas dokumentet är funktionen av.
  * Flaggan finns för att kunna stänga funktionen direkt, utan ny release,
  * om Google Play invänder mot att appen förbrukar krediter som köpts på
  * webben. Bakgrunden står i `docs/ai-questions-backend.md` → "Appen".
  *
  * Ändringen slår igenom nästa gång skaparskärmen öppnas.
+ *
+ * Fältet hette `androidEnabled` till 2026-11-25. En tidig bundle
+ * (`…43eb6247`) läser det namnet men kan inte hämta App Check-token, så
+ * `androidEnabled` ska aldrig sättas till `true` igen.
  *
  * `testerUids` är konton som ser funktionen även när flaggan är av — för
  * att prova i produktionsappen innan den släpps för alla. `--on`/`--off`
@@ -43,7 +47,7 @@ if (on && off) {
 }
 const testersIdx = process.argv.indexOf("--testers");
 const patch = {};
-if (on || off) patch.androidEnabled = on;
+if (on || off) patch.androidLive = on;
 if (testersIdx >= 0) {
   patch.testerUids = (process.argv[testersIdx + 1] ?? "")
     .split(",")
