@@ -34,6 +34,10 @@ yarn-error.*
 # aldrig committas; sätts som `eas secret:create` i CI och som .env lokalt.
 .env
 .env*.local
+# Firebase Functions env-filer (.env.<projectId>) — projekt-specifika
+# runtime-värden, aldrig i repot.
+.env.*
+!.env.example
 
 # EAS build temp-artefakter (skapas av eas build:list-debug-skript)
 lastbuild.json
