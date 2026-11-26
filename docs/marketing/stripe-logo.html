@@ -1,0 +1,28 @@
+<!doctype html>
+<!--
+  Logotyp för Stripes profilering (Inställningar → Företag → Profilering):
+  app-ikonen + ordbilden "Tipspromenaden" i Lora 600, forest green, enligt
+  BRAND.md avsnitt 6. Genomskinlig bakgrund, 1200×300.
+
+  Bygg om (Chrome — Edge hänger sig i headless-läge på den här maskinen):
+    chrome.exe --headless=new --hide-scrollbars --default-background-color=00000000
+      --screenshot=<full sökväg>\stripe-logo.png --window-size=1200,300
+      --virtual-time-budget=8000 file:///<full sökväg>/stripe-logo.html
+-->
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@600&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 300px; overflow: hidden; background: transparent; }
+  body { display: flex; align-items: center; justify-content: center; gap: 34px; }
+  img { width: 190px; height: 190px; border-radius: 43px; }
+  span { font-family: "Lora", Georgia, serif; font-weight: 600; font-size: 100px; color: #1B6B35; letter-spacing: -0.01em; line-height: 1; padding-bottom: 12px; }
+</style>
+</head>
+<body>
+  <img src="../../assets/icon.png" alt="" />
+  <span>Tipspromenaden</span>
+</body>
+</html>
